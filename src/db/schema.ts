@@ -22,6 +22,8 @@ export const users = pgTable(
     themeTextColor: varchar('theme_text_color', { length: 30 }).default('#1a1a2e').notNull(),
     themeBgImage: text('theme_bg_image').default(''),
     themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(), // 'rounded-xl', 'rounded-full', 'rounded-none', 'shadow'
+    deleteToken: varchar('delete_token', { length: 255 }),
+    deleteTokenExpiresAt: timestamp('delete_token_expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
 );

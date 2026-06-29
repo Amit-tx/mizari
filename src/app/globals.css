@@ -65,3 +65,24 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
+
+@keyframes sakura {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(105vh) translateX(var(--horizontal-offset)) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-sakura {
+  animation-name: sakura;
+}

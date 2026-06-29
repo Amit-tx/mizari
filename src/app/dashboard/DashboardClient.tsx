@@ -5,7 +5,16 @@ import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { AdSlot } from '@/components/AdSlot';
 import { JAPANESE_THEMES } from '@/components/Themes';
-import { updateProfile, updateThemeSettings, removeBgImage, addLink, updateLink, deleteLink, reorderLinks } from './actions';
+import { 
+  updateProfile, 
+  updateThemeSettings, 
+  removeBgImage, 
+  addLink, 
+  updateLink, 
+  deleteLink, 
+  reorderLinks,
+  requestAccountDeletion 
+} from './actions';
 import type { Link } from '@/db/schema';
 
 interface DashboardClientProps {
@@ -42,6 +51,10 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // Deletion States
+  const [deletionLink, setDeletionLink] = useState('');
+  const [requestingDelete, setRequestingDelete] = useState(false);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +137,25 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     setThemeType('light');
     setSaving(false);
     showMessage('Background image removed!');
+  };
+
+  // Account Deletion Link Generator
+  const handleRequestDeletion = async () => {
+    setRequestingDelete(true);
+    try {
+      const res = await requestAccountDeletion(user.id);
+      if (res.success && res.token) {
+        const fullLink = `${window.location.origin}/delete-confirm?token=${res.token}`;
+        setDeletionLink(fullLink);
+      } else {
+        alert('Failed to generate deletion token. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error requesting deletion');
+    } finally {
+      setRequestingDelete(false);
+    }
   };
 
   const handleAddLink = async () => {
@@ -429,9 +461,6 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
             </div>
           </div>
 
-          {/* Ad slot */}
-          <AdSlot slot="dashboard-inline" size="responsive" className="!h-[60px]" />
-
           {/* Add link */}
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Add new link</h2>
@@ -483,6 +512,46 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                   isLast={index === linksList.length - 1}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Danger Zone: Delete Account */}
+          <div className="rounded-3xl border border-red-200 bg-red-50/20 p-6 shadow-sm dark:border-red-900/30 dark:bg-red-950/10">
+            <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+              Permanently delete your Mizari account, links, and all uploaded files. This action cannot be undone.
+            </p>
+            
+            <div className="space-y-4">
+              {!deletionLink ? (
+                <button
+                  onClick={handleRequestDeletion}
+                  disabled={requestingDelete}
+                  className="rounded-2xl bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-red-700 transition-all disabled:opacity-60"
+                >
+                  {requestingDelete ? 'Requesting...' : 'Delete Account'}
+                </button>
+              ) : (
+                <div className="space-y-3 p-4 rounded-2xl bg-white border border-red-200 dark:bg-slate-900 dark:border-red-900/40 animate-fade-in">
+                  <p className="text-xs font-bold text-red-600">
+                    ⚠️ To confirm deletion, click the link below or copy and paste it into your browser. This link will expire in 1 hour.
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <input
+                      type="text"
+                      readOnly
+                      value={deletionLink}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2 text-xs font-mono text-gray-600 select-all focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                    />
+                    <a
+                      href={deletionLink}
+                      className="rounded-xl bg-red-600 px-4 py-2 text-center text-xs font-bold text-white hover:bg-red-700 transition-all whitespace-nowrap"
+                    >
+                      Verify & Delete Now
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

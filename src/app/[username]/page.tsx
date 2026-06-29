@@ -5,6 +5,9 @@ import { notFound } from 'next/navigation';
 import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
+import { SakuraEffect } from '@/components/SakuraEffect';
+import { ShareButton } from '@/components/ShareButton';
+import { Branding } from '@/components/Branding';
 import type { Metadata } from 'next';
 
 interface ProfilePageProps {
@@ -133,10 +136,16 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div 
-      className="flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center"
+      className="relative flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center overflow-hidden"
       style={bgStyle}
     >
-      <div className="w-full max-w-md">
+      {/* Sakura falling animation only for Sakura theme */}
+      {user.themeType === 'sakura' && <SakuraEffect />}
+      
+      {/* Share Button */}
+      <ShareButton username={user.username} themeTextColor={preset?.textColor || user.themeTextColor} />
+
+      <div className="w-full max-w-md z-10">
         {/* Profile card */}
         <div className={`overflow-hidden rounded-3xl border border-gray-100 shadow-xl transition-all duration-300 dark:border-slate-800 ${
           user.themeType === 'light' ? 'bg-white text-[#1a1a2e]' : user.themeType === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-transparent border-transparent shadow-none'
@@ -200,13 +209,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           <AdSlot slot="profile-footer" size="responsive" />
         </div>
 
-        {/* Powered by */}
-        <p className="mt-6 text-center text-xs opacity-75" style={textStyle}>
-          Powered by{' '}
-          <a href="/" className="font-semibold text-[#FF6B6B] hover:text-[#EE5A24] transition-colors">
-            Mizari
-          </a>
-        </p>
+        {/* Made with Mizari Branding banner */}
+        <Branding />
       </div>
     </div>
   );
