@@ -52,9 +52,10 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const [uploadingBg, setUploadingBg] = useState(false);
   const [message, setMessage] = useState('');
   
-  // Deletion States
+  // Deletion & Share States
   const [deletionLink, setDeletionLink] = useState('');
   const [requestingDelete, setRequestingDelete] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +63,30 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const showMessage = (msg: string) => {
     setMessage(msg);
     setTimeout(() => setMessage(''), 3000);
+  };
+
+  // Share profile from dashboard
+  const handleShareProfile = async () => {
+    const profileUrl = `${window.location.origin}/${user.username}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `@${user.username} on Mizari`,
+          text: `Check out my links on Mizari!`,
+          url: profileUrl,
+        });
+      } catch (e) {
+        console.error('Error sharing:', e);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(profileUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (e) {
+        console.error('Error copying:', e);
+      }
+    }
   };
 
   // Image Upload Handler
@@ -201,38 +226,47 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-8 flex flex-col justify-between gap-4 border-b border-gray-100 dark:border-slate-800 pb-6 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            Manage your Mizari profile at{' '}
+          <div className="mt-2 flex flex-wrap items-center gap-2.5 text-sm text-gray-500 dark:text-slate-400">
+            <span>Manage your Mizari profile at</span>
             <a
               href={`/${user.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-[#FF6B6B] hover:underline"
+              className="font-bold text-[#FF6B6B] hover:underline"
             >
               mizari.cc/{user.username}
             </a>
-          </p>
+            <button
+              onClick={handleShareProfile}
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-slate-300 transition-colors"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.622-2.312m0 7.14l-4.622-2.312M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9zm-13.5 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm10.5-4.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+              </svg>
+              <span>{copied ? 'Copied!' : 'Share'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {message && (
-        <div className="mb-6 rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-fade-in">
+        <div className="mb-6 rounded-2xl bg-green-50 p-4 text-sm font-semibold text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-fade-in">
           {message}
         </div>
       )}
 
-      {/* Main Grid */}
+      {/* Main Responsive Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
         {/* Left Column: Editor Forms */}
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Profile Details</h2>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               {/* Avatar Selector */}
@@ -294,7 +328,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Preset Japanese Themes */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Japanese Preset Themes</h2>
             <p className="text-xs text-gray-500 mb-6">Choose a beautiful predefined theme inspired by Japan.</p>
             
@@ -319,7 +353,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Custom Theme & Background Builder */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Custom Theme Builder</h2>
             
             <div className="space-y-6">
@@ -462,7 +496,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Add link */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Add new link</h2>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <input
@@ -490,7 +524,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Links list */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
               Your links ({linksList.length})
             </h2>
@@ -516,9 +550,9 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Danger Zone: Delete Account */}
-          <div className="rounded-3xl border border-red-200 bg-red-50/20 p-6 shadow-sm dark:border-red-900/30 dark:bg-red-950/10">
+          <div className="rounded-3xl border border-red-250 bg-red-50/10 p-6 shadow-sm dark:border-red-900/20 dark:bg-red-950/5">
             <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+            <p className="text-xs text-gray-500 dark:text-slate-450 mb-4">
               Permanently delete your Mizari account, links, and all uploaded files. This action cannot be undone.
             </p>
             
@@ -556,8 +590,8 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
         </div>
 
-        {/* Right column: live preview */}
-        <div className="lg:col-span-2">
+        {/* Right column: live preview - HIDDEN on mobile for better responsive design */}
+        <div className="hidden lg:block lg:col-span-2">
           <div className="sticky top-24">
             <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Live Preview</h2>
             <ProfilePreview
