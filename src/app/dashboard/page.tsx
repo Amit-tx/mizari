@@ -30,6 +30,11 @@ export default async function DashboardPage() {
         username: user.username,
         bio: user.bio || '',
         avatarUrl: user.avatarUrl || '',
+        themeType: (user.themeType || 'light') as 'light' | 'dark' | 'custom',
+        themeBgColor: user.themeBgColor || '#fafafa',
+        themeTextColor: user.themeTextColor || '#1a1a2e',
+        themeBgImage: user.themeBgImage || '',
+        themeButtonStyle: (user.themeButtonStyle || 'rounded-xl') as 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow',
       }}
       initialLinks={userLinks}
     />

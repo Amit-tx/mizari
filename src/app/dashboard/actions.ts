@@ -4,19 +4,68 @@ import { db } from '@/db';
 import { users, links, type Link } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
+import { del } from '@vercel/blob';
 
 async function verifyOwnership(userId: number): Promise<boolean> {
   const session = await auth();
   return session?.user?.id === String(userId);
 }
 
-export async function updateProfile(userId: number, bio: string, avatarUrl: string) {
+export async function updateProfile(userId: number, bio: string) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
     .update(users)
-    .set({ bio, avatarUrl })
+    .set({ bio })
     .where(eq(users.id, userId));
+}
+
+export async function updateThemeSettings(
+  userId: number,
+  themeType: 'light' | 'dark' | 'custom',
+  themeBgColor: string,
+  themeTextColor: string,
+  themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'
+) {
+  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+
+  await db
+    .update(users)
+    .set({
+      themeType,
+      themeBgColor,
+      themeTextColor,
+      themeButtonStyle,
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function removeBgImage(userId: number) {
+  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+
+  // Fetch user to get old background image url
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (user && user.themeBgImage) {
+    // Delete from Vercel Blob
+    if (user.themeBgImage.includes('public.blob.vercel-storage.com')) {
+      try {
+        await del(user.themeBgImage);
+      } catch (e) {
+        console.error('Failed to delete background from Vercel Blob:', e);
+      }
+    }
+
+    // Update database
+    await db
+      .update(users)
+      .set({ themeBgImage: '', themeType: 'light' })
+      .where(eq(users.id, userId));
+  }
 }
 
 export async function addLink(

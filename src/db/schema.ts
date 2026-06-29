@@ -17,6 +17,11 @@ export const users = pgTable(
     passwordHash: text('password_hash'),
     bio: text('bio').default(''),
     avatarUrl: text('avatar_url').default(''),
+    themeType: varchar('theme_type', { length: 20 }).default('light').notNull(), // 'light', 'dark', 'custom'
+    themeBgColor: varchar('theme_bg_color', { length: 30 }).default('#fafafa').notNull(),
+    themeTextColor: varchar('theme_text_color', { length: 30 }).default('#1a1a2e').notNull(),
+    themeBgImage: text('theme_bg_image').default(''),
+    themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(), // 'rounded-xl', 'rounded-full', 'rounded-none', 'shadow'
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
 );
