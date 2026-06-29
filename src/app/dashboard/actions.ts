@@ -126,24 +126,37 @@ export async function addLink(
   userId: number,
   title: string,
   url: string,
-  order: number
+  order: number,
+  isProduct: number = 0,
+  price: string = '',
+  discount: string = '',
+  productImage: string = ''
 ): Promise<Link | null> {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   const [newLink] = await db
     .insert(links)
-    .values({ userId, title, url, order })
+    .values({ userId, title, url, order, isProduct, price, discount, productImage })
     .returning();
 
   return newLink || null;
 }
 
-export async function updateLink(id: number, userId: number, title: string, url: string) {
+export async function updateLink(
+  id: number, 
+  userId: number, 
+  title: string, 
+  url: string,
+  isProduct: number = 0,
+  price: string = '',
+  discount: string = '',
+  productImage: string = ''
+) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
     .update(links)
-    .set({ title, url })
+    .set({ title, url, isProduct, price, discount, productImage })
     .where(and(eq(links.id, id), eq(links.userId, userId)));
 }
 

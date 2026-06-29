@@ -29,5 +29,11 @@ export async function GET(
     .set({ clicks: sql`${links.clicks} + 1` })
     .where(eq(links.id, linkId));
 
-  return NextResponse.redirect(link.url, 302);
+  // Ensure URL has a protocol (http/https) prefix, otherwise NextResponse.redirect will fail or treat it as relative path
+  let targetUrl = link.url;
+  if (!/^https?:\/\//i.test(targetUrl)) {
+    targetUrl = `https://${targetUrl}`;
+  }
+
+  return NextResponse.redirect(targetUrl, 302);
 }

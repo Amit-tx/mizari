@@ -35,11 +35,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
-  const userLinks = await db
+  const allLinks = await db
     .select()
     .from(links)
     .where(eq(links.userId, user.id))
     .orderBy(asc(links.order));
+
+  // Separate standard links and product cards
+  const standardLinks = allLinks.filter((l) => !l.isProduct || l.isProduct === 0);
+  const productLinks = allLinks.filter((l) => l.isProduct === 1);
 
   // Check if preset theme
   const isPreset = !['light', 'dark', 'custom'].includes(user.themeType);
@@ -177,14 +181,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               )}
             </div>
 
-            {/* Links */}
+            {/* Standard Links */}
             <div className="mt-8 space-y-3.5">
-              {userLinks.length === 0 && (
-                <p className="text-center text-sm text-gray-400 dark:text-slate-500 py-4">
-                  No links yet.
-                </p>
-              )}
-              {userLinks.map((link) => (
+              {standardLinks.map((link) => (
                 <a
                   key={link.id}
                   href={`/api/click/${link.id}`}
@@ -201,6 +200,56 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 </a>
               ))}
             </div>
+
+            {/* Affiliate Product Cards Section */}
+            {productLinks.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-gray-250/20">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider mb-4 opacity-75" style={textStyle}>
+                  🛍️ Featured Products
+                </h3>
+                <div className="grid gap-4 grid-cols-2">
+                  {productLinks.map((product) => (
+                    <a 
+                      key={product.id}
+                      href={`/api/click/${product.id}`}
+                      className="group/prod flex flex-col rounded-2xl border border-gray-100 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                      style={preset ? { borderColor: `${preset.btnBorder}25` } : {}}
+                    >
+                      {/* Product Image */}
+                      <div className="relative h-28 w-full bg-gray-50 dark:bg-slate-800 overflow-hidden">
+                        {product.productImage ? (
+                          <img src={product.productImage} alt={product.title} className="h-full w-full object-cover group-hover/prod:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-2xl">🛍️</div>
+                        )}
+                        {/* Discount Tag */}
+                        {product.discount && (
+                          <span className="absolute top-2 left-2 rounded bg-red-550 px-1.5 py-0.5 text-[9px] font-extrabold text-white">
+                            {product.discount}
+                          </span>
+                        )}
+                      </div>
+                      {/* Product Info */}
+                      <div className="p-3 flex-1 flex flex-col justify-between text-left">
+                        <div>
+                          <h4 className="line-clamp-1 text-xs font-bold text-gray-800 dark:text-gray-200">{product.title}</h4>
+                          {product.price && (
+                            <p className="mt-1 text-xs font-extrabold text-[#FF6B6B]">{product.price}</p>
+                          )}
+                        </div>
+                        {/* Buy Button */}
+                        <div 
+                          className="mt-3 w-full rounded-xl bg-[#FF6B6B] py-1.5 text-center text-[10px] font-extrabold text-white hover:brightness-110 transition-all"
+                          style={preset ? { backgroundColor: preset.btnBg, color: preset.btnText, borderColor: preset.btnBorder } : {}}
+                        >
+                          Shop Now
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

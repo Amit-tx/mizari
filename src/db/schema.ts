@@ -38,6 +38,10 @@ export const links = pgTable('links', {
   icon: text('icon'),
   order: integer('order').default(0).notNull(),
   clicks: integer('clicks').default(0).notNull(),
+  isProduct: integer('is_product').default(0).notNull(), // 0 = standard link, 1 = product card
+  price: varchar('price', { length: 30 }).default(''),
+  discount: varchar('discount', { length: 30 }).default(''),
+  productImage: text('product_image').default(''),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

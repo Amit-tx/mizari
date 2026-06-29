@@ -5,7 +5,15 @@ interface ProfilePreviewProps {
   username: string;
   bio: string;
   avatarUrl: string;
-  links: Array<{ id: number; title: string; url: string }>;
+  links: Array<{ 
+    id: number; 
+    title: string; 
+    url: string;
+    isProduct?: number;
+    price?: string | null;
+    discount?: string | null;
+    productImage?: string | null;
+  }>;
   themeType?: string;
   themeBgColor?: string;
   themeTextColor?: string;
@@ -24,76 +32,50 @@ export function ProfilePreview({
   themeBgImage = '',
   themeButtonStyle = 'rounded-xl',
 }: ProfilePreviewProps) {
-  // Check if it is a pre-defined Japanese theme
   const isPreset = !['light', 'dark', 'custom'].includes(themeType);
   const preset = isPreset ? getThemeById(themeType) : undefined;
 
-  // Determine background style
+  // Separate standard links and product cards
+  const standardLinks = links.filter((l) => !l.isProduct || l.isProduct === 0);
+  const productLinks = links.filter((l) => l.isProduct === 1);
+
   let bgStyle: React.CSSProperties = {};
   if (preset) {
-    if (preset.bgGradient) {
-      bgStyle = { backgroundImage: preset.bgGradient };
-    } else {
-      bgStyle = { backgroundColor: preset.bgColor };
-    }
+    if (preset.bgGradient) bgStyle = { backgroundImage: preset.bgGradient };
+    else bgStyle = { backgroundColor: preset.bgColor };
   } else if (themeType === 'custom') {
-    if (themeBgImage) {
-      bgStyle = { backgroundImage: `url(${themeBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
-    } else {
-      bgStyle = { backgroundColor: themeBgColor };
-    }
+    if (themeBgImage) bgStyle = { backgroundImage: `url(${themeBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    else bgStyle = { backgroundColor: themeBgColor };
   }
 
-  // Determine text color style
   const textStyle: React.CSSProperties = {};
-  if (preset) {
-    textStyle.color = preset.textColor;
-  } else if (themeType === 'custom') {
-    textStyle.color = themeTextColor;
-  }
+  if (preset) textStyle.color = preset.textColor;
+  else if (themeType === 'custom') textStyle.color = themeTextColor;
 
-  // Custom button styles
   const getButtonClass = () => {
     if (!preset && themeType !== 'custom') {
-      return 'border border-gray-200 bg-gray-50 text-gray-700 hover:border-[#FF6B6B]/40 hover:bg-[#FF6B6B]/5 hover:text-[#FF6B6B] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-[#FF6B6B]/40 dark:hover:bg-[#FF6B6B]/10 dark:hover:text-[#FF6B6B] rounded-xl';
+      return 'border border-gray-200 bg-gray-50 text-gray-700 rounded-xl';
     }
-
     if (preset) {
       let base = 'transition-all duration-200 border ';
-      if (preset.btnStyle === 'shadow') {
-        base += 'bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 ';
-      } else if (preset.btnStyle === 'rounded-full') {
-        base += 'rounded-full ';
-      } else if (preset.btnStyle === 'rounded-none') {
-        base += 'rounded-none ';
-      } else {
-        base += 'rounded-xl ';
-      }
+      if (preset.btnStyle === 'shadow') base += 'bg-white shadow-sm ';
+      else if (preset.btnStyle === 'rounded-full') base += 'rounded-full ';
+      else if (preset.btnStyle === 'rounded-none') base += 'rounded-none ';
+      else base += 'rounded-xl ';
       return base;
     }
-
     let base = 'transition-all duration-200 border ';
-    
-    // Borders & Backgrounds
     if (themeButtonStyle === 'shadow') {
-      base += 'bg-white/95 border-transparent shadow-md hover:shadow-lg hover:-translate-y-0.5 text-slate-800 ';
+      base += 'bg-white/95 border-transparent shadow-md text-slate-800 ';
     } else {
-      base += 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 ';
+      base += 'bg-white/10 backdrop-blur-sm border-white/20 ';
     }
-
-    // Border Radius
-    if (themeButtonStyle === 'rounded-full') {
-      base += 'rounded-full ';
-    } else if (themeButtonStyle === 'rounded-none') {
-      base += 'rounded-none ';
-    } else {
-      base += 'rounded-xl ';
-    }
-
+    if (themeButtonStyle === 'rounded-full') base += 'rounded-full ';
+    else if (themeButtonStyle === 'rounded-none') base += 'rounded-none ';
+    else base += 'rounded-xl ';
     return base;
   };
 
-  // Custom button inline style (for custom theme color overrides)
   const getButtonStyle = (): React.CSSProperties => {
     if (preset) {
       return {
@@ -103,9 +85,7 @@ export function ProfilePreview({
       };
     }
     if (themeType === 'custom' && themeButtonStyle !== 'shadow') {
-      return {
-        color: themeTextColor,
-      };
+      return { color: themeTextColor };
     }
     return {};
   };
@@ -117,7 +97,6 @@ export function ProfilePreview({
       }`}
       style={bgStyle}
     >
-      {/* Top bar gradient decoration — only for default themes */}
       {!preset && themeType !== 'custom' && (
         <div className="h-20 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]" />
       )}
@@ -138,24 +117,13 @@ export function ProfilePreview({
         
         {/* Info */}
         <div className="mt-4 text-center">
-          <h2 className="text-xl font-bold" style={textStyle}>
-            @{username}
-          </h2>
-          {bio && (
-            <p className="mt-2 text-sm opacity-90 leading-relaxed" style={textStyle}>
-              {bio}
-            </p>
-          )}
+          <h2 className="text-xl font-bold" style={textStyle}>@{username}</h2>
+          {bio && <p className="mt-2 text-sm opacity-90 leading-relaxed" style={textStyle}>{bio}</p>}
         </div>
         
-        {/* Links */}
+        {/* Standard Links */}
         <div className="mt-8 space-y-3.5">
-          {links.length === 0 && (
-            <p className="text-center text-sm text-gray-400 dark:text-slate-500 py-4">
-              No links yet. Add your first link!
-            </p>
-          )}
-          {links.map((link) => (
+          {standardLinks.map((link) => (
             <div
               key={link.id}
               className={`block w-full px-4 py-3.5 text-center text-sm font-semibold ${getButtonClass()}`}
@@ -168,6 +136,55 @@ export function ProfilePreview({
             </div>
           ))}
         </div>
+
+        {/* Affiliate Product Cards Section */}
+        {productLinks.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-gray-100/30">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider mb-4 opacity-75" style={textStyle}>
+              🛍️ Featured Products
+            </h3>
+            <div className="grid gap-4 grid-cols-2">
+              {productLinks.map((product) => (
+                <div 
+                  key={product.id}
+                  className="group/prod flex flex-col rounded-2xl border border-gray-100 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md overflow-hidden shadow-sm hover:shadow-md transition-all duration-350"
+                  style={preset ? { borderColor: `${preset.btnBorder}25` } : {}}
+                >
+                  {/* Product Image */}
+                  <div className="relative h-28 w-full bg-gray-50 dark:bg-slate-800 overflow-hidden">
+                    {product.productImage ? (
+                      <img src={product.productImage} alt={product.title} className="h-full w-full object-cover group-hover/prod:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-2xl">🛍️</div>
+                    )}
+                    {/* Discount Tag */}
+                    {product.discount && (
+                      <span className="absolute top-2 left-2 rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-extrabold text-white">
+                        {product.discount}
+                      </span>
+                    )}
+                  </div>
+                  {/* Product Info */}
+                  <div className="p-3 flex-1 flex flex-col justify-between text-left">
+                    <div>
+                      <h4 className="line-clamp-1 text-xs font-bold text-gray-800 dark:text-gray-200">{product.title}</h4>
+                      {product.price && (
+                        <p className="mt-1 text-xs font-extrabold text-[#FF6B6B]">{product.price}</p>
+                      )}
+                    </div>
+                    {/* Buy Button */}
+                    <div 
+                      className="mt-3 w-full rounded-xl bg-[#FF6B6B] py-1.5 text-center text-[10px] font-extrabold text-white hover:brightness-115 transition-all"
+                      style={preset ? { backgroundColor: preset.btnBg, color: preset.btnText } : {}}
+                    >
+                      Shop Now
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
