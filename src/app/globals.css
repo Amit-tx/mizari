@@ -86,3 +86,19 @@ body {
 .animate-sakura {
   animation-name: sakura;
 }
+
+@keyframes sway {
+  0% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+  100% {
+    transform: rotate(-3deg);
+  }
+}
+
+.animate-sway {
+  animation: sway 4s ease-in-out infinite;
+}

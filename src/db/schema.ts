@@ -44,8 +44,20 @@ export const links = pgTable('links', {
   productImage: text('product_image').default(''),
 });
 
+export const wishes = pgTable('wishes', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  sender: varchar('sender', { length: 100 }).default('Anonymous').notNull(),
+  text: text('text').notNull(),
+  color: varchar('color', { length: 20 }).default('#FFD6E0').notNull(), // Color of the paper slip (Tanzaku)
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   links: many(links),
+  wishes: many(wishes),
 }));
 
 export const linksRelations = relations(links, ({ one }) => ({
@@ -55,7 +67,16 @@ export const linksRelations = relations(links, ({ one }) => ({
   }),
 }));
 
+export const wishesRelations = relations(wishes, ({ one }) => ({
+  user: one(users, {
+    fields: [wishes.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Link = typeof links.$inferSelect;
 export type NewLink = typeof links.$inferInsert;
+export type Wish = typeof wishes.$inferSelect;
+export type NewWish = typeof wishes.$inferInsert;

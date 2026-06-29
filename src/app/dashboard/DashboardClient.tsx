@@ -600,30 +600,38 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                       className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. 20% OFF"
                     />
-                  </div>
-                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3">
-                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-2">Product Image</label>
-                    <div className="flex items-center gap-4">
-                      {productImage && (
-                        <img src={productImage} alt="Product" className="h-14 w-14 rounded-xl object-cover border" />
-                      )}
+                                <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Product Image</label>
+                    <div className="flex flex-col gap-2">
                       <input
-                        type="file"
-                        ref={prodImgInputRef}
-                        onChange={(e) => handleImageUpload(e, 'product')}
-                        accept="image/*"
-                        className="hidden"
+                        type="url"
+                        value={productImage}
+                        onChange={(e) => setProductImage(e.target.value)}
+                        className="w-full rounded-xl border border-gray-250 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        placeholder="Paste Image URL here (e.g. Amazon image URL)..."
                       />
-                      <button
-                        type="button"
-                        disabled={uploadingProd}
-                        onClick={() => prodImgInputRef.current?.click()}
-                        className="rounded-xl border border-gray-250 bg-white px-4 py-2 text-xs font-bold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-350"
-                      >
-                        {uploadingProd ? 'Uploading...' : productImage ? 'Change Image' : 'Upload Image'}
-                      </button>
+                      <div className="flex items-center gap-4">
+                        {productImage && (
+                          <img src={productImage} alt="Product" className="h-14 w-14 rounded-xl object-cover border" />
+                        )}
+                        <input
+                          type="file"
+                          ref={prodImgInputRef}
+                          onChange={(e) => handleImageUpload(e, 'product')}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          disabled={uploadingProd}
+                          onClick={() => prodImgInputRef.current?.click()}
+                          className="rounded-xl border border-gray-250 bg-white px-4 py-2 text-xs font-bold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-350"
+                        >
+                          {uploadingProd ? 'Uploading...' : 'Or Upload Local File'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </div>     </div>
                 </div>
               )}
 

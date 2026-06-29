@@ -151,25 +151,34 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                     placeholder="e.g. 20% OFF"
                   />
                 </div>
-                <div className="col-span-2 pt-2">
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Product Image</label>
-                  <div className="flex items-center gap-3">
-                    {productImage && (
-                      <img src={productImage} alt="product" className="h-12 w-12 rounded-lg object-cover border" />
-                    )}
+                <div className="col-span-2 pt-2 space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400">Product Image</label>
+                  <div className="flex flex-col gap-2">
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id={`edit-prod-img-${link.id}`}
+                      type="url"
+                      value={productImage}
+                      onChange={(e) => setProductImage(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="Paste Image URL here (e.g. Amazon image URL)..."
                     />
-                    <label
-                      htmlFor={`edit-prod-img-${link.id}`}
-                      className="cursor-pointer rounded-xl border border-gray-250 px-3 py-1.5 text-xs font-bold text-gray-600 dark:border-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50"
-                    >
-                      {uploading ? 'Uploading...' : productImage ? 'Change Image' : 'Upload Image'}
-                    </label>
+                    <div className="flex items-center gap-3">
+                      {productImage && (
+                        <img src={productImage} alt="product" className="h-12 w-12 rounded-lg object-cover border" />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id={`edit-prod-img-${link.id}`}
+                      />
+                      <label
+                        htmlFor={`edit-prod-img-${link.id}`}
+                        className="cursor-pointer rounded-xl border border-gray-250 px-3 py-1.5 text-xs font-bold text-gray-650 dark:border-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50"
+                      >
+                        {uploading ? 'Uploading...' : 'Or Upload Local File'}
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>

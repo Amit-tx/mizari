@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { users, links } from '@/db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { users, links, wishes } from '@/db/schema';
+import { eq, asc, desc } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
@@ -8,6 +8,8 @@ import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
 import { ShareButton } from '@/components/ShareButton';
 import { Branding } from '@/components/Branding';
+import { TanabataTree } from '@/components/TanabataTree';
+import { AmbientPlayer } from '@/components/AmbientPlayer';
 import type { Metadata } from 'next';
 
 interface ProfilePageProps {
@@ -40,6 +42,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .from(links)
     .where(eq(links.userId, user.id))
     .orderBy(asc(links.order));
+
+  // Fetch latest 10 wishes for the Tanabata Tree
+  const userWishes = await db
+    .select()
+    .from(wishes)
+    .where(eq(wishes.userId, user.id))
+    .orderBy(desc(wishes.id))
+    .limit(10);
 
   // Separate standard links and product cards
   const standardLinks = allLinks.filter((l) => !l.isProduct || l.isProduct === 0);
@@ -140,16 +150,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div 
-      className="relative flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center overflow-hidden"
+      className="relative flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center overflow-y-auto"
       style={bgStyle}
     >
       {/* Sakura falling animation only for Sakura theme */}
       {user.themeType === 'sakura' && <SakuraEffect />}
+
+      {/* Floating Ambient Furin Sound Player */}
+      <AmbientPlayer />
       
       {/* Share Button */}
       <ShareButton username={user.username} themeTextColor={preset?.textColor || user.themeTextColor} />
 
-      <div className="w-full max-w-md z-10">
+      <div className="w-full max-w-md z-10 space-y-6">
         {/* Profile card */}
         <div className={`overflow-hidden rounded-3xl border border-gray-100 shadow-xl transition-all duration-300 dark:border-slate-800 ${
           user.themeType === 'light' ? 'bg-white text-[#1a1a2e]' : user.themeType === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-transparent border-transparent shadow-none'
@@ -253,8 +266,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </div>
         </div>
 
+        {/* Tanabata Wish Tree interactive board */}
+        <TanabataTree 
+          userId={user.id} 
+          initialWishes={userWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color }))} 
+          textColor={preset?.textColor || user.themeTextColor}
+        />
+
         {/* Ad slot below links */}
-        <div className="mt-8">
+        <div className="mt-4">
           <AdSlot slot="profile-footer" size="responsive" />
         </div>
 

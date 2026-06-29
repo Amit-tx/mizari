@@ -3,24 +3,34 @@ import { AdSlot } from '@/components/AdSlot';
 
 const features = [
   {
+    icon: '🌸',
+    title: 'Japanese Preset Themes',
+    description: 'Choose from 20+ preset themes like Sakura (with falling cherry blossom animation), Tsukiyo, and Yuki.',
+  },
+  {
+    icon: '🛍️',
+    title: 'Affiliate Product Cards',
+    description: 'Add products with price tags, discounts, and custom images directly from URLs (Amazon/Myntra support).',
+  },
+  {
+    icon: '📱',
+    title: 'Instant QR Code',
+    description: 'Download a beautifully styled brand-colored QR code to share your profile offline.',
+  },
+  {
     icon: '🔗',
-    title: 'Custom Links',
-    description: 'Organize all your important links in one beautiful, shareable page.',
+    title: 'Auto Link Icons',
+    description: 'Mizari automatically detects and attaches beautiful social icons for YouTube, Instagram, Spotify, etc.',
   },
   {
     icon: '📊',
     title: 'Click Analytics',
-    description: 'Track every click in real-time. Understand your audience better.',
+    description: 'Track clicks on each link and product card in real-time to understand your audience.',
   },
   {
-    icon: '🌙',
-    title: 'Dark Mode',
-    description: 'Beautiful in any theme. Your profile looks stunning day or night.',
-  },
-  {
-    icon: '🚀',
-    title: 'Free Forever',
-    description: 'Get started instantly with our generous free tier. No credit card needed.',
+    icon: '🗑️',
+    title: 'Secure Account Deletion',
+    description: 'Completely remove your account, links, and uploaded files instantly via secure verification link.',
   },
 ];
 
