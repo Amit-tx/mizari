@@ -36,36 +36,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete old image from Vercel Blob if exists
-    const oldUrl = type === 'avatar' ? user.avatarUrl : user.themeBgImage;
-    if (oldUrl && oldUrl.includes('public.blob.vercel-storage.com')) {
-      try {
-        await del(oldUrl);
-      } catch (e) {
-        console.error('Failed to delete old image from blob storage:', e);
-      }
-    }
+    // Check if Vercel Blob Token is configured
+    let imageUrl = '';
 
-    // Upload new image to Vercel Blob
-    const filename = `${userId}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
-    const blob = await put(filename, file, {
-      access: 'public',
-    });
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      // Local development fallback: convert to base64 data URL
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mimeType = file.type || 'image/jpeg';
+      imageUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    } else {
+      // Delete old image from Vercel Blob if exists
+      const oldUrl = type === 'avatar' ? user.avatarUrl : user.themeBgImage;
+      if (oldUrl && oldUrl.includes('public.blob.vercel-storage.com')) {
+        try {
+          await del(oldUrl);
+        } catch (e) {
+          console.error('Failed to delete old image from blob storage:', e);
+        }
+      }
+
+      // Upload new image to Vercel Blob
+      const filename = `${userId}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
+      const blob = await put(filename, file, {
+        access: 'public',
+      });
+      imageUrl = blob.url;
+    }
 
     // Update database
     if (type === 'avatar') {
       await db
         .update(users)
-        .set({ avatarUrl: blob.url })
+        .set({ avatarUrl: imageUrl })
         .where(eq(users.id, userId));
     } else {
       await db
         .update(users)
-        .set({ themeBgImage: blob.url, themeType: 'custom' })
+        .set({ themeBgImage: imageUrl, themeType: 'custom' })
         .where(eq(users.id, userId));
     }
 
-    return NextResponse.json({ url: blob.url });
+    return NextResponse.json({ url: imageUrl });
   } catch (error) {
     console.error('Upload API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

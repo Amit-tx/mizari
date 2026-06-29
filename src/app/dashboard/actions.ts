@@ -22,7 +22,7 @@ export async function updateProfile(userId: number, bio: string) {
 
 export async function updateThemeSettings(
   userId: number,
-  themeType: 'light' | 'dark' | 'custom',
+  themeType: string,
   themeBgColor: string,
   themeTextColor: string,
   themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'
@@ -43,7 +43,6 @@ export async function updateThemeSettings(
 export async function removeBgImage(userId: number) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
-  // Fetch user to get old background image url
   const [user] = await db
     .select()
     .from(users)
@@ -51,7 +50,6 @@ export async function removeBgImage(userId: number) {
     .limit(1);
 
   if (user && user.themeBgImage) {
-    // Delete from Vercel Blob
     if (user.themeBgImage.includes('public.blob.vercel-storage.com')) {
       try {
         await del(user.themeBgImage);
@@ -60,7 +58,6 @@ export async function removeBgImage(userId: number) {
       }
     }
 
-    // Update database
     await db
       .update(users)
       .set({ themeBgImage: '', themeType: 'light' })

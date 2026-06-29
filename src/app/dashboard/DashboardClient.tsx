@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { AdSlot } from '@/components/AdSlot';
+import { JAPANESE_THEMES } from '@/components/Themes';
 import { updateProfile, updateThemeSettings, removeBgImage, addLink, updateLink, deleteLink, reorderLinks } from './actions';
 import type { Link } from '@/db/schema';
 
@@ -13,7 +14,7 @@ interface DashboardClientProps {
     username: string; 
     bio: string; 
     avatarUrl: string;
-    themeType: 'light' | 'dark' | 'custom';
+    themeType: string;
     themeBgColor: string;
     themeTextColor: string;
     themeBgImage: string;
@@ -27,7 +28,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
   
   // Theme States
-  const [themeType, setThemeType] = useState<'light' | 'dark' | 'custom'>(user.themeType);
+  const [themeType, setThemeType] = useState<string>(user.themeType);
   const [themeBgColor, setThemeBgColor] = useState(user.themeBgColor);
   const [themeTextColor, setThemeTextColor] = useState(user.themeTextColor);
   const [themeBgImage, setThemeBgImage] = useState(user.themeBgImage);
@@ -101,11 +102,18 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   };
 
   // Save Theme Settings
-  const handleSaveTheme = async () => {
+  const handleSaveTheme = async (newThemeType?: string) => {
     setSaving(true);
-    await updateThemeSettings(user.id, themeType, themeBgColor, themeTextColor, themeButtonStyle);
+    const targetType = newThemeType || themeType;
+    await updateThemeSettings(user.id, targetType, themeBgColor, themeTextColor, themeButtonStyle);
     setSaving(false);
     showMessage('Theme settings saved!');
+  };
+
+  // Select Preset Theme
+  const handleSelectPreset = async (presetId: string) => {
+    setThemeType(presetId);
+    await handleSaveTheme(presetId);
   };
 
   // Remove Background Image
@@ -162,16 +170,17 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center justify-between">
+      {/* Header */}
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
             Manage your Mizari profile at{' '}
             <a
               href={`/${user.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-[#FF6B6B] hover:text-[#EE5A24] transition-colors"
+              className="font-semibold text-[#FF6B6B] hover:underline"
             >
               mizari.cc/{user.username}
             </a>
@@ -180,29 +189,37 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
       </div>
 
       {message && (
-        <div className="mb-6 rounded-lg bg-green-50 p-3 text-sm font-medium text-green-600 dark:bg-green-900/20 dark:text-green-400">
+        <div className="mb-6 rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-fade-in">
           {message}
         </div>
       )}
 
+      {/* Main Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
-        {/* Left column: edit forms */}
+        {/* Left Column: Editor Forms */}
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Details</h2>
-            <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-center">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Profile Details</h2>
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               {/* Avatar Selector */}
               <div className="relative flex flex-col items-center">
-                <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-800">
+                <div className="group relative h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-gray-50 shadow-md dark:border-slate-800 dark:bg-slate-800">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-gray-400">
+                    <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-gray-400">
                       {user.username.charAt(0).toUpperCase()}
                     </div>
                   )}
+                  {/* Hover Overlay */}
+                  <div 
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <span className="text-xs font-bold text-white">Change</span>
+                  </div>
                 </div>
                 <input
                   type="file"
@@ -215,7 +232,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                   type="button"
                   disabled={uploadingAvatar}
                   onClick={() => avatarInputRef.current?.click()}
-                  className="mt-2 text-xs font-semibold text-[#FF6B6B] hover:text-[#EE5A24]"
+                  className="mt-2.5 text-xs font-bold text-[#FF6B6B] hover:underline"
                 >
                   {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
                 </button>
@@ -224,19 +241,19 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
               {/* Bio input */}
               <div className="flex-1 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Bio</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Bio</label>
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    rows={2}
-                    className="mt-1.5 block w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    rows={3}
+                    className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     placeholder="Tell the world about yourself..."
                   />
                 </div>
                 <button
                   onClick={handleUpdateProfile}
                   disabled={saving}
-                  className="rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60"
+                  className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
                 >
                   Save Bio
                 </button>
@@ -244,83 +261,105 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
             </div>
           </div>
 
-          {/* Custom Theme & Background Builder */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Page Theme</h2>
+          {/* Preset Japanese Themes */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Japanese Preset Themes</h2>
+            <p className="text-xs text-gray-500 mb-6">Choose a beautiful predefined theme inspired by Japan.</p>
             
-            <div className="mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-72 overflow-y-auto pr-1">
+              {JAPANESE_THEMES.map((theme) => (
+                <button
+                  key={theme.id}
+                  type="button"
+                  onClick={() => handleSelectPreset(theme.id)}
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 ${
+                    themeType === theme.id
+                      ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
+                      : 'border-gray-100 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
+                  }`}
+                  style={{ background: theme.bgGradient || theme.bgColor }}
+                >
+                  <span className="text-2xl mb-1">{theme.emoji}</span>
+                  <span className="text-xs font-bold" style={{ color: theme.textColor }}>{theme.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Theme & Background Builder */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Custom Theme Builder</h2>
+            
+            <div className="space-y-6">
               {/* Theme Type Selector */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Theme Type</label>
-                <div className="mt-2 flex gap-3">
-                  {(['light', 'dark', 'custom'] as const).map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setThemeType(type)}
-                      className={`rounded-xl px-4 py-2 text-sm font-semibold capitalize border transition-all ${
-                        themeType === type
-                          ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                          : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex gap-2">
+                {(['light', 'dark', 'custom'] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setThemeType(type)}
+                    className={`rounded-xl px-4 py-2 text-xs font-bold capitalize border transition-all ${
+                      themeType === type
+                        ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                        : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {type === 'custom' ? '🎨 Custom' : type}
+                  </button>
+                ))}
               </div>
 
               {/* Custom Theme Options */}
-              {themeType === 'custom' && (
-                <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-xl bg-gray-50 dark:bg-slate-900/50">
+              {(themeType === 'custom' || !JAPANESE_THEMES.some(t => t.id === themeType)) && (
+                <div className="grid gap-6 sm:grid-cols-2 p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
                   {/* Background Color */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">Background Color</label>
-                    <div className="mt-1.5 flex items-center gap-2">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Background Color</label>
+                    <div className="mt-2 flex items-center gap-2">
                       <input
                         type="color"
                         value={themeBgColor}
-                        onChange={(e) => setThemeBgColor(e.target.value)}
-                        className="h-9 w-9 cursor-pointer rounded-lg border-0 bg-transparent"
+                        onChange={(e) => { setThemeBgColor(e.target.value); setThemeType('custom'); }}
+                        className="h-10 w-10 cursor-pointer rounded-xl border-0 bg-transparent"
                       />
                       <input
                         type="text"
                         value={themeBgColor}
-                        onChange={(e) => setThemeBgColor(e.target.value)}
-                        className="w-24 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800"
+                        onChange={(e) => { setThemeBgColor(e.target.value); setThemeType('custom'); }}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none dark:border-slate-700 dark:bg-slate-800"
                       />
                     </div>
                   </div>
 
                   {/* Text Color */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">Text Color</label>
-                    <div className="mt-1.5 flex items-center gap-2">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Text Color</label>
+                    <div className="mt-2 flex items-center gap-2">
                       <input
                         type="color"
                         value={themeTextColor}
-                        onChange={(e) => setThemeTextColor(e.target.value)}
-                        className="h-9 w-9 cursor-pointer rounded-lg border-0 bg-transparent"
+                        onChange={(e) => { setThemeTextColor(e.target.value); setThemeType('custom'); }}
+                        className="h-10 w-10 cursor-pointer rounded-xl border-0 bg-transparent"
                       />
                       <input
                         type="text"
                         value={themeTextColor}
-                        onChange={(e) => setThemeTextColor(e.target.value)}
-                        className="w-24 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800"
+                        onChange={(e) => { setThemeTextColor(e.target.value); setThemeType('custom'); }}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none dark:border-slate-700 dark:bg-slate-800"
                       />
                     </div>
                   </div>
 
                   {/* Background Image Upload */}
-                  <div className="sm:col-span-2 border-t border-gray-200 dark:border-slate-800 pt-3">
-                    <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">Background Image</label>
-                    <div className="mt-2 flex items-center gap-4">
+                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-4">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Background Image</label>
+                    <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
                       {themeBgImage ? (
-                        <div className="relative h-12 w-20 overflow-hidden rounded-lg border border-gray-200">
+                        <div className="relative h-16 w-28 overflow-hidden rounded-xl border border-gray-200 shadow-sm">
                           <img src={themeBgImage} alt="Bg Preview" className="h-full w-full object-cover" />
                         </div>
                       ) : (
-                        <div className="flex h-12 w-20 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400">
+                        <div className="flex h-16 w-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-xs text-gray-400">
                           No Image
                         </div>
                       )}
@@ -337,7 +376,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                           type="button"
                           disabled={uploadingBg}
                           onClick={() => bgInputRef.current?.click()}
-                          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                         >
                           {uploadingBg ? 'Uploading...' : themeBgImage ? 'Replace Image' : 'Upload Image'}
                         </button>
@@ -345,7 +384,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                           <button
                             type="button"
                             onClick={handleRemoveBg}
-                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400"
+                            className="rounded-xl bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400"
                           >
                             Remove
                           </button>
@@ -355,15 +394,15 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                   </div>
 
                   {/* Button Style Selector */}
-                  <div className="sm:col-span-2 border-t border-gray-200 dark:border-slate-800 pt-3">
-                    <label className="block text-xs font-medium text-gray-600 dark:text-slate-400 font-semibold mb-2">Button Style</label>
+                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-4">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-3">Button Style</label>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {(['rounded-xl', 'rounded-full', 'rounded-none', 'shadow'] as const).map((style) => (
                         <button
                           key={style}
                           type="button"
-                          onClick={() => setThemeButtonStyle(style)}
-                          className={`rounded-lg py-2 text-xs font-semibold border transition-all ${
+                          onClick={() => { setThemeButtonStyle(style); setThemeType('custom'); }}
+                          className={`rounded-xl py-2.5 text-xs font-bold border transition-all ${
                             themeButtonStyle === style
                               ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
                               : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400'
@@ -381,11 +420,11 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
               )}
 
               <button
-                onClick={handleSaveTheme}
+                onClick={() => handleSaveTheme()}
                 disabled={saving}
-                className="rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60"
+                className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
               >
-                Save Theme
+                Save Custom Theme
               </button>
             </div>
           </div>
@@ -394,27 +433,27 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           <AdSlot slot="dashboard-inline" size="responsive" className="!h-[60px]" />
 
           {/* Add link */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add new link</h2>
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Add new link</h2>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <input
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 placeholder="Link title (e.g. My YouTube)"
               />
               <input
                 type="url"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
-                className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 placeholder="https://..."
               />
               <button
                 onClick={handleAddLink}
                 disabled={saving || !newTitle.trim() || !newUrl.trim()}
-                className="rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-110 disabled:opacity-60"
+                className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
               >
                 Add
               </button>
@@ -422,8 +461,8 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Links list */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
               Your links ({linksList.length})
             </h2>
             <div className="mt-4 space-y-3">
@@ -451,7 +490,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
         {/* Right column: live preview */}
         <div className="lg:col-span-2">
           <div className="sticky top-24">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Live Preview</h2>
+            <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Live Preview</h2>
             <ProfilePreview
               username={user.username}
               bio={bio}
