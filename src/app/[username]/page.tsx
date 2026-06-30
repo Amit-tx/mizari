@@ -205,16 +205,16 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {/* User info */}
             <div className="mt-4 text-center">
               <div className="flex items-center justify-center gap-1.5">
-                <h1 className="text-2xl font-bold" style={textStyle}>@{profile.username}</h1>
+                <h1 className="text-2xl font-bold drop-shadow-lg" style={{...textStyle, textShadow: '0 2px 8px rgba(0,0,0,0.5)'}}>@{profile.username}</h1>
                 {/* Profile Type Badge */}
                 {profile.profileType && profile.profileType !== 'personal' && (
-                  <span className="rounded-md bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider" style={textStyle}>
+                  <span className="rounded-md bg-slate-900/40 backdrop-blur-sm text-white px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider">
                     {profile.profileType}
                   </span>
                 )}
               </div>
               {profile.bio && (
-                <p className="mt-2 text-sm leading-relaxed opacity-90" style={textStyle}>{profile.bio}</p>
+                <p className="mt-2 text-sm leading-relaxed drop-shadow-md" style={{...textStyle, textShadow: '0 1px 6px rgba(0,0,0,0.5)'}}>{profile.bio}</p>
               )}
             </div>
 

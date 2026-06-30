@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { incrementLikes } from '@/app/[username]/actions';
 
 interface LikeButtonProps {
@@ -13,12 +13,29 @@ export function LikeButton({ profileId, initialLikes, themeTextColor }: LikeButt
   const [likes, setLikes] = useState(initialLikes);
   const [isPending, startTransition] = useTransition();
   const [hearts, setHearts] = useState<{ id: number; left: number }[]>([]);
+  const [hasLiked, setHasLiked] = useState(false);
+
+  // Check localStorage on mount to see if this device already liked this profile
+  useEffect(() => {
+    const likedProfiles = JSON.parse(localStorage.getItem('mizari_liked') || '[]');
+    if (likedProfiles.includes(profileId)) {
+      setHasLiked(true);
+    }
+  }, [profileId]);
 
   const handleLike = () => {
+    if (hasLiked) return; // Already liked from this device
+
+    // Mark as liked in localStorage
+    const likedProfiles = JSON.parse(localStorage.getItem('mizari_liked') || '[]');
+    likedProfiles.push(profileId);
+    localStorage.setItem('mizari_liked', JSON.stringify(likedProfiles));
+    setHasLiked(true);
+
     // Spawn a floating heart animation
     const newHeart = {
       id: Date.now(),
-      left: Math.random() * 40 - 20, // random sway
+      left: Math.random() * 40 - 20,
     };
     setHearts((prev) => [...prev, newHeart]);
     setTimeout(() => {
@@ -60,11 +77,15 @@ export function LikeButton({ profileId, initialLikes, themeTextColor }: LikeButt
       {/* Main Floating Like Button */}
       <button
         onClick={handleLike}
-        disabled={isPending}
-        className="flex h-12 w-12 items-center justify-center rounded-full border border-pink-200 bg-pink-50 text-pink-600 shadow-lg transition-all hover:bg-pink-100 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-400 dark:hover:bg-pink-950/40 hover:scale-105 active:scale-95"
-        title="Send Love ❤️"
+        disabled={isPending || hasLiked}
+        className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all active:scale-95 ${
+          hasLiked 
+            ? 'border-pink-400 bg-pink-500 text-white cursor-default scale-100' 
+            : 'border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:scale-105 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-400 dark:hover:bg-pink-950/40'
+        }`}
+        title={hasLiked ? 'You already liked this!' : 'Send Love ❤️'}
       >
-        <span className="text-xl">❤️</span>
+        <span className="text-xl">{hasLiked ? '💖' : '❤️'}</span>
       </button>
 
       {/* Likes Count Badge */}
