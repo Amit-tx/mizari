@@ -41,12 +41,16 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   // If user has no profiles (safety fallback, should not happen due to signup creation)
   if (!activeProfile) {
+    // Generate username from email prefix (e.g. amit@gmail.com -> amit)
+    const emailPrefix = user.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
+    const fallbackUsername = `${emailPrefix}_${Math.floor(Math.random() * 100)}`;
+    
     // Automatically create a default one
     const [newProfile] = await db
       .insert(profiles)
       .values({
         userId,
-        username: `user_${userId}`,
+        username: fallbackUsername.toLowerCase(),
         profileType: 'personal',
         themeType: 'light',
       })
