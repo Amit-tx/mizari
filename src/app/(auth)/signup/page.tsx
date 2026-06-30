@@ -10,6 +10,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -43,12 +44,14 @@ export default function SignupPage() {
       if (result?.error) {
         setError('Account created but sign-in failed. Please log in.');
         setLoading(false);
-      } else {
-        router.push('/dashboard');
-        router.refresh();
+        return;
       }
-    } catch {
-      setError('Something went wrong. Please try again.');
+
+      router.push('/dashboard');
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred during signup');
       setLoading(false);
     }
   };
@@ -77,13 +80,13 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+              <label htmlFor="signup-username" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                 Username
               </label>
               <div className="mt-1.5 flex items-center rounded-xl border border-gray-300 bg-white transition-colors focus-within:border-[#FF6B6B] focus-within:ring-2 focus-within:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700">
                 <span className="pl-4 text-sm text-gray-400 dark:text-slate-500">mizari.cc/</span>
                 <input
-                  id="username"
+                  id="signup-username"
                   type="text"
                   required
                   pattern="[a-zA-Z0-9_-]+"
@@ -117,16 +120,25 @@ export default function SignupPage() {
               <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                 Password
               </label>
-              <input
-                id="signup-password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                placeholder="••••••••"
-              />
+              <div className="relative mt-1.5 flex items-center">
+                <input
+                  id="signup-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full rounded-xl border border-gray-300 bg-white pl-4 pr-16 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 text-xs font-bold text-gray-500 hover:text-gray-700 focus:outline-none dark:text-slate-400"
+                >
+                  {showPassword ? 'Hide 🔒' : 'Show 👁️'}
+                </button>
+              </div>
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Minimum 8 characters</p>
             </div>
             <button
