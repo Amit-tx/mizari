@@ -103,6 +103,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         likes: activeProfile.likes,
         showWishes: activeProfile.showWishes,
       }}
+      userEmail={user.email}
       initialLinks={profileLinks}
       totalClicks={totalClicks}
     />

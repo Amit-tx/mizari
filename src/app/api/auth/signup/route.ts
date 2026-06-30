@@ -4,6 +4,21 @@ import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 
+const RESERVED_USERNAMES = [
+  'mizari',
+  'admin',
+  'dashboard',
+  'login',
+  'signup',
+  'api',
+  'wishes',
+  'links',
+  'support',
+  'help',
+  'terms',
+  'privacy',
+];
+
 export async function POST(request: NextRequest) {
   try {
     const { username, email, password } = await request.json();
@@ -24,13 +39,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
-    const usernameLower = username.toLowerCase();
+    const usernameLower = username.toLowerCase().trim();
+    const emailLower = email.toLowerCase().trim();
+
+    // Brand protection: Only amit_trillion@proton.me can register @mizari username
+    if (usernameLower === 'mizari' && emailLower !== 'amit_trillion@proton.me') {
+      return NextResponse.json(
+        { error: 'This username is reserved for brand protection.' },
+        { status: 403 }
+      );
+    }
+
+    // Block other system keywords
+    if (RESERVED_USERNAMES.includes(usernameLower) && usernameLower !== 'mizari') {
+      return NextResponse.json(
+        { error: 'This username is reserved and cannot be used.' },
+        { status: 403 }
+      );
+    }
 
     // Check if email already exists
     const [existingEmail] = await db
       .select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, emailLower))
       .limit(1);
 
     if (existingEmail) {
@@ -54,7 +86,7 @@ export async function POST(request: NextRequest) {
     const [newUser] = await db
       .insert(users)
       .values({
-        email,
+        email: emailLower,
         passwordHash,
       })
       .returning();

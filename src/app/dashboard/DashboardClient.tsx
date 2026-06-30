@@ -17,7 +17,8 @@ import {
   reorderLinks,
   requestAccountDeletion,
   createProfile,
-  updateWishTreeToggle
+  updateWishTreeToggle,
+  changeUserEmail
 } from './actions';
 import type { Link } from '@/db/schema';
 
@@ -44,6 +45,7 @@ interface DashboardClientProps {
     likes: number;
     showWishes: number;
   };
+  userEmail: string;
   initialLinks: Link[];
   totalClicks: number;
 }
@@ -66,6 +68,7 @@ export function DashboardClient({
   userId, 
   userProfiles, 
   activeProfile, 
+  userEmail,
   initialLinks,
   totalClicks
 }: DashboardClientProps) {
@@ -73,6 +76,7 @@ export function DashboardClient({
 
   const [bio, setBio] = useState(activeProfile.bio);
   const [avatarUrl, setAvatarUrl] = useState(activeProfile.avatarUrl);
+  const [email, setEmail] = useState(userEmail);
   const [showWishes, setShowWishes] = useState(activeProfile.showWishes === 1);
   
   // Theme States
@@ -235,6 +239,30 @@ export function DashboardClient({
       console.error(err);
       setShowWishes(!checked); // revert
       alert('Failed to update wish tree status.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Change Account Email Address
+  const handleEmailChange = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await changeUserEmail(userId, email);
+      if (res.success) {
+        showMessage('Email address updated successfully!');
+      } else {
+        alert(res.error || 'Failed to update email address.');
+        setEmail(userEmail); // revert
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -909,6 +937,29 @@ export function DashboardClient({
                   />
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Account Settings: Change Email */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Account Settings</h2>
+            <p className="text-xs text-gray-500 mb-4">Update your registered email address.</p>
+            
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 rounded-2xl border border-gray-250 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                placeholder="newemail@example.com"
+              />
+              <button
+                onClick={handleEmailChange}
+                disabled={saving}
+                className="rounded-2xl bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] px-6 py-2.5 text-xs font-bold transition-all disabled:opacity-60"
+              >
+                Update Email
+              </button>
             </div>
           </div>
 

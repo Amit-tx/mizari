@@ -277,3 +277,34 @@ export async function updateWishTreeToggle(profileId: number, userId: number, sh
     .set({ showWishes })
     .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 }
+
+// Change account email address
+export async function changeUserEmail(userId: number, newEmail: string): Promise<{ success: boolean; error?: string }> {
+  if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
+
+  const emailLower = newEmail.toLowerCase().trim();
+  if (!emailLower || !emailLower.includes('@')) {
+    return { success: false, error: 'Invalid email address.' };
+  }
+
+  // Check if email already registered to someone else
+  const [existing] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, emailLower))
+    .limit(1);
+
+  if (existing) {
+    if (existing.id === userId) {
+      return { success: false, error: 'This is already your registered email.' };
+    }
+    return { success: false, error: 'Email is already in use by another account.' };
+  }
+
+  await db
+    .update(users)
+    .set({ email: emailLower })
+    .where(eq(users.id, userId));
+
+  return { success: true };
+}
