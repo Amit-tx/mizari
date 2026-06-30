@@ -114,12 +114,17 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-medium text-[#FF6B6B] hover:text-[#EE5A24] transition-colors">
-              Sign up
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700 text-center">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              New to Mizari?
+            </p>
+            <Link 
+              href="/signup" 
+              className="mt-2 inline-block w-full rounded-xl border border-[#FF6B6B]/30 bg-[#FF6B6B]/5 py-2 text-sm font-bold text-[#FF6B6B] hover:bg-[#FF6B6B]/10 transition-colors"
+            >
+              Create a new account (Sign Up) 🚀
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>

@@ -162,12 +162,17 @@ export default function SignupPage() {
             </button>
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
-            Already have an account?{' '}
-            <Link href="/login" className="font-medium text-[#FF6B6B] hover:text-[#EE5A24] transition-colors">
-              Sign in
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-700 text-center">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              Already have an account?
+            </p>
+            <Link 
+              href="/login" 
+              className="mt-2 inline-block w-full rounded-xl border border-gray-300 bg-gray-50 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              Sign In to your account Key 🔐
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>
