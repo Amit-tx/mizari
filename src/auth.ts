@@ -41,16 +41,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!isValid) return null;
 
         // Fetch first profile username
-        const [profile] = await db
+        let [profile] = await db
           .select()
           .from(profiles)
           .where(eq(profiles.userId, user.id))
           .limit(1);
 
+        // Fallback: If no profile exists for this legacy user, create a default one on the fly
+        if (!profile) {
+          const defaultUsername = `user_${user.id}_${Math.floor(Math.random() * 1000)}`;
+          const [newProfile] = await db
+            .insert(profiles)
+            .values({
+              userId: user.id,
+              username: defaultUsername,
+              profileType: 'personal',
+              themeType: 'light',
+            })
+            .returning();
+          profile = newProfile;
+        }
+
         return {
           id: String(user.id),
           email: user.email,
-          name: profile?.username || 'user',
+          name: profile.username,
         };
       },
     }),
@@ -61,14 +76,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         // Fetch username from profiles table
-        const [profile] = await db
+        let [profile] = await db
           .select()
           .from(profiles)
           .where(eq(profiles.userId, parseInt(user.id!)))
           .limit(1);
-        if (profile) {
-          token.username = profile.username;
+          
+        if (!profile) {
+          // Create fallback profile if missing
+          const [newProfile] = await db
+            .insert(profiles)
+            .values({
+              userId: parseInt(user.id!),
+              username: `user_${user.id}`,
+              profileType: 'personal',
+              themeType: 'light',
+            })
+            .returning();
+          profile = newProfile;
         }
+        
+        token.username = profile.username;
       }
       return token;
     },
