@@ -21,6 +21,18 @@ export async function createProfile(
 ): Promise<{ success: boolean; error?: string }> {
   if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
 
+  // Check profile limit per user
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) return { success: false, error: 'User not found.' };
+
+  const existingProfiles = await db.select().from(profiles).where(eq(profiles.userId, userId));
+  const isOwner = user.email.toLowerCase() === 'amit_trillion@proton.me';
+  const maxProfiles = isOwner ? 10 : 1;
+
+  if (existingProfiles.length >= maxProfiles) {
+    return { success: false, error: `Maximum ${maxProfiles} profiles allowed per account.` };
+  }
+
   const usernameLower = username.toLowerCase().trim();
   if (usernameLower.length < 3 || usernameLower.length > 30) {
     return { success: false, error: 'Username must be 3-30 characters.' };
