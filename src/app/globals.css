@@ -102,3 +102,81 @@ body {
 .animate-sway {
   animation: sway 4s ease-in-out infinite;
 }
+
+@keyframes autumn {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.75;
+  }
+  90% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(105vh) translateX(var(--horizontal-offset)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-autumn {
+  animation-name: autumn;
+}
+
+@keyframes winter {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(105vh) translateX(var(--horizontal-offset));
+    opacity: 0;
+  }
+}
+
+.animate-winter {
+  animation-name: winter;
+}
+
+@keyframes lantern {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-110vh) translateX(var(--horizontal-offset));
+    opacity: 0;
+  }
+}
+
+.animate-lantern {
+  animation-name: lantern;
+}
+
+@keyframes floatHeart {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-80px) scale(1.4);
+    opacity: 0;
+  }
+}
+
+.animate-float-heart {
+  animation: floatHeart 1s forwards;
+}

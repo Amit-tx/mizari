@@ -1,27 +1,67 @@
 'use server';
 
 import { db } from '@/db';
-import { users, links, type Link } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { users, profiles, links, wishes, type Link } from '@/db/schema';
+import { eq, and, asc, sum } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { del } from '@vercel/blob';
 import crypto from 'crypto';
+import { revalidatePath } from 'next/cache';
 
 async function verifyOwnership(userId: number): Promise<boolean> {
   const session = await auth();
   return session?.user?.id === String(userId);
 }
 
-export async function updateProfile(userId: number, bio: string) {
+// Create a new profile under a user account (Personal / Business / Gaming)
+export async function createProfile(
+  userId: number,
+  username: string,
+  profileType: 'personal' | 'business' | 'gaming'
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
+
+  const usernameLower = username.toLowerCase().trim();
+  if (usernameLower.length < 3 || usernameLower.length > 30) {
+    return { success: false, error: 'Username must be 3-30 characters.' };
+  }
+
+  // Check if username is already taken
+  const [existing] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.username, usernameLower))
+    .limit(1);
+
+  if (existing) {
+    return { success: false, error: 'Username is already taken.' };
+  }
+
+  await db.insert(profiles).values({
+    userId,
+    username: usernameLower,
+    profileType,
+    bio: `Welcome to my ${profileType} profile!`,
+    themeType: 'light',
+  });
+
+  revalidatePath('/dashboard', 'page');
+  return { success: true };
+}
+
+// Update profile details
+export async function updateProfile(profileId: number, userId: number, bio: string) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
-    .update(users)
+    .update(profiles)
     .set({ bio })
-    .where(eq(users.id, userId));
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 }
 
+// Save Theme Settings
 export async function updateThemeSettings(
+  profileId: number,
   userId: number,
   themeType: string,
   themeBgColor: string,
@@ -31,18 +71,47 @@ export async function updateThemeSettings(
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
-    .update(users)
+    .update(profiles)
     .set({
       themeType,
       themeBgColor,
       themeTextColor,
       themeButtonStyle,
     })
-    .where(eq(users.id, userId));
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 }
 
-export async function removeBgImage(userId: number) {
+// Remove Background Image
+export async function removeBgImage(profileId: number, userId: number) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)))
+    .limit(1);
+
+  if (profile && profile.themeBgImage) {
+    if (profile.themeBgImage.includes('public.blob.vercel-storage.com')) {
+      try {
+        await del(profile.themeBgImage);
+      } catch (e) {
+        console.error('Failed to delete background from Vercel Blob:', e);
+      }
+    }
+
+    await db
+      .update(profiles)
+      .set({ themeBgImage: '', themeType: 'light' })
+      .where(eq(profiles.id, profileId));
+  }
+}
+
+// Request Account Deletion (Generates verification token and sends email)
+export async function requestAccountDeletion(userId: number): Promise<{ success: boolean; token?: string; error?: string }> {
+  if (!(await verifyOwnership(userId))) {
+    return { success: false, error: 'Unauthorized' };
+  }
 
   const [user] = await db
     .select()
@@ -50,26 +119,8 @@ export async function removeBgImage(userId: number) {
     .where(eq(users.id, userId))
     .limit(1);
 
-  if (user && user.themeBgImage) {
-    if (user.themeBgImage.includes('public.blob.vercel-storage.com')) {
-      try {
-        await del(user.themeBgImage);
-      } catch (e) {
-        console.error('Failed to delete background from Vercel Blob:', e);
-      }
-    }
-
-    await db
-      .update(users)
-      .set({ themeBgImage: '', themeType: 'light' })
-      .where(eq(users.id, userId));
-  }
-}
-
-// Request Account Deletion (Generates verification token)
-export async function requestAccountDeletion(userId: number): Promise<{ success: boolean; token?: string; error?: string }> {
-  if (!(await verifyOwnership(userId))) {
-    return { success: false, error: 'Unauthorized' };
+  if (!user) {
+    return { success: false, error: 'User not found' };
   }
 
   const token = crypto.randomBytes(32).toString('hex');
@@ -82,6 +133,39 @@ export async function requestAccountDeletion(userId: number): Promise<{ success:
       deleteTokenExpiresAt: expiresAt,
     })
     .where(eq(users.id, userId));
+
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const host = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).host : 'localhost:3000';
+  const deletionLink = `${protocol}://${host}/delete-confirm?token=${token}`;
+
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (resendApiKey) {
+    const { Resend } = require('resend');
+    const resend = new Resend(resendApiKey);
+    try {
+      await resend.emails.send({
+        from: 'Mizari <onboarding@resend.dev>',
+        to: user.email,
+        subject: 'Confirm your Mizari account deletion',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 16px;">
+            <h2 style="color: #ef4444; margin-top: 0;">Delete your Mizari Account</h2>
+            <p>Hello,</p>
+            <p>We received a request to permanently delete your Mizari account. If you did not request this, you can safely ignore this email.</p>
+            <p>To confirm and permanently delete your account, click the button below:</p>
+            <div style="margin: 24px 0;">
+              <a href="${deletionLink}" style="background-color: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">Verify & Delete Account</a>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 24px;">This link will expire in 1 hour. Once deleted, all your profiles, links, themes, and uploaded images will be permanently removed.</p>
+          </div>
+        `,
+      });
+    } catch (e) {
+      console.error('Failed to send deletion email via Resend:', e);
+    }
+  } else {
+    console.log(`[LOCAL DEV EMAIL] Deletion link: ${deletionLink}`);
+  }
 
   return { success: true, token };
 }
@@ -98,31 +182,30 @@ export async function confirmAccountDeletion(token: string): Promise<{ success: 
     return { success: false, error: 'Invalid or expired deletion link.' };
   }
 
-  // Delete user avatar from Vercel Blob if exists
-  if (user.avatarUrl && user.avatarUrl.includes('public.blob.vercel-storage.com')) {
-    try {
-      await del(user.avatarUrl);
-    } catch (e) {
-      console.error('Error deleting avatar on account deletion:', e);
+  // Fetch all profiles of this user to delete their uploaded images
+  const userProfiles = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, user.id));
+
+  for (const profile of userProfiles) {
+    if (profile.avatarUrl && profile.avatarUrl.includes('public.blob.vercel-storage.com')) {
+      try { await del(profile.avatarUrl); } catch (e) {}
+    }
+    if (profile.themeBgImage && profile.themeBgImage.includes('public.blob.vercel-storage.com')) {
+      try { await del(profile.themeBgImage); } catch (e) {}
     }
   }
 
-  // Delete user background image from Vercel Blob if exists
-  if (user.themeBgImage && user.themeBgImage.includes('public.blob.vercel-storage.com')) {
-    try {
-      await del(user.themeBgImage);
-    } catch (e) {
-      console.error('Error deleting background image on account deletion:', e);
-    }
-  }
-
-  // Delete user from database (Cascade deletes links automatically due to FK constraint)
+  // Delete user from database (Cascade deletes profiles, links, wishes automatically)
   await db.delete(users).where(eq(users.id, user.id));
 
   return { success: true };
 }
 
+// Add link associated with a profile
 export async function addLink(
+  profileId: number,
   userId: number,
   title: string,
   url: string,
@@ -136,14 +219,16 @@ export async function addLink(
 
   const [newLink] = await db
     .insert(links)
-    .values({ userId, title, url, order, isProduct, price, discount, productImage })
+    .values({ profileId, title, url, order, isProduct, price, discount, productImage })
     .returning();
 
   return newLink || null;
 }
 
+// Update link associated with a profile
 export async function updateLink(
   id: number, 
+  profileId: number,
   userId: number, 
   title: string, 
   url: string,
@@ -157,26 +242,38 @@ export async function updateLink(
   await db
     .update(links)
     .set({ title, url, isProduct, price, discount, productImage })
-    .where(and(eq(links.id, id), eq(links.userId, userId)));
+    .where(and(eq(links.id, id), eq(links.profileId, profileId)));
 }
 
-export async function deleteLink(id: number, userId: number) {
+// Delete link
+export async function deleteLink(id: number, profileId: number, userId: number) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
     .delete(links)
-    .where(and(eq(links.id, id), eq(links.userId, userId)));
+    .where(and(eq(links.id, id), eq(links.profileId, profileId)));
 }
 
-export async function reorderLinks(linkIds: number[], userId: number) {
+// Reorder links in a profile
+export async function reorderLinks(linkIds: number[], profileId: number, userId: number) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   const updates = linkIds.map((id, index) =>
     db
       .update(links)
       .set({ order: index })
-      .where(and(eq(links.id, id), eq(links.userId, userId)))
+      .where(and(eq(links.id, id), eq(links.profileId, profileId)))
   );
 
   await Promise.all(updates);
+}
+
+// Toggle Tanabata Wish Tree visibility
+export async function updateWishTreeToggle(profileId: number, userId: number, showWishes: number) {
+  if (!(await verifyOwnership(userId)) || ![0, 1].includes(showWishes)) throw new Error('Unauthorized');
+
+  await db
+    .update(profiles)
+    .set({ showWishes })
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 }

@@ -12,33 +12,47 @@ export const users = pgTable(
   'users',
   {
     id: serial('id').primaryKey(),
-    username: varchar('username', { length: 64 }).notNull().unique(),
     email: varchar('email', { length: 255 }).notNull().unique(),
     passwordHash: text('password_hash'),
-    bio: text('bio').default(''),
-    avatarUrl: text('avatar_url').default(''),
-    themeType: varchar('theme_type', { length: 20 }).default('light').notNull(), // 'light', 'dark', 'custom'
-    themeBgColor: varchar('theme_bg_color', { length: 30 }).default('#fafafa').notNull(),
-    themeTextColor: varchar('theme_text_color', { length: 30 }).default('#1a1a2e').notNull(),
-    themeBgImage: text('theme_bg_image').default(''),
-    themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(), // 'rounded-xl', 'rounded-full', 'rounded-none', 'shadow'
     deleteToken: varchar('delete_token', { length: 255 }),
     deleteTokenExpiresAt: timestamp('delete_token_expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
 );
 
+export const profiles = pgTable(
+  'profiles',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    username: varchar('username', { length: 64 }).notNull().unique(),
+    profileType: varchar('profile_type', { length: 30 }).default('personal').notNull(), // 'personal', 'business', 'gaming'
+    bio: text('bio').default(''),
+    avatarUrl: text('avatar_url').default(''),
+    themeType: varchar('theme_type', { length: 30 }).default('light').notNull(),
+    themeBgColor: varchar('theme_bg_color', { length: 30 }).default('#fafafa').notNull(),
+    themeTextColor: varchar('theme_text_color', { length: 30 }).default('#1a1a2e').notNull(),
+    themeBgImage: text('theme_bg_image').default(''),
+    themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(),
+    likes: integer('likes').default(0).notNull(), // Reactions count
+    showWishes: integer('show_wishes').default(1).notNull(), // 1 = enabled, 0 = disabled
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
 export const links = pgTable('links', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id')
+  profileId: integer('profile_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+    .references(() => profiles.id, { onDelete: 'cascade' }),
   title: varchar('title', { length: 255 }).notNull(),
   url: text('url').notNull(),
   icon: text('icon'),
   order: integer('order').default(0).notNull(),
   clicks: integer('clicks').default(0).notNull(),
-  isProduct: integer('is_product').default(0).notNull(), // 0 = standard link, 1 = product card
+  isProduct: integer('is_product').default(0).notNull(), // 0 = standard, 1 = product
   price: varchar('price', { length: 30 }).default(''),
   discount: varchar('discount', { length: 30 }).default(''),
   productImage: text('product_image').default(''),
@@ -46,36 +60,47 @@ export const links = pgTable('links', {
 
 export const wishes = pgTable('wishes', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id')
+  profileId: integer('profile_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+    .references(() => profiles.id, { onDelete: 'cascade' }),
   sender: varchar('sender', { length: 100 }).default('Anonymous').notNull(),
   text: text('text').notNull(),
-  color: varchar('color', { length: 20 }).default('#FFD6E0').notNull(), // Color of the paper slip (Tanzaku)
+  color: varchar('color', { length: 20 }).default('#FFD6E0').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Relations
 export const usersRelations = relations(users, ({ many }) => ({
+  profiles: many(profiles),
+}));
+
+export const profilesRelations = relations(profiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [profiles.userId],
+    references: [users.id],
+  }),
   links: many(links),
   wishes: many(wishes),
 }));
 
 export const linksRelations = relations(links, ({ one }) => ({
-  user: one(users, {
-    fields: [links.userId],
-    references: [users.id],
+  profile: one(profiles, {
+    fields: [links.profileId],
+    references: [profiles.id],
   }),
 }));
 
 export const wishesRelations = relations(wishes, ({ one }) => ({
-  user: one(users, {
-    fields: [wishes.userId],
-    references: [users.id],
+  profile: one(profiles, {
+    fields: [wishes.profileId],
+    references: [profiles.id],
   }),
 }));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type Profile = typeof profiles.$inferSelect;
+export type NewProfile = typeof profiles.$inferInsert;
 export type Link = typeof links.$inferSelect;
 export type NewLink = typeof links.$inferInsert;
 export type Wish = typeof wishes.$inferSelect;

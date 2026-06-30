@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { db } from '@/db';
-import { users } from '@/db/schema';
+import { users, profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { authConfig } from './auth.config';
 
@@ -40,10 +40,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) return null;
 
+        // Fetch first profile username
+        const [profile] = await db
+          .select()
+          .from(profiles)
+          .where(eq(profiles.userId, user.id))
+          .limit(1);
+
         return {
           id: String(user.id),
           email: user.email,
-          name: user.username,
+          name: profile?.username || 'user',
         };
       },
     }),
@@ -53,14 +60,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // Fetch username from DB for OAuth and Credentials users
-        const [dbUser] = await db
+        // Fetch username from profiles table
+        const [profile] = await db
           .select()
-          .from(users)
-          .where(eq(users.email, user.email!))
+          .from(profiles)
+          .where(eq(profiles.userId, parseInt(user.id!)))
           .limit(1);
-        if (dbUser) {
-          token.username = dbUser.username;
+        if (profile) {
+          token.username = profile.username;
         }
       }
       return token;

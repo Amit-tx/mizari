@@ -2,8 +2,8 @@ import { put, del } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { profiles } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 export async function POST(request: Request) {
   try {
@@ -16,24 +16,26 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const type = formData.get('type') as 'avatar' | 'background';
+    const profileIdStr = formData.get('profileId') as string;
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (!file || !profileIdStr) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
+    const profileId = parseInt(profileIdStr);
     if (type !== 'avatar' && type !== 'background') {
       return NextResponse.json({ error: 'Invalid upload type' }, { status: 400 });
     }
 
-    // Fetch existing user to get old image URL for deletion
-    const [user] = await db
+    // Fetch existing profile to verify ownership and get old image URL
+    const [profile] = await db
       .select()
-      .from(users)
-      .where(eq(users.id, userId))
+      .from(profiles)
+      .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)))
       .limit(1);
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found or unauthorized' }, { status: 404 });
     }
 
     // Check if Vercel Blob Token is configured
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
       imageUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
     } else {
       // Delete old image from Vercel Blob if exists
-      const oldUrl = type === 'avatar' ? user.avatarUrl : user.themeBgImage;
+      const oldUrl = type === 'avatar' ? profile.avatarUrl : profile.themeBgImage;
       if (oldUrl && oldUrl.includes('public.blob.vercel-storage.com')) {
         try {
           await del(oldUrl);
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
       }
 
       // Upload new image to Vercel Blob
-      const filename = `${userId}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
+      const filename = `${profileId}-${type}-${Date.now()}.${file.name.split('.').pop()}`;
       const blob = await put(filename, file, {
         access: 'public',
       });
@@ -67,14 +69,14 @@ export async function POST(request: Request) {
     // Update database
     if (type === 'avatar') {
       await db
-        .update(users)
+        .update(profiles)
         .set({ avatarUrl: imageUrl })
-        .where(eq(users.id, userId));
+        .where(eq(profiles.id, profileId));
     } else {
       await db
-        .update(users)
+        .update(profiles)
         .set({ themeBgImage: imageUrl, themeType: 'custom' })
-        .where(eq(users.id, userId));
+        .where(eq(profiles.id, profileId));
     }
 
     return NextResponse.json({ url: imageUrl });

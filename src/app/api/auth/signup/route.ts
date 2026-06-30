@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { users, profiles } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -24,25 +24,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
-    const existing = await db
+    const usernameLower = username.toLowerCase();
+
+    // Check if email already exists
+    const [existingEmail] = await db
       .select()
       .from(users)
-      .where(or(eq(users.username, username), eq(users.email, email)))
+      .where(eq(users.email, email))
       .limit(1);
 
-    if (existing.length > 0) {
-      if (existing[0].username === username) {
-        return NextResponse.json({ error: 'Username is already taken' }, { status: 409 });
-      }
+    if (existingEmail) {
       return NextResponse.json({ error: 'Email is already registered' }, { status: 409 });
+    }
+
+    // Check if username is already taken in profiles
+    const [existingProfile] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.username, usernameLower))
+      .limit(1);
+
+    if (existingProfile) {
+      return NextResponse.json({ error: 'Username is already taken' }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    await db.insert(users).values({
-      username: username.toLowerCase(),
-      email,
-      passwordHash,
+    // Insert User
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        email,
+        passwordHash,
+      })
+      .returning();
+
+    // Insert Default Personal Profile
+    await db.insert(profiles).values({
+      userId: newUser.id,
+      username: usernameLower,
+      profileType: 'personal',
+      bio: 'Welcome to my Mizari profile!',
+      themeType: 'light',
     });
 
     return NextResponse.json({ success: true }, { status: 201 });

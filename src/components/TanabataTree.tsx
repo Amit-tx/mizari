@@ -35,10 +35,24 @@ export function TanabataTree({ userId, initialWishes, textColor }: TanabataTreeP
     e.preventDefault();
     if (!text.trim()) return;
 
+    // Cooldown check (5 minutes = 300000ms)
+    const lastWishTime = localStorage.getItem(`last_wish_time_${userId}`);
+    if (lastWishTime) {
+      const timePassed = Date.now() - parseInt(lastWishTime);
+      if (timePassed < 300000) {
+        const secondsLeft = Math.ceil((300000 - timePassed) / 1000);
+        alert(`Please wait ${secondsLeft} seconds before hanging another wish! 🎋`);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       await addWish(userId, sender, text, selectedColor);
       
+      // Save submission time to localStorage to prevent spamming
+      localStorage.setItem(`last_wish_time_${userId}`, String(Date.now()));
+
       // Update local state for instant feedback
       const newWish: Wish = {
         id: Date.now(),

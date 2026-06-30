@@ -1,12 +1,16 @@
 import { db } from '@/db';
-import { users, links, wishes } from '@/db/schema';
+import { profiles, links, wishes } from '@/db/schema';
 import { eq, asc, desc } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
+import { AutumnEffect } from '@/components/AutumnEffect';
+import { WinterEffect } from '@/components/WinterEffect';
+import { LanternEffect } from '@/components/LanternEffect';
 import { ShareButton } from '@/components/ShareButton';
+import { LikeButton } from '@/components/LikeButton';
 import { Branding } from '@/components/Branding';
 import { TanabataTree } from '@/components/TanabataTree';
 import { AmbientPlayer } from '@/components/AmbientPlayer';
@@ -27,27 +31,29 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
 
-  const [user] = await db
+  // Query profile instead of user
+  const [profile] = await db
     .select()
-    .from(users)
-    .where(eq(users.username, username))
+    .from(profiles)
+    .where(eq(profiles.username, username))
     .limit(1);
 
-  if (!user) {
+  if (!profile) {
     notFound();
   }
 
+  // Fetch links belonging to this profile
   const allLinks = await db
     .select()
     .from(links)
-    .where(eq(links.userId, user.id))
+    .where(eq(links.profileId, profile.id))
     .orderBy(asc(links.order));
 
   // Fetch latest 10 wishes for the Tanabata Tree
-  const userWishes = await db
+  const profileWishes = await db
     .select()
     .from(wishes)
-    .where(eq(wishes.userId, user.id))
+    .where(eq(wishes.profileId, profile.id))
     .orderBy(desc(wishes.id))
     .limit(10);
 
@@ -56,8 +62,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const productLinks = allLinks.filter((l) => l.isProduct === 1);
 
   // Check if preset theme
-  const isPreset = !['light', 'dark', 'custom'].includes(user.themeType);
-  const preset = isPreset ? getThemeById(user.themeType) : undefined;
+  const isPreset = !['light', 'dark', 'custom'].includes(profile.themeType);
+  const preset = isPreset ? getThemeById(profile.themeType) : undefined;
 
   // Determine background style
   let bgStyle: React.CSSProperties = {};
@@ -67,13 +73,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     } else {
       bgStyle = { backgroundColor: preset.bgColor };
     }
-  } else if (user.themeType === 'custom') {
-    if (user.themeBgImage) {
-      bgStyle = { backgroundImage: `url(${user.themeBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
+  } else if (profile.themeType === 'custom') {
+    if (profile.themeBgImage) {
+      bgStyle = { backgroundImage: `url(${profile.themeBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
     } else {
-      bgStyle = { backgroundColor: user.themeBgColor };
+      bgStyle = { backgroundColor: profile.themeBgColor };
     }
-  } else if (user.themeType === 'dark') {
+  } else if (profile.themeType === 'dark') {
     bgStyle = { backgroundColor: '#0f172a' };
   } else {
     bgStyle = { backgroundColor: '#fafafa' };
@@ -82,9 +88,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const textStyle: React.CSSProperties = {};
   if (preset) {
     textStyle.color = preset.textColor;
-  } else if (user.themeType === 'custom') {
-    textStyle.color = user.themeTextColor;
-  } else if (user.themeType === 'dark') {
+  } else if (profile.themeType === 'custom') {
+    textStyle.color = profile.themeTextColor;
+  } else if (profile.themeType === 'dark') {
     textStyle.color = '#e2e8f0';
   } else {
     textStyle.color = '#1a1a2e';
@@ -92,7 +98,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Custom button styles
   const getButtonClass = () => {
-    if (!preset && user.themeType !== 'custom') {
+    if (!preset && profile.themeType !== 'custom') {
       return 'border border-gray-200 bg-gray-50 text-gray-700 hover:border-[#FF6B6B]/40 hover:bg-[#FF6B6B]/5 hover:text-[#FF6B6B] hover:shadow-md dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-[#FF6B6B]/40 dark:hover:bg-[#FF6B6B]/10 dark:hover:text-[#FF6B6B] rounded-xl';
     }
 
@@ -113,16 +119,16 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     let base = 'transition-all duration-200 border ';
     
     // Borders & Backgrounds
-    if (user.themeButtonStyle === 'shadow') {
+    if (profile.themeButtonStyle === 'shadow') {
       base += 'bg-white/95 border-transparent shadow-md hover:shadow-lg hover:-translate-y-0.5 text-slate-800 ';
     } else {
       base += 'bg-white/10 backdrop-blur-sm border-white/25 hover:bg-white/20 ';
     }
 
     // Border Radius
-    if (user.themeButtonStyle === 'rounded-full') {
+    if (profile.themeButtonStyle === 'rounded-full') {
       base += 'rounded-full ';
-    } else if (user.themeButtonStyle === 'rounded-none') {
+    } else if (profile.themeButtonStyle === 'rounded-none') {
       base += 'rounded-none ';
     } else {
       base += 'rounded-xl ';
@@ -140,9 +146,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         borderColor: preset.btnBorder,
       };
     }
-    if (user.themeType === 'custom' && user.themeButtonStyle !== 'shadow') {
+    if (profile.themeType === 'custom' && profile.themeButtonStyle !== 'shadow') {
       return {
-        color: user.themeTextColor,
+        color: profile.themeTextColor,
       };
     }
     return {};
@@ -153,34 +159,44 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       className="relative flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center overflow-y-auto"
       style={bgStyle}
     >
-      {/* Sakura falling animation only for Sakura theme */}
-      {user.themeType === 'sakura' && <SakuraEffect />}
+      {/* Seasonal Background Animations */}
+      {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
+      {(profile.themeType === 'momiji' || profile.themeType === 'aki_autumn') && <AutumnEffect />}
+      {(profile.themeType === 'yuki' || profile.themeType === 'fuyu_winter') && <WinterEffect />}
+      {(profile.themeType === 'matsuri' || profile.themeType === 'natsu_matsuri') && <LanternEffect />}
 
-      {/* Floating Ambient Furin Sound Player */}
+      {/* Floating Ambient Sound Player */}
       <AmbientPlayer />
+
+      {/* Floating Like / Reaction Button */}
+      <LikeButton 
+        profileId={profile.id} 
+        initialLikes={profile.likes} 
+        themeTextColor={preset?.textColor || profile.themeTextColor} 
+      />
       
       {/* Share Button */}
-      <ShareButton username={user.username} themeTextColor={preset?.textColor || user.themeTextColor} />
+      <ShareButton username={profile.username} themeTextColor={preset?.textColor || profile.themeTextColor} />
 
       <div className="w-full max-w-md z-10 space-y-6">
         {/* Profile card */}
         <div className={`overflow-hidden rounded-3xl border border-gray-100 shadow-xl transition-all duration-300 dark:border-slate-800 ${
-          user.themeType === 'light' ? 'bg-white text-[#1a1a2e]' : user.themeType === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-transparent border-transparent shadow-none'
+          profile.themeType === 'light' ? 'bg-white text-[#1a1a2e]' : profile.themeType === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-transparent border-transparent shadow-none'
         }`}>
           {/* Gradient header (only if not custom/preset background) */}
-          {!preset && user.themeType !== 'custom' && (
+          {!preset && profile.themeType !== 'custom' && (
             <div className="h-24 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]" />
           )}
           
-          <div className={`px-6 pb-8 ${preset || user.themeType === 'custom' ? 'pt-8' : ''}`}>
+          <div className={`px-6 pb-8 ${preset || profile.themeType === 'custom' ? 'pt-8' : ''}`}>
             {/* Avatar */}
             <div className="flex justify-center">
               <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-lg dark:border-slate-800">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.username} className="h-full w-full object-cover" />
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={profile.username} className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-gray-400 dark:text-slate-500">
-                    {user.username.charAt(0).toUpperCase()}
+                    {profile.username.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
@@ -188,9 +204,17 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             {/* User info */}
             <div className="mt-4 text-center">
-              <h1 className="text-2xl font-bold" style={textStyle}>@{user.username}</h1>
-              {user.bio && (
-                <p className="mt-2 text-sm leading-relaxed opacity-90" style={textStyle}>{user.bio}</p>
+              <div className="flex items-center justify-center gap-1.5">
+                <h1 className="text-2xl font-bold" style={textStyle}>@{profile.username}</h1>
+                {/* Profile Type Badge */}
+                {profile.profileType && profile.profileType !== 'personal' && (
+                  <span className="rounded-md bg-slate-900/10 dark:bg-white/10 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider" style={textStyle}>
+                    {profile.profileType}
+                  </span>
+                )}
+              </div>
+              {profile.bio && (
+                <p className="mt-2 text-sm leading-relaxed opacity-90" style={textStyle}>{profile.bio}</p>
               )}
             </div>
 
@@ -218,7 +242,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {productLinks.length > 0 && (
               <div className="mt-8 pt-6 border-t border-gray-250/20">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider mb-4 opacity-75" style={textStyle}>
-                  🛍️ Featured Products
+                  🛍 Seymous Featured Products
                 </h3>
                 <div className="grid gap-4 grid-cols-2">
                   {productLinks.map((product) => (
@@ -266,19 +290,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </div>
         </div>
 
-        {/* Tanabata Wish Tree interactive board */}
-        <TanabataTree 
-          userId={user.id} 
-          initialWishes={userWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color }))} 
-          textColor={preset?.textColor || user.themeTextColor}
-        />
+        {/* Tanabata Wish Tree */}
+        {profile.showWishes === 1 && (
+          <TanabataTree 
+            userId={profile.id} 
+            initialWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color }))} 
+            textColor={preset?.textColor || profile.themeTextColor}
+          />
+        )}
 
-        {/* Ad slot below links */}
+        {/* Ad slot */}
         <div className="mt-4">
           <AdSlot slot="profile-footer" size="responsive" />
         </div>
 
-        {/* Made with Mizari Branding banner */}
+        {/* Branding */}
         <Branding />
       </div>
     </div>

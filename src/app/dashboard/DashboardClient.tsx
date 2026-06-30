@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { AdSlot } from '@/components/AdSlot';
@@ -14,35 +15,72 @@ import {
   updateLink, 
   deleteLink, 
   reorderLinks,
-  requestAccountDeletion 
+  requestAccountDeletion,
+  createProfile,
+  updateWishTreeToggle
 } from './actions';
 import type { Link } from '@/db/schema';
 
+interface ProfileInfo {
+  id: number;
+  username: string;
+  profileType: 'personal' | 'business' | 'gaming';
+}
+
 interface DashboardClientProps {
-  user: { 
-    id: number; 
-    username: string; 
-    bio: string; 
+  userId: number;
+  userProfiles: ProfileInfo[];
+  activeProfile: {
+    id: number;
+    username: string;
+    profileType: 'personal' | 'business' | 'gaming';
+    bio: string;
     avatarUrl: string;
     themeType: string;
     themeBgColor: string;
     themeTextColor: string;
     themeBgImage: string;
     themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow';
+    likes: number;
+    showWishes: number;
   };
   initialLinks: Link[];
+  totalClicks: number;
 }
 
-export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
-  const [bio, setBio] = useState(user.bio);
-  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
+// Helper to calculate Creator Level
+function getCreatorLevel(clicks: number) {
+  if (clicks < 10) return { level: 1, title: '🌱 Novice Ninja', nextThreshold: 10 };
+  if (clicks < 50) return { level: 2, title: '🍵 Matcha Apprentice', nextThreshold: 50 };
+  if (clicks < 200) return { level: 3, title: '🎐 Furin Traveler', nextThreshold: 200 };
+  if (clicks < 500) return { level: 4, title: '🌸 Sakura Artisan', nextThreshold: 500 };
+  if (clicks < 1000) return { level: 5, title: '🎏 Koi Swimmer', nextThreshold: 1000 };
+  if (clicks < 2500) return { level: 6, title: '🗻 Fuji Climber', nextThreshold: 2500 };
+  if (clicks < 5000) return { level: 7, title: '🦊 Kitsune Spirit', nextThreshold: 5000 };
+  if (clicks < 10000) return { level: 8, title: '⚔️ Samurai Warrior', nextThreshold: 10000 };
+  if (clicks < 25000) return { level: 9, title: '👑 Daimyo Lord', nextThreshold: 25000 };
+  return { level: 10, title: '🏮 Shogun Emperor', nextThreshold: 100000 };
+}
+
+export function DashboardClient({ 
+  userId, 
+  userProfiles, 
+  activeProfile, 
+  initialLinks,
+  totalClicks
+}: DashboardClientProps) {
+  const router = useRouter();
+
+  const [bio, setBio] = useState(activeProfile.bio);
+  const [avatarUrl, setAvatarUrl] = useState(activeProfile.avatarUrl);
+  const [showWishes, setShowWishes] = useState(activeProfile.showWishes === 1);
   
   // Theme States
-  const [themeType, setThemeType] = useState<string>(user.themeType);
-  const [themeBgColor, setThemeBgColor] = useState(user.themeBgColor);
-  const [themeTextColor, setThemeTextColor] = useState(user.themeTextColor);
-  const [themeBgImage, setThemeBgImage] = useState(user.themeBgImage);
-  const [themeButtonStyle, setThemeButtonStyle] = useState<'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'>(user.themeButtonStyle);
+  const [themeType, setThemeType] = useState<string>(activeProfile.themeType);
+  const [themeBgColor, setThemeBgColor] = useState(activeProfile.themeBgColor);
+  const [themeTextColor, setThemeTextColor] = useState(activeProfile.themeTextColor);
+  const [themeBgImage, setThemeBgImage] = useState(activeProfile.themeBgImage);
+  const [themeButtonStyle, setThemeButtonStyle] = useState<'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'>(activeProfile.themeButtonStyle);
   
   const [linksList, setLinksList] = useState(initialLinks);
   
@@ -54,6 +92,11 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const [discount, setDiscount] = useState('');
   const [productImage, setProductImage] = useState('');
   
+  // New Profile States
+  const [newProfileName, setNewProfileName] = useState('');
+  const [newProfileType, setNewProfileType] = useState<'personal' | 'business' | 'gaming'>('personal');
+  const [showNewProfileModal, setShowNewProfileModal] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
@@ -65,6 +108,9 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const [requestingDelete, setRequestingDelete] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Drag and Drop States
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
   const prodImgInputRef = useRef<HTMLInputElement>(null);
@@ -74,13 +120,37 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     setTimeout(() => setMessage(''), 3000);
   };
 
+  // Switch Profile
+  const handleProfileSwitch = (id: number) => {
+    router.push(`/dashboard?profileId=${id}`);
+  };
+
+  // Create New Profile
+  const handleCreateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProfileName.trim()) return;
+
+    setSaving(true);
+    const res = await createProfile(userId, newProfileName, newProfileType);
+    setSaving(false);
+    
+    if (res.success) {
+      setNewProfileName('');
+      setShowNewProfileModal(false);
+      showMessage('New profile created successfully!');
+      router.refresh();
+    } else {
+      alert(res.error || 'Failed to create profile.');
+    }
+  };
+
   // Share profile from dashboard
   const handleShareProfile = async () => {
-    const profileUrl = `${window.location.origin}/${user.username}`;
+    const profileUrl = `${window.location.origin}/${activeProfile.username}`;
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `@${user.username} on Mizari`,
+          title: `@${activeProfile.username} on Mizari`,
           text: `Check out my links on Mizari!`,
           url: profileUrl,
         });
@@ -110,7 +180,8 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('type', 'background'); // Stores as background/product type
+      formData.append('type', type === 'avatar' ? 'avatar' : 'background'); 
+      formData.append('profileId', String(activeProfile.id));
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -148,16 +219,32 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   // Save Profile (Bio Only)
   const handleUpdateProfile = async () => {
     setSaving(true);
-    await updateProfile(user.id, bio);
+    await updateProfile(activeProfile.id, userId, bio);
     setSaving(false);
     showMessage('Profile updated!');
+  };
+
+  // Toggle Tanabata Wish Tree
+  const handleToggleWishes = async (checked: boolean) => {
+    setShowWishes(checked);
+    setSaving(true);
+    try {
+      await updateWishTreeToggle(activeProfile.id, userId, checked ? 1 : 0);
+      showMessage(checked ? 'Tanabata Wish Tree enabled!' : 'Tanabata Wish Tree disabled!');
+    } catch (err) {
+      console.error(err);
+      setShowWishes(!checked); // revert
+      alert('Failed to update wish tree status.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Save Theme Settings
   const handleSaveTheme = async (newThemeType?: string) => {
     setSaving(true);
     const targetType = newThemeType || themeType;
-    await updateThemeSettings(user.id, targetType, themeBgColor, themeTextColor, themeButtonStyle);
+    await updateThemeSettings(activeProfile.id, userId, targetType, themeBgColor, themeTextColor, themeButtonStyle);
     setSaving(false);
     showMessage('Theme settings saved!');
   };
@@ -171,7 +258,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   // Remove Background Image
   const handleRemoveBg = async () => {
     setSaving(true);
-    await removeBgImage(user.id);
+    await removeBgImage(activeProfile.id, userId);
     setThemeBgImage('');
     setThemeType('light');
     setSaving(false);
@@ -182,7 +269,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
   const handleRequestDeletion = async () => {
     setRequestingDelete(true);
     try {
-      const res = await requestAccountDeletion(user.id);
+      const res = await requestAccountDeletion(userId);
       if (res.success && res.token) {
         const fullLink = `${window.location.origin}/delete-confirm?token=${res.token}`;
         setDeletionLink(fullLink);
@@ -201,7 +288,8 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     if (!newTitle.trim() || !newUrl.trim()) return;
     setSaving(true);
     const link = await addLink(
-      user.id, 
+      activeProfile.id,
+      userId, 
       newTitle, 
       newUrl, 
       linksList.length, 
@@ -232,13 +320,13 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     disc: string,
     img: string
   ) => {
-    await updateLink(id, user.id, title, url, isProd, prc, disc, img);
+    await updateLink(id, activeProfile.id, userId, title, url, isProd, prc, disc, img);
     setLinksList(linksList.map((l) => (l.id === id ? { ...l, title, url, isProduct: isProd, price: prc, discount: disc, productImage: img } : l)));
     showMessage('Link updated!');
   };
 
   const handleDeleteLink = async (id: number) => {
-    await deleteLink(id, user.id);
+    await deleteLink(id, activeProfile.id, userId);
     setLinksList(linksList.filter((l) => l.id !== id));
     showMessage('Link deleted!');
   };
@@ -249,7 +337,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     const newList = [...linksList];
     [newList[idx - 1], newList[idx]] = [newList[idx], newList[idx - 1]];
     setLinksList(newList);
-    await reorderLinks(newList.map((l) => l.id), user.id);
+    await reorderLinks(newList.map((l) => l.id), activeProfile.id, userId);
   };
 
   const handleMoveDown = async (id: number) => {
@@ -258,24 +346,99 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
     const newList = [...linksList];
     [newList[idx], newList[idx + 1]] = [newList[idx + 1], newList[idx]];
     setLinksList(newList);
-    await reorderLinks(newList.map((l) => l.id), user.id);
+    await reorderLinks(newList.map((l) => l.id), activeProfile.id, userId);
   };
+
+  // --- HTML5 Drag & Drop handlers ---
+  const handleDragStart = (idx: number) => {
+    setDraggedIdx(idx);
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === targetIdx) return;
+
+    const newList = [...linksList];
+    const draggedItem = newList[draggedIdx];
+    newList.splice(draggedIdx, 1);
+    newList.splice(targetIdx, 0, draggedItem);
+    
+    setDraggedIdx(targetIdx);
+    setLinksList(newList);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedIdx(null);
+    await reorderLinks(linksList.map((l) => l.id), activeProfile.id, userId);
+    showMessage('Links order saved!');
+  };
+
+  // Calculate Level Details
+  const levelInfo = getCreatorLevel(totalClicks);
+  const progressPercent = Math.min(100, (totalClicks / levelInfo.nextThreshold) * 100);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      {/* Header */}
+      {/* Top Gamified Creator Level Bar */}
+      <div className="mb-8 p-4 rounded-3xl bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/10 dark:to-pink-950/10 border border-purple-100/50 dark:border-purple-900/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">🏆</span>
+          <div>
+            <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">Creator Level</h4>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="rounded bg-purple-500 px-1.5 py-0.5 text-[10px] font-extrabold text-white">LVL {levelInfo.level}</span>
+              <span className="text-xs font-bold text-purple-600 dark:text-purple-400">{levelInfo.title}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 max-w-md">
+          <div className="flex justify-between text-[10px] font-bold text-gray-500 dark:text-slate-400 mb-1">
+            <span>{totalClicks} Clicks</span>
+            <span>Next Level: {levelInfo.nextThreshold} Clicks</span>
+          </div>
+          <div className="h-2 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Header & Profile Switcher */}
       <div className="mb-8 flex flex-col justify-between gap-4 border-b border-gray-100 dark:border-slate-800 pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2.5 text-sm text-gray-500 dark:text-slate-400">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
+            {/* Profile Dropdown Switcher */}
+            <div className="relative inline-block">
+              <select
+                value={activeProfile.id}
+                onChange={(e) => handleProfileSwitch(parseInt(e.target.value))}
+                className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white cursor-pointer"
+              >
+                {userProfiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    @{p.username} ({p.profileType})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={() => setShowNewProfileModal(true)}
+              className="rounded-full bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] p-1.5 text-xs font-bold"
+              title="Create New Profile"
+            >
+              ➕
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2.5 text-sm text-gray-500 dark:text-slate-400">
             <span>Manage your Mizari profile at</span>
             <a
-              href={`/${user.username}`}
+              href={`/${activeProfile.username}`}
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-[#FF6B6B] hover:underline"
             >
-              mizari.cc/{user.username}
+              mizari.cc/{activeProfile.username}
             </a>
             
             <button
@@ -288,7 +451,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
               <span>{copied ? 'Copied!' : 'Share'}</span>
             </button>
 
-            <QRCodeModal username={user.username} />
+            <QRCodeModal username={activeProfile.username} />
           </div>
         </div>
       </div>
@@ -296,6 +459,60 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
       {message && (
         <div className="mb-6 rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-fade-in">
           {message}
+        </div>
+      )}
+
+      {/* Create Profile Modal */}
+      {showNewProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 animate-scale-up">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New Profile</h3>
+            <p className="text-xs text-gray-550 mt-1">Add another personal, business, or gaming page.</p>
+
+            <form onSubmit={handleCreateProfile} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Username (unique)</label>
+                <input
+                  type="text"
+                  required
+                  value={newProfileName}
+                  onChange={(e) => setNewProfileName(e.target.value)}
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-3.5 py-2 text-sm focus:outline-none focus:border-[#FF6B6B] dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  placeholder="e.g. amit_gaming"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Profile Type</label>
+                <select
+                  value={newProfileType}
+                  onChange={(e) => setNewProfileType(e.target.value as any)}
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-3.5 py-2 text-sm focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="personal">Personal</option>
+                  <option value="business">Business / Shop</option>
+                  <option value="gaming">Gaming</option>
+                </select>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110"
+                >
+                  {saving ? 'Creating...' : 'Create Profile'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewProfileModal(false)}
+                  className="flex-1 rounded-2xl border border-gray-200 py-2.5 text-xs font-bold text-gray-650 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-350 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -315,7 +532,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                     <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-gray-400">
-                      {user.username.charAt(0).toUpperCase()}
+                      {activeProfile.username.charAt(0).toUpperCase()}
                     </div>
                   )}
                   {/* Hover Overlay */}
@@ -355,23 +572,34 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                     placeholder="Tell the world about yourself..."
                   />
                 </div>
-                <button
-                  onClick={handleUpdateProfile}
-                  disabled={saving}
-                  className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
-                >
-                  Save Bio
-                </button>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
+                  <button
+                    onClick={handleUpdateProfile}
+                    disabled={saving}
+                    className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+                  >
+                    Save Bio
+                  </button>
+                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-600 dark:text-slate-400">
+                    <input
+                      type="checkbox"
+                      checked={showWishes}
+                      onChange={(e) => handleToggleWishes(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                    />
+                    <span>Enable Tanabata Wish Tree 🎋</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Preset Japanese Themes */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Japanese Preset Themes</h2>
-            <p className="text-xs text-gray-500 mb-6">Choose a beautiful predefined theme inspired by Japan.</p>
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-855 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Japanese Preset & Seasonal Themes</h2>
+            <p className="text-xs text-gray-500 mb-6">Choose a beautiful predefined theme inspired by Japan (30 Themes).</p>
             
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-72 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1">
               {JAPANESE_THEMES.map((theme) => (
                 <button
                   key={theme.id}
@@ -392,7 +620,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           </div>
 
           {/* Custom Theme & Background Builder */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-855 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Custom Theme Builder</h2>
             
             <div className="space-y-6">
@@ -481,7 +709,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                           type="button"
                           disabled={uploadingBg}
                           onClick={() => bgInputRef.current?.click()}
-                          className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                         >
                           {uploadingBg ? 'Uploading...' : themeBgImage ? 'Replace Image' : 'Upload Image'}
                         </button>
@@ -536,7 +764,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
 
           {/* Add Link or Product Card */}
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
-            <div className="flex gap-4 border-b border-gray-100 dark:border-slate-850 pb-4 mb-4">
+            <div className="flex gap-4 border-b border-gray-100 dark:border-slate-855 pb-4 mb-4">
               <button
                 type="button"
                 onClick={() => setIsProduct(0)}
@@ -567,14 +795,14 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-250 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder={isProduct === 1 ? 'Product Name (e.g. Anime Figurine)' : 'Link Title (e.g. My Website)'}
                 />
                 <input
                   type="url"
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-250 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="https://..."
                 />
               </div>
@@ -600,14 +828,15 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                       className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. 20% OFF"
                     />
-                                <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
+                  </div>
+                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
                     <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Product Image</label>
                     <div className="flex flex-col gap-2">
                       <input
                         type="url"
                         value={productImage}
                         onChange={(e) => setProductImage(e.target.value)}
-                        className="w-full rounded-xl border border-gray-250 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded-xl border border-gray-255 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                         placeholder="Paste Image URL here (e.g. Amazon image URL)..."
                       />
                       <div className="flex items-center gap-4">
@@ -625,13 +854,13 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                           type="button"
                           disabled={uploadingProd}
                           onClick={() => prodImgInputRef.current?.click()}
-                          className="rounded-xl border border-gray-250 bg-white px-4 py-2 text-xs font-bold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-350"
+                          className="rounded-xl border border-gray-250 bg-white px-4 py-2 text-xs font-bold text-gray-750 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-355"
                         >
                           {uploadingProd ? 'Uploading...' : 'Or Upload Local File'}
                         </button>
                       </div>
                     </div>
-                  </div>     </div>
+                  </div>
                 </div>
               )}
 
@@ -645,11 +874,13 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
             </div>
           </div>
 
-          {/* Links list */}
+          {/* Links list with Drag and Drop */}
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Your links ({linksList.length})
             </h2>
+            <p className="text-xs text-gray-550 mb-4">Drag and drop the cards below to reorder them instantly.</p>
+            
             <div className="mt-4 space-y-3">
               {linksList.length === 0 && (
                 <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
@@ -657,22 +888,32 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                 </p>
               )}
               {linksList.map((link, index) => (
-                <LinkCard
+                <div
                   key={link.id}
-                  link={link}
-                  onUpdate={handleUpdateLink}
-                  onDelete={handleDeleteLink}
-                  onMoveUp={handleMoveUp}
-                  onMoveDown={handleMoveDown}
-                  isFirst={index === 0}
-                  isLast={index === linksList.length - 1}
-                />
+                  draggable
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`cursor-grab active:cursor-grabbing transition-transform duration-150 ${
+                    draggedIdx === index ? 'opacity-40 scale-95 border-dashed border-2 border-purple-500' : ''
+                  }`}
+                >
+                  <LinkCard
+                    link={link}
+                    onUpdate={handleUpdateLink}
+                    onDelete={handleDeleteLink}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    isFirst={index === 0}
+                    isLast={index === linksList.length - 1}
+                  />
+                </div>
               ))}
             </div>
           </div>
 
           {/* Danger Zone: Delete Account */}
-          <div className="rounded-3xl border border-red-250 bg-red-50/10 p-6 shadow-sm dark:border-red-900/20 dark:bg-red-950/5">
+          <div className="rounded-3xl border border-red-250 bg-red-50/10 p-6 shadow-sm dark:border-red-900/20 dark:bg-red-955/5">
             <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
             <p className="text-xs text-gray-500 dark:text-slate-450 mb-4">
               Permanently delete your Mizari account, links, and all uploaded files. This action cannot be undone.
@@ -697,7 +938,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
                       type="text"
                       readOnly
                       value={deletionLink}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2 text-xs font-mono text-gray-600 select-all focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                      className="w-full rounded-xl border border-gray-250 bg-gray-55 p-2 text-xs font-mono text-gray-600 select-all focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                     />
                     <a
                       href={deletionLink}
@@ -717,7 +958,7 @@ export function DashboardClient({ user, initialLinks }: DashboardClientProps) {
           <div className="sticky top-24">
             <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Live Preview</h2>
             <ProfilePreview
-              username={user.username}
+              username={activeProfile.username}
               bio={bio}
               avatarUrl={avatarUrl}
               links={linksList.map((l) => ({ id: l.id, title: l.title, url: l.url, isProduct: l.isProduct, price: l.price, discount: l.discount, productImage: l.productImage }))}
