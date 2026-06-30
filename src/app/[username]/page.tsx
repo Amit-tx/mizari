@@ -9,6 +9,10 @@ import { SakuraEffect } from '@/components/SakuraEffect';
 import { AutumnEffect } from '@/components/AutumnEffect';
 import { WinterEffect } from '@/components/WinterEffect';
 import { LanternEffect } from '@/components/LanternEffect';
+import { FirefliesEffect } from '@/components/FirefliesEffect';
+import { ShootingStarsEffect } from '@/components/ShootingStarsEffect';
+import { RainEffect } from '@/components/RainEffect';
+import { CloudsEffect } from '@/components/CloudsEffect';
 import { ShareButton } from '@/components/ShareButton';
 import { LikeButton } from '@/components/LikeButton';
 import { Branding } from '@/components/Branding';
@@ -163,7 +167,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
       {(profile.themeType === 'momiji' || profile.themeType === 'aki_autumn') && <AutumnEffect />}
       {(profile.themeType === 'yuki' || profile.themeType === 'fuyu_winter') && <WinterEffect />}
-      {(profile.themeType === 'matsuri' || profile.themeType === 'natsu_matsuri') && <LanternEffect />}
+      {(profile.themeType === 'matsuri' || profile.themeType === 'natsu_matsuri' || profile.themeType === 'shrine_festival') && <LanternEffect />}
+
+      {/* New Anime Effects */}
+      {(profile.themeType === 'moonlight_forest' || profile.themeType === 'shrine_festival' || profile.themeType === 'bamboo_zen') && <FirefliesEffect />}
+      {(profile.themeType === 'galaxy_dream' || profile.themeType === 'tsukiyo' || profile.themeType === 'frieren' || profile.themeType === 'demon_slayer') && <ShootingStarsEffect />}
+      {(profile.themeType === 'ame' || profile.themeType === 'cyber_tokyo') && <RainEffect />}
+      {(profile.themeType === 'sky_kingdom' || profile.themeType === 'ocean_sunset' || profile.themeType === 'aozora' || profile.themeType === 'railway_sunset') && <CloudsEffect />}
 
       {/* Floating Ambient Sound Player */}
       <AmbientPlayer />
