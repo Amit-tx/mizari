@@ -1,3 +1,5 @@
+import { japanThemes, animeThemes, AnimeReactivePhase } from '@/data/themes';
+
 // Theme Store catalog — defines which themes are free vs paid and their categories
 export interface StoreTheme {
   id: string;
@@ -13,9 +15,108 @@ export interface StoreTheme {
   bgColor: string;
   textColor: string;
   btnBg: string;
+  reactivePhases?: AnimeReactivePhase[];
 }
 
-export const STORE_THEMES: StoreTheme[] = [
+function mapEmoji(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('sakura')) return '🌸';
+  if (n.includes('sunset')) return '🌅';
+  if (n.includes('dawn')) return '🌅';
+  if (n.includes('rain')) return '🌧';
+  if (n.includes('night')) return '🌙';
+  if (n.includes('torii') || n.includes('shrine')) return '⛩️';
+  if (n.includes('bamboo')) return '🎋';
+  if (n.includes('samurai')) return '⚔️';
+  if (n.includes('kitsune')) return '🦊';
+  if (n.includes('lantern')) return '🏮';
+  if (n.includes('zen')) return '🪨';
+  if (n.includes('koi') || n.includes('pond')) return '🐟';
+  if (n.includes('autumn')) return '🍁';
+  if (n.includes('winter') || n.includes('snow')) return '❄️';
+  if (n.includes('wave')) return '🌊';
+  if (n.includes('firefly') || n.includes('village')) return '✨';
+  if (n.includes('street') || n.includes('edo')) return '🏮';
+  if (n.includes('aurora')) return '🌌';
+  if (n.includes('ink') || n.includes('brush')) return '🖌️';
+  if (n.includes('frieren')) return '🪄';
+  if (n.includes('demon slayer') || n.includes('slayer')) return '⚔️';
+  if (n.includes('naruto')) return '🍥';
+  if (n.includes('dragon ball')) return '🐉';
+  if (n.includes('one piece')) return '🏴';
+  if (n.includes('jujutsu')) return '🌀';
+  if (n.includes('titan')) return '🛡️';
+  if (n.includes('hero academia')) return '🦸';
+  if (n.includes('hunter')) return '🎣';
+  if (n.includes('ghoul')) return '☕';
+  if (n.includes('death note')) return '📓';
+  if (n.includes('online')) return '⚔️';
+  if (n.includes('clover')) return '🍀';
+  if (n.includes('leveling')) return '🗡️';
+  if (n.includes('chainsaw')) return '🪚';
+  if (n.includes('spy')) return '🕵️';
+  if (n.includes('haikyuu')) return '🏐';
+  if (n.includes('blue lock') || n.includes('lock')) return '⚽';
+  if (n.includes('jojo')) return '🌟';
+  if (n.includes('sailor')) return '🌙';
+  if (n.includes('evangelion')) return '🤖';
+  if (n.includes('bebop')) return '🚀';
+  if (n.includes('geass')) return '👁️';
+  if (n.includes('berserk')) return '🗡️';
+  if (n.includes('zero')) return '🍎';
+  if (n.includes('overlord')) return '💀';
+  if (n.includes('punch')) return '👊';
+  if (n.includes('psycho')) return '🧠';
+  if (n.includes('mecha')) return '🤖';
+  return '🎨';
+}
+
+function parsePrice(priceStr: string): number {
+  if (priceStr.toLowerCase() === 'free') return 0;
+  return parseInt(priceStr.replace(/[^0-9]/g, '')) || 0;
+}
+
+const mappedJapanThemes: StoreTheme[] = japanThemes.map((t) => {
+  const price = parsePrice(t.price);
+  const tier = price === 0 ? 'free' : price >= 99 ? 'exclusive' : 'premium';
+  return {
+    id: t.slug,
+    name: t.name,
+    emoji: mapEmoji(t.name),
+    tier,
+    price,
+    description: t.headline,
+    categories: ['Anime', 'Creator'] as any,
+    tags: t.tags as string[],
+    effect: t.particle === 'petal' ? 'sakura' : t.particle === 'firefly' ? 'fireflies' : undefined,
+    bgGradient: t.art,
+    bgColor: t.particle === 'firefly' ? '#0A0E1A' : '#FFF0F5',
+    textColor: t.particle === 'firefly' ? '#B8D4F0' : '#8C3A4F',
+    btnBg: 'rgba(255,255,255,0.1)',
+  };
+});
+
+const mappedAnimeThemes: StoreTheme[] = animeThemes.map((t) => {
+  const price = parsePrice(t.price);
+  const tier = price === 0 ? 'free' : price >= 99 ? 'exclusive' : 'premium';
+  return {
+    id: t.slug,
+    name: t.name,
+    emoji: mapEmoji(t.name),
+    tier,
+    price,
+    description: t.reactivePhases ? `Interactive Anime Day/Night Cycle Theme. Updates live with device time!` : `Dynamic styling themed around ${t.name.replace(' Theme', '')}`,
+    categories: ['Anime', 'Creator', 'Gaming'] as any,
+    tags: t.tags as string[],
+    bgGradient: t.art,
+    bgColor: '#0B0E23',
+    textColor: '#EDE7F6',
+    btnBg: 'rgba(255,255,255,0.1)',
+    reactivePhases: t.reactivePhases,
+  };
+});
+
+const PRESET_THEMES: StoreTheme[] = [
   // ── FREE THEMES (10) ──────────────────────────────────────
   { id: 'light',      name: 'Clean Light',     emoji: '☀️',  tier: 'free', price: 0, description: 'Simple and clean light mode', categories: ['Minimal', 'Business'], tags: ['minimal', 'clean'], bgColor: '#fafafa', textColor: '#1a1a2e', btnBg: '#f3f4f6' },
   { id: 'dark',       name: 'Midnight Dark',   emoji: '🌑',  tier: 'free', price: 0, description: 'Sleek dark mode for night owls', categories: ['Minimal', 'Business'], tags: ['dark', 'minimal'], bgColor: '#0f172a', textColor: '#e2e8f0', btnBg: '#1e293b' },
@@ -43,6 +144,15 @@ export const STORE_THEMES: StoreTheme[] = [
   { id: 'ocean_sunset',     name: 'Ocean Sunset',           emoji: '🌅', tier: 'exclusive', price: 99, description: 'Cinematic ocean sunset with moving clouds', categories: ['Creator', 'Luxury'], tags: ['sunset', 'ocean', 'warm', 'beautiful'], bgColor: '#FFF3E0', textColor: '#7B341E', btnBg: '#FED7AA', effect: 'clouds', bgGradient: 'linear-gradient(180deg, #FF6B35 0%, #F7B731 40%, #3D9EFF 100%)' },
   { id: 'railway_sunset',   name: 'Railway Memories',       emoji: '🚉', tier: 'exclusive', price: 99, description: 'Anime train station at golden sunset', categories: ['Anime', 'Creator', 'Minimal'], tags: ['anime', 'nostalgic', 'sunset', 'warm'], bgColor: '#FFF7ED', textColor: '#92400E', btnBg: '#FDE68A', effect: 'clouds', bgGradient: 'linear-gradient(180deg, #F97316 0%, #FDE68A 60%, #FFF7ED 100%)' },
   { id: 'sky_kingdom',      name: 'Sky Kingdom',            emoji: '☁️',  tier: 'exclusive', price: 99, description: 'Floating islands in dynamic blue sky', categories: ['Creator', 'Minimal'], tags: ['sky', 'clouds', 'blue'], bgColor: '#E0F2FE', textColor: '#0C4A6E', btnBg: '#BAE6FD', effect: 'clouds', bgGradient: 'linear-gradient(180deg, #93C5FD 0%, #E0F2FE 60%, #BAE6FD 100%)' },
+];
+
+// Combine presets and user provided Japan + Anime themes, filtering out duplicates
+const presetIds = new Set(PRESET_THEMES.map((t) => t.id));
+
+export const STORE_THEMES: StoreTheme[] = [
+  ...PRESET_THEMES,
+  ...mappedJapanThemes.filter((t) => !presetIds.has(t.id)),
+  ...mappedAnimeThemes.filter((t) => !presetIds.has(t.id)),
 ];
 
 export function getStoreThemeById(id: string) {

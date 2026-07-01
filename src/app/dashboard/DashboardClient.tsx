@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
+import { AdSlot } from '@/components/AdSlot';
 import { JAPANESE_THEMES } from '@/components/Themes';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { QRCodeModal } from '@/components/QRCodeModal';
@@ -111,6 +112,7 @@ export function DashboardClient({
   const [uploadingBg, setUploadingBg] = useState(false);
   const [uploadingProd, setUploadingProd] = useState(false);
   const [message, setMessage] = useState('');
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   // Marketplace States
   const [creatorStats, setCreatorStats] = useState<{
@@ -1275,6 +1277,49 @@ export function DashboardClient({
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button for Mobile Preview */}
+      <button
+        onClick={() => setShowMobilePreview(true)}
+        className="fixed bottom-6 right-6 z-40 lg:hidden flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 font-bold text-white shadow-xl shadow-[#FF6B6B]/25 hover:scale-105 active:scale-95 transition-all duration-200"
+      >
+        <span>📱</span>
+        <span>Preview</span>
+      </button>
+
+      {/* Mobile Preview Drawer Modal */}
+      {showMobilePreview && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm lg:hidden">
+          <div className="relative w-full max-h-[90vh] rounded-t-[32px] border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-5 shadow-2xl flex flex-col transition-transform duration-300">
+            {/* Header/Close */}
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-sm font-bold text-gray-500 dark:text-slate-400">Live Preview</span>
+              <button 
+                onClick={() => setShowMobilePreview(false)}
+                className="rounded-full bg-gray-200 dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-700"
+              >
+                ✕ Close
+              </button>
+            </div>
+            
+            {/* Content area */}
+            <div className="overflow-y-auto flex-1 pb-8">
+              <ProfilePreview
+                username={activeProfile.username}
+                bio={bio}
+                avatarUrl={avatarUrl}
+                links={linksList.map((l) => ({ id: l.id, title: l.title, url: l.url, isProduct: l.isProduct, price: l.price, discount: l.discount, productImage: l.productImage }))}
+                themeType={themeType}
+                themeBgColor={themeBgColor}
+                themeTextColor={themeTextColor}
+                themeBgImage={themeBgImage}
+                themeButtonStyle={themeButtonStyle}
+                themeBackdrop={themeBackdrop}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

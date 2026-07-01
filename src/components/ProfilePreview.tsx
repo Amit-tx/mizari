@@ -1,5 +1,9 @@
 import { getPlatformIcon } from './LinkIcons';
 import { getThemeById } from './Themes';
+import { getStoreThemeById } from './StoreThemes';
+import AnimeReactiveSky from './AnimeReactiveSky';
+import LivingSky from './LivingSky';
+import { japanThemes, animeThemes } from '@/data/themes';
 
 interface ProfilePreviewProps {
   username: string;
@@ -35,14 +39,53 @@ export function ProfilePreview({
   themeBackdrop = 'glass-light',
 }: ProfilePreviewProps) {
   const isPreset = !['light', 'dark', 'custom'].includes(themeType);
-  const preset = isPreset ? getThemeById(themeType) : undefined;
+  const storeTheme = isPreset ? getStoreThemeById(themeType) : undefined;
+  
+  const preset = storeTheme ? {
+    id: storeTheme.id,
+    name: storeTheme.name,
+    emoji: storeTheme.emoji,
+    bgColor: storeTheme.bgColor,
+    textColor: storeTheme.textColor,
+    btnBg: storeTheme.btnBg,
+    btnText: storeTheme.textColor,
+    btnBorder: `${storeTheme.textColor}22`,
+    bgGradient: storeTheme.bgGradient,
+    effect: storeTheme.effect,
+    btnStyle: 'rounded-xl',
+  } : undefined;
+
+  const rawJapanTheme = japanThemes.find((jt) => jt.slug === themeType);
+  const rawAnimeTheme = animeThemes.find((at) => at.slug === themeType);
+
+  // Apply reactive color science overrides dynamically in memory
+  if (rawJapanTheme && preset) {
+    const { getPhase } = require('@/data/timePhases');
+    const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
+    const currentPhase = getPhase(currentHour);
+    preset.textColor = currentPhase.color;
+    preset.btnText = currentPhase.color;
+    preset.btnBorder = `${currentPhase.color}33`;
+  }
+
+  if (rawAnimeTheme && rawAnimeTheme.reactivePhases && preset) {
+    const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
+    const activePhase = rawAnimeTheme.reactivePhases.find((p) => currentHour < p.end) || rawAnimeTheme.reactivePhases[rawAnimeTheme.reactivePhases.length - 1];
+    if (activePhase) {
+      preset.textColor = activePhase.text;
+      preset.btnText = activePhase.text;
+      preset.btnBorder = `${activePhase.accent}55`;
+    }
+  }
 
   // Separate standard links and product cards
   const standardLinks = links.filter((l) => !l.isProduct || l.isProduct === 0);
   const productLinks = links.filter((l) => l.isProduct === 1);
 
   let bgStyle: React.CSSProperties = {};
-  if (preset) {
+  if (rawJapanTheme || rawAnimeTheme) {
+    bgStyle = {};
+  } else if (preset) {
     if (preset.bgGradient) bgStyle = { backgroundImage: preset.bgGradient };
     else bgStyle = { backgroundColor: preset.bgColor };
   } else if (themeType === 'custom') {
@@ -111,11 +154,23 @@ export function ProfilePreview({
 
   return (
     <div
-      className="mx-auto w-full max-w-sm overflow-y-auto rounded-[32px] border border-gray-200 dark:border-slate-800 p-3 transition-all duration-300 min-h-[580px] max-h-[640px] shadow-inner"
+      className="mx-auto w-full max-w-sm overflow-y-auto rounded-[32px] border border-gray-200 dark:border-slate-800 p-3 transition-all duration-300 min-h-[580px] max-h-[640px] shadow-inner relative"
       style={bgStyle}
     >
+      {/* Living / Reactive Day/Night Cycle Skies */}
+      {rawJapanTheme && (
+        <div className="absolute inset-0 z-0 rounded-[32px] overflow-hidden">
+          <LivingSky particle={rawJapanTheme.particle} showContent={false} />
+        </div>
+      )}
+      {rawAnimeTheme && rawAnimeTheme.reactivePhases && (
+        <div className="absolute inset-0 z-0 rounded-[32px] overflow-hidden">
+          <AnimeReactiveSky phases={rawAnimeTheme.reactivePhases} showContent={false} />
+        </div>
+      )}
+
       <div
-        className={`overflow-hidden rounded-2xl border transition-all duration-300 w-full h-full ${getBackdropClass()}`}
+        className={`overflow-hidden rounded-2xl border transition-all duration-300 w-full h-full relative z-10 ${getBackdropClass()}`}
       >
         {!preset && themeType !== 'custom' && (
           <div className="h-16 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]" />

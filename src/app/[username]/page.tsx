@@ -2,6 +2,7 @@ import { db } from '@/db';
 import { profiles, links, wishes } from '@/db/schema';
 import { eq, asc, desc } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
+import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
@@ -17,6 +18,9 @@ import { LikeButton } from '@/components/LikeButton';
 import { Branding } from '@/components/Branding';
 import { TanabataTree } from '@/components/TanabataTree';
 import { AmbientPlayer } from '@/components/AmbientPlayer';
+import { getStoreThemeById } from '@/components/StoreThemes';
+import AnimeReactiveSky from '@/components/AnimeReactiveSky';
+import LivingSky from '@/components/LivingSky';
 import type { Metadata } from 'next';
 
 interface ProfilePageProps {
@@ -88,11 +92,51 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Check if preset theme
   const isPreset = !['light', 'dark', 'custom'].includes(profile.themeType);
-  const preset = isPreset ? getThemeById(profile.themeType) : undefined;
+  const storeTheme = isPreset ? getStoreThemeById(profile.themeType) : undefined;
+  
+  const preset = storeTheme ? {
+    id: storeTheme.id,
+    name: storeTheme.name,
+    emoji: storeTheme.emoji,
+    bgColor: storeTheme.bgColor,
+    textColor: storeTheme.textColor,
+    btnBg: storeTheme.btnBg,
+    btnText: storeTheme.textColor,
+    btnBorder: `${storeTheme.textColor}22`,
+    bgGradient: storeTheme.bgGradient,
+    effect: storeTheme.effect,
+    btnStyle: 'rounded-xl',
+  } : undefined;
+
+  const { japanThemes, animeThemes } = await import('@/data/themes');
+  const rawJapanTheme = japanThemes.find((jt) => jt.slug === profile.themeType);
+  const rawAnimeTheme = animeThemes.find((at) => at.slug === profile.themeType);
+
+  // Apply reactive color science overrides dynamically in memory
+  if (rawJapanTheme && preset) {
+    const { getPhase } = await import('@/data/timePhases');
+    const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
+    const currentPhase = getPhase(currentHour);
+    preset.textColor = currentPhase.color;
+    preset.btnText = currentPhase.color;
+    preset.btnBorder = `${currentPhase.color}33`;
+  }
+
+  if (rawAnimeTheme && rawAnimeTheme.reactivePhases && preset) {
+    const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
+    const activePhase = rawAnimeTheme.reactivePhases.find((p) => currentHour < p.end) || rawAnimeTheme.reactivePhases[rawAnimeTheme.reactivePhases.length - 1];
+    if (activePhase) {
+      preset.textColor = activePhase.text;
+      preset.btnText = activePhase.text;
+      preset.btnBorder = `${activePhase.accent}55`;
+    }
+  }
 
   // Determine background style
   let bgStyle: React.CSSProperties = {};
-  if (preset) {
+  if (rawJapanTheme || rawAnimeTheme) {
+    bgStyle = {};
+  } else if (preset) {
     if (preset.bgGradient) {
       bgStyle = { backgroundImage: preset.bgGradient };
     } else {
@@ -186,6 +230,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       className="relative flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center overflow-y-auto"
       style={bgStyle}
     >
+      {/* Living / Reactive Day/Night Cycle Skies */}
+      {rawJapanTheme && (
+        <div className="absolute inset-0 z-0">
+          <LivingSky particle={rawJapanTheme.particle} showContent={false} />
+        </div>
+      )}
+      {rawAnimeTheme && rawAnimeTheme.reactivePhases && (
+        <div className="absolute inset-0 z-0">
+          <AnimeReactiveSky phases={rawAnimeTheme.reactivePhases} showContent={false} />
+        </div>
+      )}
+
       {/* Seasonal Background Animations */}
       {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
       {(profile.themeType === 'momiji' || profile.themeType === 'aki_autumn') && <AutumnEffect />}
@@ -343,6 +399,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             textColor={preset?.textColor || profile.themeTextColor}
           />
         )}
+
+        {/* Ad slot */}
+        <div className="mt-4">
+          <AdSlot slot="profile-footer" size="responsive" />
+        </div>
 
         {/* Branding */}
         <Branding />

@@ -27,24 +27,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid upload type' }, { status: 400 });
     }
 
-    // Validate file type — only allow common image formats
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Only JPG, PNG, WEBP, and GIF images are allowed.' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size — 5MB max
-    const MAX_SIZE_BYTES = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: 'File is too large. Maximum size is 5MB.' },
-        { status: 400 }
-      );
-    }
-
     // Fetch existing profile to verify ownership and get old image URL
     const [profile] = await db
       .select()
