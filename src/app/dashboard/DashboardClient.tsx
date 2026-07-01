@@ -6,6 +6,7 @@ import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { AdSlot } from '@/components/AdSlot';
 import { JAPANESE_THEMES } from '@/components/Themes';
+import { STORE_THEMES } from '@/components/StoreThemes';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { 
   updateProfile, 
@@ -48,6 +49,7 @@ interface DashboardClientProps {
   userEmail: string;
   initialLinks: Link[];
   totalClicks: number;
+  purchasedThemeIds: string[];
 }
 
 // Helper to calculate Creator Level
@@ -70,7 +72,8 @@ export function DashboardClient({
   activeProfile, 
   userEmail,
   initialLinks,
-  totalClicks
+  totalClicks,
+  purchasedThemeIds
 }: DashboardClientProps) {
   const router = useRouter();
 
@@ -628,22 +631,46 @@ export function DashboardClient({
             <p className="text-xs text-gray-500 mb-6">Choose a beautiful predefined theme inspired by Japan (30 Themes).</p>
             
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1">
-              {JAPANESE_THEMES.map((theme) => (
-                <button
-                  key={theme.id}
-                  type="button"
-                  onClick={() => handleSelectPreset(theme.id)}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 ${
-                    themeType === theme.id
-                      ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
-                      : 'border-gray-100 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
-                  }`}
-                  style={{ background: theme.bgGradient || theme.bgColor }}
-                >
-                  <span className="text-2xl mb-1">{theme.emoji}</span>
-                  <span className="text-xs font-bold" style={{ color: theme.textColor }}>{theme.name}</span>
-                </button>
-              ))}
+              {JAPANESE_THEMES.map((theme) => {
+                const storeTheme = STORE_THEMES.find((t) => t.id === theme.id);
+                const isFree = !storeTheme || storeTheme.tier === 'free';
+                const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
+
+                return (
+                  <div key={theme.id} className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isUnlocked) {
+                          handleSelectPreset(theme.id);
+                        } else {
+                          if (confirm(`"${theme.name}" is a premium theme. Would you like to go to the Theme Store to unlock it?`)) {
+                            router.push('/store');
+                          }
+                        }
+                      }}
+                      className={`w-full flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 ${
+                        themeType === theme.id
+                          ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
+                          : 'border-gray-100 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
+                      } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
+                      style={{ background: theme.bgGradient || theme.bgColor }}
+                    >
+                      <span className="text-2xl mb-1 relative">
+                        {theme.emoji}
+                        {!isUnlocked && (
+                          <span className="absolute -top-1 -right-1 text-xs bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
+                            🔒
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-xs font-bold" style={{ color: theme.textColor }}>
+                        {theme.name}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

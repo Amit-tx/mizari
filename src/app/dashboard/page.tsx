@@ -81,6 +81,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     totalClicks += profLinks.reduce((sum, link) => sum + link.clicks, 0);
   }
 
+  const { themePurchases } = await import('@/db/schema');
+  const purchases = await db
+    .select()
+    .from(themePurchases)
+    .where(and(eq(themePurchases.userId, userId), eq(themePurchases.status, 'paid')));
+  const purchasedThemeIds = purchases.map((p) => p.themeId);
+
   return (
     <DashboardClient
       userId={userId}
@@ -106,6 +113,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       userEmail={user.email}
       initialLinks={profileLinks}
       totalClicks={totalClicks}
+      purchasedThemeIds={purchasedThemeIds}
     />
   );
 }

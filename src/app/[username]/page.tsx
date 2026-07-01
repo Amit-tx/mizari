@@ -190,8 +190,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       <div className="w-full max-w-md z-10 space-y-6">
         {/* Profile card */}
-        <div className={`overflow-hidden rounded-3xl border border-gray-100 shadow-xl transition-all duration-300 dark:border-slate-800 ${
-          profile.themeType === 'light' ? 'bg-white text-[#1a1a2e]' : profile.themeType === 'dark' ? 'bg-slate-900 text-slate-100' : 'bg-transparent border-transparent shadow-none'
+        <div className={`overflow-hidden rounded-3xl border transition-all duration-300 ${
+          profile.themeType === 'light' 
+            ? 'bg-white border-gray-100 shadow-xl text-[#1a1a2e]' 
+            : profile.themeType === 'dark' 
+            ? 'bg-slate-900 border-slate-800 shadow-xl text-slate-100' 
+            : 'bg-white/30 dark:bg-slate-950/35 backdrop-blur-md border-white/20 dark:border-slate-800/40 shadow-xl'
         }`}>
           {/* Gradient header (only if not custom/preset background) */}
           {!preset && profile.themeType !== 'custom' && (

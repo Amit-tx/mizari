@@ -69,9 +69,23 @@ export const wishes = pgTable('wishes', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const themePurchases = pgTable('theme_purchases', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  themeId: varchar('theme_id', { length: 64 }).notNull(),
+  pricePaid: integer('price_paid').default(0).notNull(), // in paise (₹49 = 4900)
+  orderId: varchar('order_id', { length: 128 }),         // Razorpay order ID
+  paymentId: varchar('payment_id', { length: 128 }),     // Razorpay payment ID
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // pending | paid
+  purchasedAt: timestamp('purchased_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   profiles: many(profiles),
+  themePurchases: many(themePurchases),
 }));
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -97,6 +111,13 @@ export const wishesRelations = relations(wishes, ({ one }) => ({
   }),
 }));
 
+export const themePurchasesRelations = relations(themePurchases, ({ one }) => ({
+  user: one(users, {
+    fields: [themePurchases.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Profile = typeof profiles.$inferSelect;
@@ -105,3 +126,4 @@ export type Link = typeof links.$inferSelect;
 export type NewLink = typeof links.$inferInsert;
 export type Wish = typeof wishes.$inferSelect;
 export type NewWish = typeof wishes.$inferInsert;
+export type ThemePurchase = typeof themePurchases.$inferSelect;

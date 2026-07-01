@@ -3,6 +3,7 @@ import Link from 'next/link';
 const productLinks = [
   { href: '/#features', label: 'Features' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/store', label: 'Theme Store' },
 ];
 const companyLinks = [
   { href: '/about', label: 'About' },

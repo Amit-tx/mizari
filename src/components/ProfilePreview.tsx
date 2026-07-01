@@ -92,8 +92,12 @@ export function ProfilePreview({
 
   return (
     <div
-      className={`mx-auto w-full max-w-sm overflow-hidden rounded-3xl border border-gray-100 shadow-xl transition-all duration-300 dark:border-slate-800 ${
-        themeType === 'light' ? 'bg-white text-[#1a1a2e]' : themeType === 'dark' ? 'bg-slate-900 text-slate-100' : ''
+      className={`mx-auto w-full max-w-sm overflow-hidden rounded-3xl border transition-all duration-300 ${
+        themeType === 'light' 
+          ? 'bg-white border-gray-100 shadow-xl text-[#1a1a2e]' 
+          : themeType === 'dark' 
+          ? 'bg-slate-900 border-slate-800 shadow-xl text-slate-100' 
+          : 'bg-white/30 dark:bg-slate-950/35 backdrop-blur-md border-white/20 dark:border-slate-800/40 shadow-xl'
       }`}
       style={bgStyle}
     >
