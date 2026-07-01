@@ -172,9 +172,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         borderColor: preset.btnBorder,
       };
     }
-    if (profile.themeType === 'custom' && profile.themeButtonStyle !== 'shadow') {
+    if (profile.themeType === 'custom') {
       return {
+        backgroundColor: profile.themeBgImage ? profile.themeBgColor : undefined,
         color: profile.themeTextColor,
+        borderColor: profile.themeBgImage ? `${profile.themeTextColor}33` : undefined,
       };
     }
     return {};

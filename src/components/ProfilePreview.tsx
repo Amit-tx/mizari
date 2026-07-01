@@ -86,8 +86,12 @@ export function ProfilePreview({
         borderColor: preset.btnBorder,
       };
     }
-    if (themeType === 'custom' && themeButtonStyle !== 'shadow') {
-      return { color: themeTextColor };
+    if (themeType === 'custom') {
+      return { 
+        backgroundColor: themeBgImage ? themeBgColor : undefined, 
+        color: themeTextColor,
+        borderColor: themeBgImage ? `${themeTextColor}33` : undefined 
+      };
     }
     return {};
   };
@@ -107,14 +111,17 @@ export function ProfilePreview({
 
   return (
     <div
-      className={`mx-auto w-full max-w-sm overflow-hidden rounded-3xl border transition-all duration-300 ${getBackdropClass()}`}
+      className="mx-auto w-full max-w-sm overflow-y-auto rounded-[32px] border border-gray-200 dark:border-slate-800 p-3 transition-all duration-300 min-h-[580px] max-h-[640px] shadow-inner"
       style={bgStyle}
     >
-      {!preset && themeType !== 'custom' && (
-        <div className="h-20 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]" />
-      )}
-      
-      <div className={`px-6 pb-8 ${preset || themeType === 'custom' ? 'pt-8' : ''}`}>
+      <div
+        className={`overflow-hidden rounded-2xl border transition-all duration-300 w-full h-full ${getBackdropClass()}`}
+      >
+        {!preset && themeType !== 'custom' && (
+          <div className="h-16 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]" />
+        )}
+        
+        <div className={`px-5 pb-6 ${preset || themeType === 'custom' ? 'pt-6' : ''}`}>
         {/* Avatar */}
         <div className="flex justify-center">
           <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-md dark:border-slate-800">
@@ -198,6 +205,7 @@ export function ProfilePreview({
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
