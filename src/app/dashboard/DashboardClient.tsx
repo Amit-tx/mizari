@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { AdSlot } from '@/components/AdSlot';
-import { JAPANESE_THEMES } from '@/components/Themes';
 import { STORE_THEMES } from '@/components/StoreThemes';
+import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { 
   updateProfile, 
@@ -113,6 +113,7 @@ export function DashboardClient({
   const [uploadingProd, setUploadingProd] = useState(false);
   const [message, setMessage] = useState('');
   const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [activeThemeTab, setActiveThemeTab] = useState<'japan' | 'anime'>('japan');
 
   // Marketplace States
   const [creatorStats, setCreatorStats] = useState<{
@@ -710,15 +711,47 @@ export function DashboardClient({
             </div>
           </div>
 
-          {/* Preset Japanese Themes */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-855 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Japanese Preset & Seasonal Themes</h2>
-            <p className="text-xs text-gray-500 mb-6">Choose a beautiful predefined theme inspired by Japan (30 Themes).</p>
-            
+          {/* Preset Japanese & Anime Themes */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Preset & Seasonal Themes</h2>
+            <p className="text-xs text-gray-500 mb-6">Select a predefined theme to instant-apply beautiful animated day/night styles.</p>
+
+            {/* Theme Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3">
+              <button
+                type="button"
+                onClick={() => setActiveThemeTab('japan')}
+                className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
+                  activeThemeTab === 'japan'
+                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                    : 'border-gray-200 dark:border-slate-800 text-gray-650 dark:text-slate-400 bg-white dark:bg-slate-850'
+                }`}
+              >
+                🇯🇵 Japan presets
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveThemeTab('anime')}
+                className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
+                  activeThemeTab === 'anime'
+                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                    : 'border-gray-200 dark:border-slate-800 text-gray-650 dark:text-slate-400 bg-white dark:bg-slate-850'
+                }`}
+              >
+                🍥 Anime themes
+              </button>
+            </div>
+
+            {/* Themes Grid */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1">
-              {JAPANESE_THEMES.map((theme) => {
-                const storeTheme = STORE_THEMES.find((t) => t.id === theme.id);
-                const isFree = !storeTheme || storeTheme.tier === 'free';
+              {STORE_THEMES.filter((t) => {
+                if (activeThemeTab === 'japan') {
+                  return japanThemes.some((jt) => jt.slug === t.id) || t.id === 'sakura' || t.id === 'momiji' || t.id === 'zen' || t.id === 'ame' || t.id === 'mizukaze' || t.id === 'aozora';
+                } else {
+                  return animeThemes.some((at) => at.slug === t.id) || t.id === 'tsukiyo' || t.id === 'frieren' || t.id === 'demon_slayer';
+                }
+              }).map((theme) => {
+                const isFree = theme.price === 0;
                 const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
 
                 return (
@@ -734,22 +767,22 @@ export function DashboardClient({
                           }
                         }
                       }}
-                      className={`w-full flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-200 ${
+                      className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 ${
                         themeType === theme.id
                           ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
-                          : 'border-gray-100 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
+                          : 'border-gray-250 hover:border-gray-350 dark:border-slate-800 dark:hover:border-slate-700'
                       } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
                       style={{ background: theme.bgGradient || theme.bgColor }}
                     >
-                      <span className="text-2xl mb-1 relative">
+                      <span className="text-xl mb-0.5 relative flex items-center justify-center">
                         {theme.emoji}
                         {!isUnlocked && (
-                          <span className="absolute -top-1 -right-1 text-xs bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
+                          <span className="absolute -top-1 -right-1 text-[10px] bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
                             🔒
                           </span>
                         )}
                       </span>
-                      <span className="text-xs font-bold" style={{ color: theme.textColor }}>
+                      <span className="text-[10px] font-extrabold text-center truncate w-full px-1" style={{ color: theme.textColor }}>
                         {theme.name}
                       </span>
                     </button>
@@ -783,7 +816,7 @@ export function DashboardClient({
               </div>
 
               {/* Custom Theme Options */}
-              {(themeType === 'custom' || !JAPANESE_THEMES.some(t => t.id === themeType)) && (
+              {(themeType === 'custom' || !STORE_THEMES.some((t) => t.id === themeType)) && (
                 <div className="grid gap-6 sm:grid-cols-2 p-6 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
                   {/* Background Color */}
                   <div>
