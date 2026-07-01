@@ -73,13 +73,13 @@ export function DashboardClient({
   const [avatarUrl, setAvatarUrl] = useState(activeProfile.avatarUrl);
   const [email, setEmail] = useState(userEmail);
   const [showWishes, setShowWishes] = useState(activeProfile.showWishes === 1);
-  const [xp, setXp] = useState(activeProfile.xp);
-  const [prestige, setPrestige] = useState(activeProfile.prestige);
+  const [xp, setXp] = useState(activeProfile.xp || 0);
+  const [prestige, setPrestige] = useState(activeProfile.prestige || 0);
   const [ascending, setAscending] = useState(false);
 
   useEffect(() => {
-    setXp(activeProfile.xp);
-    setPrestige(activeProfile.prestige);
+    setXp(activeProfile.xp || 0);
+    setPrestige(activeProfile.prestige || 0);
   }, [activeProfile.id, activeProfile.xp, activeProfile.prestige]);
   
   // Theme States

@@ -29,19 +29,22 @@ export const PRESTIGE_RANKS = [
   { rank: 3, name: 'Eternal Origin', emoji: '♾️', xpRequired: 25000000, category: 'Mythic Rank' },
 ];
 
-export function getLevelInfo(xp: number, prestige: number) {
+export function getLevelInfo(xp: number = 0, prestige: number = 0) {
+  const safeXp = xp || 0;
+  const safePrestige = prestige || 0;
+
   // If prestige is active, prestige ranks override normal levels
-  if (prestige > 0) {
-    const rankIndex = Math.min(prestige - 1, PRESTIGE_RANKS.length - 1);
+  if (safePrestige > 0) {
+    const rankIndex = Math.min(safePrestige - 1, PRESTIGE_RANKS.length - 1);
     const prestigeRank = PRESTIGE_RANKS[rankIndex];
     
     // Find next rank requirements
     const nextRank = PRESTIGE_RANKS[rankIndex + 1] || null;
     return {
-      level: 30 + prestige,
+      level: 30 + safePrestige,
       name: `${prestigeRank.emoji} ${prestigeRank.name}`,
       category: prestigeRank.category,
-      currentXp: xp,
+      currentXp: safeXp,
       nextLevelXp: nextRank ? nextRank.xpRequired : 999999999,
       isPrestige: true,
       prestigeLevel: prestige,
