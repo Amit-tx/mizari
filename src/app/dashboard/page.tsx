@@ -59,6 +59,29 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     userProfiles.push(newProfile);
   }
 
+  // Daily Active check-in (10 XP per calendar day)
+  if (activeProfile) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastActiveStr = activeProfile.lastActiveAt
+      ? new Date(activeProfile.lastActiveAt).toISOString().split('T')[0]
+      : null;
+
+    if (todayStr !== lastActiveStr) {
+      await db
+        .update(profiles)
+        .set({
+          dailyActiveDays: (activeProfile.dailyActiveDays || 0) + 1,
+          lastActiveAt: new Date(),
+          xp: (activeProfile.xp || 0) + 10,
+        })
+        .where(eq(profiles.id, activeProfile.id));
+
+      activeProfile.dailyActiveDays = (activeProfile.dailyActiveDays || 0) + 1;
+      activeProfile.lastActiveAt = new Date();
+      activeProfile.xp = (activeProfile.xp || 0) + 10;
+    }
+  }
+
   // Fetch links for active profile
   const profileLinks = await db
     .select()
@@ -110,6 +133,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         themeBackdrop: activeProfile.themeBackdrop,
         likes: activeProfile.likes,
         showWishes: activeProfile.showWishes,
+        xp: activeProfile.xp,
+        prestige: activeProfile.prestige,
       }}
       userEmail={user.email}
       initialLinks={profileLinks}

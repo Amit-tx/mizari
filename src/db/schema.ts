@@ -39,6 +39,12 @@ export const profiles = pgTable(
     themeBackdrop: varchar('theme_backdrop', { length: 30 }).default('glass-light').notNull(),
     likes: integer('likes').default(0).notNull(), // Reactions count
     showWishes: integer('show_wishes').default(1).notNull(), // 1 = enabled, 0 = disabled
+    views: integer('views').default(0).notNull(),
+    referrals: integer('referrals').default(0).notNull(),
+    dailyActiveDays: integer('daily_active_days').default(0).notNull(),
+    lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
+    xp: integer('xp').default(0).notNull(),
+    prestige: integer('prestige').default(0).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   }
 );
@@ -202,3 +208,14 @@ export type MarketplaceTheme = typeof marketplaceThemes.$inferSelect;
 export type NewMarketplaceTheme = typeof marketplaceThemes.$inferInsert;
 export type MarketplaceTransaction = typeof marketplaceTransactions.$inferSelect;
 export type CreatorBalance = typeof creatorBalances.$inferSelect;
+
+export const clickLogs = pgTable('click_logs', {
+  id: serial('id').primaryKey(),
+  visitorIp: varchar('visitor_ip', { length: 128 }).notNull(),
+  targetId: integer('target_id').notNull(), // linkId for clicks, profileId for views
+  targetType: varchar('target_type', { length: 20 }).notNull(), // 'click' | 'view'
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ClickLog = typeof clickLogs.$inferSelect;
+export type NewClickLog = typeof clickLogs.$inferInsert;

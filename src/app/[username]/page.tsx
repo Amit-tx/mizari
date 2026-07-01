@@ -49,6 +49,26 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
+  // View tracking and anti-spam XP logic
+  const { headers } = await import('next/headers');
+  const { isBotUserAgent, validateIpCooldown, grantXp } = await import('@/utils/xp');
+  const { sql } = await import('drizzle-orm');
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent');
+  const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || '127.0.0.1';
+
+  if (!isBotUserAgent(userAgent)) {
+    const isAllowed = await validateIpCooldown(ipAddress, profile.id, 'view');
+    if (isAllowed) {
+      // Increment views count and grant 1 XP
+      await db
+        .update(profiles)
+        .set({ views: sql`COALESCE(${profiles.views}, 0) + 1` })
+        .where(eq(profiles.id, profile.id));
+      await grantXp(profile.id, 1);
+    }
+  }
+
   // Fetch links belonging to this profile
   const allLinks = await db
     .select()
@@ -305,8 +325,30 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             {/* User info */}
             <div className="mt-4 text-center">
-              <div className="flex items-center justify-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
                 <h1 className="text-2xl font-bold drop-shadow-lg" style={{...textStyle, textShadow: '0 2px 8px rgba(0,0,0,0.5)'}}>@{profile.username}</h1>
+                
+                {/* Level / Prestige Achievement Badge */}
+                {(() => {
+                  const { getLevelInfo } = require('@/utils/xp');
+                  const levelInfo = getLevelInfo(profile.xp || 0, profile.prestige || 0);
+                  if (levelInfo.isPrestige) {
+                    return (
+                      <span className="rounded-md bg-purple-600/80 backdrop-blur-sm text-white px-2 py-0.5 text-[9px] font-extrabold flex items-center gap-1 shadow-sm shadow-purple-500/30" title={`Prestige ${levelInfo.prestigeLevel} Rank`}>
+                        {levelInfo.name}
+                      </span>
+                    );
+                  }
+                  if (levelInfo.level > 1) {
+                    return (
+                      <span className="rounded-md bg-slate-900/50 backdrop-blur-sm text-white px-1.5 py-0.5 text-[9px] font-extrabold flex items-center gap-1" title={levelInfo.category}>
+                        LVL {levelInfo.level} {levelInfo.name.split(' ')[0]}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Profile Type Badge */}
                 {profile.profileType && profile.profileType !== 'personal' && (
                   <span className="rounded-md bg-slate-900/40 backdrop-blur-sm text-white px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider">

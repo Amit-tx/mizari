@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referredBy = searchParams.get('ref') || '';
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +27,7 @@ export default function SignupPage() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, referredBy }),
       });
 
       const data = await res.json();
@@ -141,6 +145,11 @@ export default function SignupPage() {
               </div>
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Minimum 8 characters</p>
             </div>
+            {referredBy && (
+              <div className="rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/50 p-3 text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                ✨ Referred by: <span className="font-extrabold">@{referredBy}</span> (Bonus XP will be granted!)
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
@@ -188,5 +197,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[calc(100vh-4rem)] flex items-center justify-center text-sm font-bold text-gray-500">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }

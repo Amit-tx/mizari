@@ -19,9 +19,11 @@ import {
   requestAccountDeletion,
   createProfile,
   updateWishTreeToggle,
-  changeUserEmail
+  changeUserEmail,
+  ascendProfilePrestige
 } from './actions';
 import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
+import { getLevelInfo, LEVEL_MAP } from '@/utils/xp';
 import type { Link } from '@/db/schema';
 
 interface ProfileInfo {
@@ -47,25 +49,13 @@ interface DashboardClientProps {
     themeBackdrop: string;
     likes: number;
     showWishes: number;
+    xp: number;
+    prestige: number;
   };
   userEmail: string;
   initialLinks: Link[];
   totalClicks: number;
   purchasedThemeIds: string[];
-}
-
-// Helper to calculate Creator Level
-function getCreatorLevel(clicks: number) {
-  if (clicks < 10) return { level: 1, title: '🌱 Novice Ninja', nextThreshold: 10 };
-  if (clicks < 50) return { level: 2, title: '🍵 Matcha Apprentice', nextThreshold: 50 };
-  if (clicks < 200) return { level: 3, title: '🎐 Furin Traveler', nextThreshold: 200 };
-  if (clicks < 500) return { level: 4, title: '🌸 Sakura Artisan', nextThreshold: 500 };
-  if (clicks < 1000) return { level: 5, title: '🎏 Koi Swimmer', nextThreshold: 1000 };
-  if (clicks < 2500) return { level: 6, title: '🗻 Fuji Climber', nextThreshold: 2500 };
-  if (clicks < 5000) return { level: 7, title: '🦊 Kitsune Spirit', nextThreshold: 5000 };
-  if (clicks < 10000) return { level: 8, title: '⚔️ Samurai Warrior', nextThreshold: 10000 };
-  if (clicks < 25000) return { level: 9, title: '👑 Daimyo Lord', nextThreshold: 25000 };
-  return { level: 10, title: '🏮 Shogun Emperor', nextThreshold: 100000 };
 }
 
 export function DashboardClient({ 
@@ -83,6 +73,14 @@ export function DashboardClient({
   const [avatarUrl, setAvatarUrl] = useState(activeProfile.avatarUrl);
   const [email, setEmail] = useState(userEmail);
   const [showWishes, setShowWishes] = useState(activeProfile.showWishes === 1);
+  const [xp, setXp] = useState(activeProfile.xp);
+  const [prestige, setPrestige] = useState(activeProfile.prestige);
+  const [ascending, setAscending] = useState(false);
+
+  useEffect(() => {
+    setXp(activeProfile.xp);
+    setPrestige(activeProfile.prestige);
+  }, [activeProfile.id, activeProfile.xp, activeProfile.prestige]);
   
   // Theme States
   const [themeType, setThemeType] = useState<string>(activeProfile.themeType);
@@ -165,6 +163,39 @@ export function DashboardClient({
   // Switch Profile
   const handleProfileSwitch = (id: number) => {
     router.push(`/dashboard?profileId=${id}`);
+  };
+
+  // Trigger Prestige Ascension
+  const handlePrestigeAscend = async () => {
+    if (xp < 450000) {
+      alert("You need at least 450,000 XP (Level 30) to ascend to the next Prestige tier!");
+      return;
+    }
+
+    const nextPrestigeRank = prestige + 1;
+    const confirmAscension = confirm(
+      `🌟 Congratulations on reaching Shogun Level 30!\n\nWould you like to Ascend to Prestige Rank ${nextPrestigeRank}?\nThis will reset your XP to 0 for the next tier, but will permanently display your Prestige Badge next to your profile. This action cannot be undone.`
+    );
+
+    if (!confirmAscension) return;
+
+    setAscending(true);
+    try {
+      const res = await ascendProfilePrestige(activeProfile.id, userId);
+      if (res.success && res.newPrestige !== undefined) {
+        setXp(0);
+        setPrestige(res.newPrestige);
+        showMessage(`✨ You have Ascended to Prestige Rank ${res.newPrestige}!`);
+        router.refresh();
+      } else {
+        alert(res.error || 'Ascension failed. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred during ascension.');
+    } finally {
+      setAscending(false);
+    }
   };
 
   // Create New Profile
@@ -491,32 +522,62 @@ export function DashboardClient({
   };
 
   // Calculate Level Details
-  const levelInfo = getCreatorLevel(totalClicks);
-  const progressPercent = Math.min(100, (totalClicks / levelInfo.nextThreshold) * 100);
+  // Calculate Level Details
+  const levelInfo = getLevelInfo(xp, prestige);
+  const currentLevelMapIndex = LEVEL_MAP.findIndex((l) => l.level === levelInfo.level);
+  const currentThreshold = LEVEL_MAP[currentLevelMapIndex]?.xpRequired || 0;
+  const nextThreshold = levelInfo.nextLevelXp;
+  
+  const xpInCurrentTier = xp - currentThreshold;
+  const xpNeededInCurrentTier = nextThreshold - currentThreshold;
+  const progressPercent = xpNeededInCurrentTier > 0 
+    ? Math.min(100, Math.max(0, (xpInCurrentTier / xpNeededInCurrentTier) * 100))
+    : 100;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Top Gamified Creator Level Bar */}
-      <div className="mb-8 p-4 rounded-3xl bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/10 dark:to-pink-950/10 border border-purple-100/50 dark:border-purple-900/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">🏆</span>
+      <div className="mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <span className="text-3xl filter drop-shadow-md">🏆</span>
           <div>
-            <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">Creator Level</h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="rounded bg-purple-500 px-1.5 py-0.5 text-[10px] font-extrabold text-white">LVL {levelInfo.level}</span>
-              <span className="text-xs font-bold text-purple-600 dark:text-purple-400">{levelInfo.title}</span>
+            <h4 className="font-extrabold text-xs tracking-wider uppercase text-gray-400 dark:text-slate-400">Creator Rank</h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="rounded-xl bg-purple-600 dark:bg-purple-500 px-2 py-0.5 text-[10px] font-extrabold text-white shadow-sm shadow-purple-500/20">
+                {levelInfo.isPrestige ? `PRESTIGE ${levelInfo.prestigeLevel}` : `LVL ${levelInfo.level}`}
+              </span>
+              <span className="text-sm font-black text-gray-800 dark:text-slate-100 flex items-center gap-1">
+                {levelInfo.name}
+              </span>
             </div>
           </div>
         </div>
-        <div className="flex-1 max-w-md">
-          <div className="flex justify-between text-[10px] font-bold text-gray-500 dark:text-slate-400 mb-1">
-            <span>{totalClicks} Clicks</span>
-            <span>Next Level: {levelInfo.nextThreshold} Clicks</span>
+        
+        <div className="flex-1 max-w-md flex flex-col gap-1.5">
+          <div className="flex justify-between text-[10px] font-bold text-gray-500 dark:text-slate-400">
+            <span>{xp.toLocaleString()} XP</span>
+            {levelInfo.level === 30 && !levelInfo.isPrestige ? (
+              <span className="text-emerald-500 animate-pulse font-extrabold">🌟 MAX LEVEL - READY TO ASCEND!</span>
+            ) : (
+              <span>Next Rank: {nextThreshold.toLocaleString()} XP</span>
+            )}
           </div>
-          <div className="h-2 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+          <div className="h-2.5 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden border border-gray-200/25 dark:border-slate-700/20">
+            <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-700 rounded-full" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
+
+        {/* Prestige Ascension Action Button */}
+        {levelInfo.level === 30 && !levelInfo.isPrestige && (
+          <button
+            type="button"
+            onClick={handlePrestigeAscend}
+            disabled={ascending}
+            className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#FF6B6B]/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {ascending ? 'Ascending...' : '🌟 Ascend to Prestige'}
+          </button>
+        )}
       </div>
 
       {/* Header & Profile Switcher */}
@@ -755,7 +816,7 @@ export function DashboardClient({
                 const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
 
                 return (
-                  <div key={theme.id} className="relative group">
+                  <div key={theme.id} className="relative group min-w-0 overflow-hidden">
                     <button
                       type="button"
                       onClick={() => {
@@ -767,7 +828,7 @@ export function DashboardClient({
                           }
                         }
                       }}
-                      className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 ${
+                      className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 min-w-0 overflow-hidden ${
                         themeType === theme.id
                           ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
                           : 'border-gray-250 hover:border-gray-350 dark:border-slate-800 dark:hover:border-slate-700'
@@ -782,7 +843,7 @@ export function DashboardClient({
                           </span>
                         )}
                       </span>
-                      <span className="text-[10px] font-extrabold text-center truncate w-full px-1" style={{ color: theme.textColor }}>
+                      <span className="text-[10px] font-extrabold text-center block truncate w-full px-1" style={{ color: theme.textColor }}>
                         {theme.name}
                       </span>
                     </button>

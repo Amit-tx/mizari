@@ -352,3 +352,38 @@ export async function changeUserEmail(userId: number, newEmail: string): Promise
 
   return { success: true };
 }
+
+// Ascend Profile to next Prestige Level
+export async function ascendProfilePrestige(
+  profileId: number,
+  userId: number
+): Promise<{ success: boolean; newPrestige?: number; error?: string }> {
+  if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
+
+  const [profile] = await db
+    .select()
+    .from(profiles)
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)))
+    .limit(1);
+
+  if (!profile) return { success: false, error: 'Profile not found.' };
+
+  // Verify that the profile has enough XP to ascend (Level 30 = 450,000 XP)
+  const currentXp = profile.xp || 0;
+  if (currentXp < 450000) {
+    return { success: false, error: 'Insufficent XP. You must reach 450,000 XP (Level 30) to ascend!' };
+  }
+
+  const nextPrestige = (profile.prestige || 0) + 1;
+
+  await db
+    .update(profiles)
+    .set({
+      xp: 0, // Reset XP to 0 for next Prestige tier
+      prestige: nextPrestige,
+    })
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
+
+  revalidatePath('/dashboard', 'page');
+  return { success: true, newPrestige: nextPrestige };
+}

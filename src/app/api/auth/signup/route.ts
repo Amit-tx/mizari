@@ -21,7 +21,7 @@ const RESERVED_USERNAMES = [
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, email, password } = await request.json();
+    const { username, email, password, referredBy } = await request.json();
 
     if (!username || !email || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -99,6 +99,28 @@ export async function POST(request: NextRequest) {
       bio: 'Welcome to my Mizari profile!',
       themeType: 'light',
     });
+
+    // Handle Referral XP rewards if referredBy parameter is provided
+    if (referredBy) {
+      const referredByLower = referredBy.toLowerCase().trim();
+      const [referrerProfile] = await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.username, referredByLower))
+        .limit(1);
+
+      if (referrerProfile) {
+        const { sql } = require('drizzle-orm');
+        const { grantXp } = require('@/utils/xp');
+        
+        await db
+          .update(profiles)
+          .set({ referrals: sql`COALESCE(${profiles.referrals}, 0) + 1` })
+          .where(eq(profiles.id, referrerProfile.id));
+
+        await grantXp(referrerProfile.id, 200);
+      }
+    }
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {

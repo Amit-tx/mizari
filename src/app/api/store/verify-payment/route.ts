@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { db } from '@/db';
-import { themePurchases } from '@/db/schema';
+import { themePurchases, profiles } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { BUNDLE_DEALS } from '@/components/StoreThemes';
@@ -134,6 +134,18 @@ export async function POST(req: NextRequest) {
             salesCount: mTheme.salesCount + 1,
           })
           .where(eq(marketplaceThemes.id, mTheme.id));
+
+        // 6. Award 500 XP to the theme creator's profile
+        const [creatorProfile] = await db
+          .select()
+          .from(profiles)
+          .where(eq(profiles.userId, mTheme.creatorId))
+          .limit(1);
+
+        if (creatorProfile) {
+          const { grantXp } = require('@/utils/xp');
+          await grantXp(creatorProfile.id, 500);
+        }
       } else {
         // Update existing pending preset purchase
         await db
