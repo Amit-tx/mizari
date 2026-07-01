@@ -154,7 +154,7 @@ export const marketplaceTransactions = pgTable('marketplace_transactions', {
   buyerId: integer('buyer_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  orderId: varchar('order_id', { length: 128 }),
+  orderId: varchar('order_id', { length: 128 }), // unique when not null — enforced via a partial index, see drizzle/0002_add_order_id_unique.sql
   totalAmount: integer('total_amount').default(0).notNull(),     // in paise (e.g. 4900)
   creatorEarnings: integer('creator_earnings').default(0).notNull(), // 85% share (in paise)
   platformFee: integer('platform_fee').default(0).notNull(),         // 15% share (in paise)

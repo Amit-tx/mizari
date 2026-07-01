@@ -2,7 +2,6 @@ import { db } from '@/db';
 import { profiles, links, wishes } from '@/db/schema';
 import { eq, asc, desc } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
@@ -344,11 +343,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             textColor={preset?.textColor || profile.themeTextColor}
           />
         )}
-
-        {/* Ad slot */}
-        <div className="mt-4">
-          <AdSlot slot="profile-footer" size="responsive" />
-        </div>
 
         {/* Branding */}
         <Branding />
