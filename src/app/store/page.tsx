@@ -12,22 +12,21 @@ export const metadata = {
 
 export default async function StorePage() {
   const session = await auth();
-  if (!session?.user?.id) {
-    redirect('/login?callbackUrl=/store');
-  }
+  const userId = session?.user?.id ? parseInt(session.user.id) : null;
 
   const { themePurchases, marketplaceThemes } = await import('@/db/schema');
   
-  const userId = parseInt(session.user.id);
-  const purchases = await db
-    .select()
-    .from(themePurchases)
-    .where(eq(themePurchases.userId, userId));
+  let purchasedThemeIds: string[] = [];
+  if (userId) {
+    const purchases = await db
+      .select()
+      .from(themePurchases)
+      .where(eq(themePurchases.userId, userId));
 
-  // Get list of paid theme IDs
-  const purchasedThemeIds = purchases
-    .filter((p) => p.status === 'paid')
-    .map((p) => p.themeId);
+    purchasedThemeIds = purchases
+      .filter((p) => p.status === 'paid')
+      .map((p) => p.themeId);
+  }
 
   // Fetch active marketplace community themes
   const mThemes = await db
@@ -62,7 +61,7 @@ export default async function StorePage() {
     <StoreClient 
       userId={userId} 
       purchasedThemeIds={purchasedThemeIds} 
-      userEmail={session.user.email || ''} 
+      userEmail={session?.user?.email || ''} 
       communityThemes={communityThemes}
     />
   );

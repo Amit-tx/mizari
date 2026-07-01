@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react';
 import { STORE_THEMES, BUNDLE_DEALS, StoreTheme } from '@/components/StoreThemes';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface StoreClientProps {
-  userId: number;
+  userId: number | null;
   purchasedThemeIds: string[];
   userEmail: string;
   communityThemes: StoreTheme[];
 }
 
 export default function StoreClient({ userId, purchasedThemeIds, userEmail, communityThemes = [] }: StoreClientProps) {
+  const router = useRouter();
   const [purchased, setPurchased] = useState<string[]>(purchasedThemeIds);
   const [filter, setFilter] = useState<'all' | 'premium' | 'exclusive' | 'bundles'>('all');
   const [category, setCategory] = useState<'All' | 'Anime' | 'Minimal' | 'Luxury' | 'Gaming' | 'Creator' | 'Business'>('All');
@@ -30,6 +32,10 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
   }, []);
 
   const handlePurchase = async (themeId?: string, bundleId?: string) => {
+    if (!userId) {
+      router.push('/login?callbackUrl=/store');
+      return;
+    }
     const id = themeId || bundleId;
     if (!id) return;
 
