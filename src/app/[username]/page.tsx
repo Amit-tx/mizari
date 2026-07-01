@@ -65,6 +65,28 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const standardLinks = allLinks.filter((l) => !l.isProduct || l.isProduct === 0);
   const productLinks = allLinks.filter((l) => l.isProduct === 1);
 
+  // Check if marketplace community theme
+  const isMarketTheme = profile.themeType.startsWith('market_');
+  if (isMarketTheme) {
+    const marketThemeId = parseInt(profile.themeType.replace('market_', ''));
+    if (!isNaN(marketThemeId)) {
+      const { marketplaceThemes } = await import('@/db/schema');
+      const [mTheme] = await db
+        .select()
+        .from(marketplaceThemes)
+        .where(eq(marketplaceThemes.id, marketThemeId))
+        .limit(1);
+      if (mTheme) {
+        profile.themeBgColor = mTheme.bgColor;
+        profile.themeTextColor = mTheme.textColor;
+        profile.themeBgImage = mTheme.bgImage;
+        profile.themeButtonStyle = mTheme.buttonStyle as any;
+        profile.themeBackdrop = mTheme.backdropStyle;
+        profile.themeType = 'custom';
+      }
+    }
+  }
+
   // Check if preset theme
   const isPreset = !['light', 'dark', 'custom'].includes(profile.themeType);
   const preset = isPreset ? getThemeById(profile.themeType) : undefined;
@@ -195,6 +217,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             ? 'bg-white border-gray-100 shadow-xl text-[#1a1a2e]' 
             : profile.themeType === 'dark' 
             ? 'bg-slate-900 border-slate-800 shadow-xl text-slate-100' 
+            : profile.themeBackdrop === 'none'
+            ? 'bg-transparent border-transparent shadow-none'
+            : profile.themeBackdrop === 'glass-dark'
+            ? 'bg-black/30 dark:bg-slate-950/40 backdrop-blur-md border-white/10 dark:border-slate-800/30 shadow-xl'
+            : profile.themeBackdrop === 'solid-light'
+            ? 'bg-white border-gray-100 shadow-xl text-slate-900'
+            : profile.themeBackdrop === 'solid-dark'
+            ? 'bg-slate-900 border-slate-800 shadow-xl text-slate-100'
             : 'bg-white/30 dark:bg-slate-950/35 backdrop-blur-md border-white/20 dark:border-slate-800/40 shadow-xl'
         }`}>
           {/* Gradient header (only if not custom/preset background) */}

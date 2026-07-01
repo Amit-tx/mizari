@@ -55,21 +55,102 @@ export async function POST(req: NextRequest) {
       );
       await Promise.all(purchasePromises);
     } else if (themeId) {
-      // Update existing pending purchase
-      await db
-        .update(themePurchases)
-        .set({
-          paymentId: razorpay_payment_id,
+      const isMarketTheme = String(themeId).startsWith('market_') || !isNaN(Number(themeId));
+      
+      if (isMarketTheme) {
+        const marketThemeIdStr = String(themeId).replace('market_', '');
+        const marketThemeId = parseInt(marketThemeIdStr);
+
+        const { marketplaceThemes, marketplaceTransactions, creatorBalances } = await import('@/db/schema');
+        
+        // 1. Fetch community theme details
+        const [mTheme] = await db
+          .select()
+          .from(marketplaceThemes)
+          .where(eq(marketplaceThemes.id, marketThemeId))
+          .limit(1);
+
+        if (!mTheme) return NextResponse.json({ error: 'Community theme not found' }, { status: 404 });
+
+        const totalAmount = mTheme.price * 100; // in paise
+        const creatorEarnings = Math.round(totalAmount * 0.85); // 85% creator split
+        const platformFee = totalAmount - creatorEarnings; // 15% platform split
+
+        // 2. Update buyer's purchase record
+        const formattedThemeId = `market_${mTheme.id}`;
+        await db
+          .update(themePurchases)
+          .set({
+            paymentId: razorpay_payment_id,
+            status: 'paid',
+            purchasedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(themePurchases.userId, userId),
+              eq(themePurchases.orderId, razorpay_order_id),
+              eq(themePurchases.themeId, formattedThemeId)
+            )
+          );
+
+        // 3. Record marketplace transaction
+        await db.insert(marketplaceTransactions).values({
+          themeId: mTheme.id,
+          buyerId: userId,
+          orderId: razorpay_order_id,
+          totalAmount,
+          creatorEarnings,
+          platformFee,
           status: 'paid',
-          purchasedAt: new Date(),
-        })
-        .where(
-          and(
-            eq(themePurchases.userId, userId),
-            eq(themePurchases.orderId, razorpay_order_id),
-            eq(themePurchases.themeId, themeId)
-          )
-        );
+        });
+
+        // 4. Credit creator balance
+        const [creatorBal] = await db
+          .select()
+          .from(creatorBalances)
+          .where(eq(creatorBalances.userId, mTheme.creatorId))
+          .limit(1);
+
+        if (creatorBal) {
+          await db
+            .update(creatorBalances)
+            .set({
+              totalEarned: creatorBal.totalEarned + creatorEarnings,
+            })
+            .where(eq(creatorBalances.userId, mTheme.creatorId));
+        } else {
+          await db.insert(creatorBalances).values({
+            userId: mTheme.creatorId,
+            totalEarned: creatorEarnings,
+            pendingWithdrawal: 0,
+            paidOut: 0,
+          });
+        }
+
+        // 5. Update theme sales count
+        await db
+          .update(marketplaceThemes)
+          .set({
+            salesCount: mTheme.salesCount + 1,
+          })
+          .where(eq(marketplaceThemes.id, mTheme.id));
+      } else {
+        // Update existing pending preset purchase
+        await db
+          .update(themePurchases)
+          .set({
+            paymentId: razorpay_payment_id,
+            status: 'paid',
+            purchasedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(themePurchases.userId, userId),
+              eq(themePurchases.orderId, razorpay_order_id),
+              eq(themePurchases.themeId, themeId)
+            )
+          );
+      }
     } else {
       return NextResponse.json({ error: 'themeId or bundleId required' }, { status: 400 });
     }

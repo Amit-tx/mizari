@@ -19,6 +19,7 @@ interface ProfilePreviewProps {
   themeTextColor?: string;
   themeBgImage?: string;
   themeButtonStyle?: string;
+  themeBackdrop?: string;
 }
 
 export function ProfilePreview({
@@ -31,6 +32,7 @@ export function ProfilePreview({
   themeTextColor = '#1a1a2e',
   themeBgImage = '',
   themeButtonStyle = 'rounded-xl',
+  themeBackdrop = 'glass-light',
 }: ProfilePreviewProps) {
   const isPreset = !['light', 'dark', 'custom'].includes(themeType);
   const preset = isPreset ? getThemeById(themeType) : undefined;
@@ -90,15 +92,22 @@ export function ProfilePreview({
     return {};
   };
 
+  const getBackdropClass = () => {
+    if (themeType === 'light') return 'bg-white border-gray-100 shadow-xl text-[#1a1a2e]';
+    if (themeType === 'dark') return 'bg-slate-900 border-slate-800 shadow-xl text-slate-100';
+    if (themeType === 'custom') {
+      if (themeBackdrop === 'none') return 'bg-transparent border-transparent shadow-none';
+      if (themeBackdrop === 'glass-dark') return 'bg-black/30 dark:bg-slate-950/40 backdrop-blur-md border-white/10 dark:border-slate-800/30 shadow-xl';
+      if (themeBackdrop === 'solid-light') return 'bg-white border-gray-100 shadow-xl text-slate-900';
+      if (themeBackdrop === 'solid-dark') return 'bg-slate-900 border-slate-800 shadow-xl text-slate-100';
+      return 'bg-white/30 dark:bg-slate-950/35 backdrop-blur-md border-white/20 dark:border-slate-800/40 shadow-xl';
+    }
+    return '';
+  };
+
   return (
     <div
-      className={`mx-auto w-full max-w-sm overflow-hidden rounded-3xl border transition-all duration-300 ${
-        themeType === 'light' 
-          ? 'bg-white border-gray-100 shadow-xl text-[#1a1a2e]' 
-          : themeType === 'dark' 
-          ? 'bg-slate-900 border-slate-800 shadow-xl text-slate-100' 
-          : 'bg-white/30 dark:bg-slate-950/35 backdrop-blur-md border-white/20 dark:border-slate-800/40 shadow-xl'
-      }`}
+      className={`mx-auto w-full max-w-sm overflow-hidden rounded-3xl border transition-all duration-300 ${getBackdropClass()}`}
       style={bgStyle}
     >
       {!preset && themeType !== 'custom' && (

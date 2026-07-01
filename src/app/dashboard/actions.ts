@@ -78,7 +78,8 @@ export async function updateThemeSettings(
   themeType: string,
   themeBgColor: string,
   themeTextColor: string,
-  themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'
+  themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow',
+  themeBackdrop: string
 ) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
@@ -119,6 +120,7 @@ export async function updateThemeSettings(
       themeBgColor,
       themeTextColor,
       themeButtonStyle,
+      themeBackdrop,
     })
     .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 }

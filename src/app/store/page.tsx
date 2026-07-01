@@ -16,6 +16,8 @@ export default async function StorePage() {
     redirect('/login?callbackUrl=/store');
   }
 
+  const { themePurchases, marketplaceThemes } = await import('@/db/schema');
+  
   const userId = parseInt(session.user.id);
   const purchases = await db
     .select()
@@ -27,11 +29,41 @@ export default async function StorePage() {
     .filter((p) => p.status === 'paid')
     .map((p) => p.themeId);
 
+  // Fetch active marketplace community themes
+  const mThemes = await db
+    .select()
+    .from(marketplaceThemes)
+    .where(eq(marketplaceThemes.status, 'active'));
+
+  const communityThemes = mThemes.map((ct) => {
+    // Determine tags/categories based on styling config
+    const cats: ('Anime' | 'Minimal' | 'Luxury' | 'Gaming' | 'Creator' | 'Business')[] = ['Creator'];
+    if (ct.price >= 99) cats.push('Luxury');
+    if (ct.backdropStyle.includes('solid')) cats.push('Minimal');
+    else cats.push('Anime');
+
+    return {
+      id: String(ct.id),
+      name: ct.name,
+      emoji: '🎨',
+      tier: (ct.price >= 99 ? 'exclusive' : 'premium') as 'premium' | 'exclusive',
+      price: ct.price,
+      description: `Created by a Mizari Creator. Features custom colors and backdrop elements.`,
+      categories: cats,
+      tags: ['creator', 'community'],
+      bgColor: ct.bgColor,
+      textColor: ct.textColor,
+      btnBg: ct.bgColor,
+      bgGradient: ct.bgImage ? `url(${ct.bgImage})` : undefined,
+    };
+  });
+
   return (
     <StoreClient 
       userId={userId} 
       purchasedThemeIds={purchasedThemeIds} 
       userEmail={session.user.email || ''} 
+      communityThemes={communityThemes}
     />
   );
 }

@@ -107,6 +107,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         themeTextColor: activeProfile.themeTextColor,
         themeBgImage: activeProfile.themeBgImage || '',
         themeButtonStyle: activeProfile.themeButtonStyle as 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow',
+        themeBackdrop: activeProfile.themeBackdrop,
         likes: activeProfile.likes,
         showWishes: activeProfile.showWishes,
       }}

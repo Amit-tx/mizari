@@ -34,20 +34,53 @@ export async function POST(req: NextRequest) {
       amountInPaise = bundle.price * 100;
       label = bundle.name;
     } else if (themeId) {
-      const theme = getStoreThemeById(themeId);
-      if (!theme) return NextResponse.json({ error: 'Theme not found' }, { status: 404 });
-      if (theme.tier === 'free') return NextResponse.json({ error: 'Theme is free' }, { status: 400 });
+      const isMarketTheme = !isNaN(Number(themeId));
+      
+      if (isMarketTheme) {
+        const { marketplaceThemes } = await import('@/db/schema');
+        const [mTheme] = await db
+          .select()
+          .from(marketplaceThemes)
+          .where(eq(marketplaceThemes.id, Number(themeId)))
+          .limit(1);
 
-      // Check if already purchased
-      const [existing] = await db
-        .select()
-        .from(themePurchases)
-        .where(and(eq(themePurchases.userId, userId), eq(themePurchases.themeId, themeId), eq(themePurchases.status, 'paid')))
-        .limit(1);
-      if (existing) return NextResponse.json({ error: 'Already purchased' }, { status: 400 });
+        if (!mTheme) return NextResponse.json({ error: 'Community theme not found' }, { status: 404 });
+        if (mTheme.creatorId === userId) {
+          return NextResponse.json({ error: 'You cannot purchase your own theme' }, { status: 400 });
+        }
 
-      amountInPaise = theme.price * 100;
-      label = theme.name;
+        // Check if already purchased
+        const [existing] = await db
+          .select()
+          .from(themePurchases)
+          .where(
+            and(
+              eq(themePurchases.userId, userId),
+              eq(themePurchases.themeId, `market_${mTheme.id}`),
+              eq(themePurchases.status, 'paid')
+            )
+          )
+          .limit(1);
+        if (existing) return NextResponse.json({ error: 'Already purchased' }, { status: 400 });
+
+        amountInPaise = mTheme.price * 100;
+        label = mTheme.name;
+      } else {
+        const theme = getStoreThemeById(themeId);
+        if (!theme) return NextResponse.json({ error: 'Theme not found' }, { status: 404 });
+        if (theme.tier === 'free') return NextResponse.json({ error: 'Theme is free' }, { status: 400 });
+
+        // Check if already purchased
+        const [existing] = await db
+          .select()
+          .from(themePurchases)
+          .where(and(eq(themePurchases.userId, userId), eq(themePurchases.themeId, themeId), eq(themePurchases.status, 'paid')))
+          .limit(1);
+        if (existing) return NextResponse.json({ error: 'Already purchased' }, { status: 400 });
+
+        amountInPaise = theme.price * 100;
+        label = theme.name;
+      }
     } else {
       return NextResponse.json({ error: 'themeId or bundleId required' }, { status: 400 });
     }
@@ -62,9 +95,10 @@ export async function POST(req: NextRequest) {
 
     // Save pending purchase record
     if (themeId) {
+      const isMarketTheme = !isNaN(Number(themeId));
       await db.insert(themePurchases).values({
         userId,
-        themeId,
+        themeId: isMarketTheme ? `market_${themeId}` : themeId,
         pricePaid: amountInPaise,
         orderId: order.id,
         status: 'pending',

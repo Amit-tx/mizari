@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
@@ -21,6 +21,7 @@ import {
   updateWishTreeToggle,
   changeUserEmail
 } from './actions';
+import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
 import type { Link } from '@/db/schema';
 
 interface ProfileInfo {
@@ -43,6 +44,7 @@ interface DashboardClientProps {
     themeTextColor: string;
     themeBgImage: string;
     themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow';
+    themeBackdrop: string;
     likes: number;
     showWishes: number;
   };
@@ -88,6 +90,7 @@ export function DashboardClient({
   const [themeTextColor, setThemeTextColor] = useState(activeProfile.themeTextColor);
   const [themeBgImage, setThemeBgImage] = useState(activeProfile.themeBgImage);
   const [themeButtonStyle, setThemeButtonStyle] = useState<'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'>(activeProfile.themeButtonStyle);
+  const [themeBackdrop, setThemeBackdrop] = useState<string>(activeProfile.themeBackdrop || 'glass-light');
   
   const [linksList, setLinksList] = useState(initialLinks);
   
@@ -109,6 +112,36 @@ export function DashboardClient({
   const [uploadingBg, setUploadingBg] = useState(false);
   const [uploadingProd, setUploadingProd] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Marketplace States
+  const [creatorStats, setCreatorStats] = useState<{
+    totalEarned: number;
+    pendingWithdrawal: number;
+    paidOut: number;
+    upiId: string;
+    sales: any[];
+  }>({ totalEarned: 0, pendingWithdrawal: 0, paidOut: 0, upiId: '', sales: [] });
+
+  const [marketThemeName, setMarketThemeName] = useState('');
+  const [marketThemePrice, setMarketThemePrice] = useState(49);
+  const [upiId, setUpiId] = useState('');
+  const [payoutAmount, setPayoutAmount] = useState('');
+  const [publishingMarketTheme, setPublishingMarketTheme] = useState(false);
+  const [requestingPayout, setRequestingPayout] = useState(false);
+
+  // Load Creator Stats
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const stats = await getCreatorStats(userId);
+        setCreatorStats(stats);
+        if (stats.upiId) setUpiId(stats.upiId);
+      } catch (err) {
+        console.error('Failed to load creator stats:', err);
+      }
+    }
+    loadStats();
+  }, [userId]);
   
   // Deletion & Share States
   const [deletionLink, setDeletionLink] = useState('');
@@ -275,7 +308,7 @@ export function DashboardClient({
   const handleSaveTheme = async (newThemeType?: string) => {
     setSaving(true);
     const targetType = newThemeType || themeType;
-    await updateThemeSettings(activeProfile.id, userId, targetType, themeBgColor, themeTextColor, themeButtonStyle);
+    await updateThemeSettings(activeProfile.id, userId, targetType, themeBgColor, themeTextColor, themeButtonStyle, themeBackdrop);
     setSaving(false);
     showMessage('Theme settings saved!');
   };
@@ -294,6 +327,57 @@ export function DashboardClient({
     setThemeType('light');
     setSaving(false);
     showMessage('Background image removed!');
+  };
+
+  // Publish Custom Theme to Marketplace
+  const handlePublishTheme = async () => {
+    if (!marketThemeName.trim()) {
+      alert('Please enter a theme name.');
+      return;
+    }
+    setPublishingMarketTheme(true);
+    try {
+      const res = await publishTheme(activeProfile.id, userId, marketThemeName, marketThemePrice);
+      if (res.success) {
+        alert('🎉 Custom theme listed for sale in the Theme Store successfully!');
+        setMarketThemeName('');
+      } else {
+        alert(res.error || 'Failed to publish theme.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error publishing theme.');
+    } finally {
+      setPublishingMarketTheme(false);
+    }
+  };
+
+  // Request Payout
+  const handleRequestPayout = async () => {
+    const amount = Number(payoutAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid payout amount.');
+      return;
+    }
+
+    setRequestingPayout(true);
+    try {
+      const res = await requestPayout(userId, upiId, amount);
+      if (res.success) {
+        alert('🎉 Payout request submitted successfully! Platform owner will process it shortly.');
+        setPayoutAmount('');
+        // Reload stats
+        const stats = await getCreatorStats(userId);
+        setCreatorStats(stats);
+      } else {
+        alert(res.error || 'Payout request failed.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error requesting payout.');
+    } finally {
+      setRequestingPayout(false);
+    }
   };
 
   // Account Deletion Link Generator
@@ -804,6 +888,33 @@ export function DashboardClient({
                       ))}
                     </div>
                   </div>
+
+                  {/* Backdrop Style Selector */}
+                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-4">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-3">Card Backdrop Style (Behind Text & Links)</label>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                      {[
+                        { id: 'none', label: '🫙 None' },
+                        { id: 'glass-light', label: '⚪ Light Glass' },
+                        { id: 'glass-dark', label: '⚫ Dark Glass' },
+                        { id: 'solid-light', label: '⬜ Solid Light' },
+                        { id: 'solid-dark', label: '⬛ Solid Dark' },
+                      ].map((b) => (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => { setThemeBackdrop(b.id); setThemeType('custom'); }}
+                          className={`rounded-xl py-2 text-xs font-bold border transition-all ${
+                            themeBackdrop === b.id
+                              ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                              : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400'
+                          }`}
+                        >
+                          {b.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -815,6 +926,121 @@ export function DashboardClient({
                 Save Custom Theme
               </button>
             </div>
+          </div>
+
+          {/* Sell Theme in Marketplace Card */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Sell Theme in Marketplace 💰</h2>
+            <p className="text-xs text-gray-500 mb-4">List your current custom theme config for sale in the Theme Store. You keep 85% of each sale!</p>
+            
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Theme Name</label>
+                  <input
+                    type="text"
+                    value={marketThemeName}
+                    onChange={(e) => setMarketThemeName(e.target.value)}
+                    placeholder="e.g. Cherry Forest"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Price (₹10 - ₹500)</label>
+                  <input
+                    type="number"
+                    value={marketThemePrice}
+                    onChange={(e) => setMarketThemePrice(Number(e.target.value))}
+                    placeholder="49"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                  />
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={handlePublishTheme}
+                disabled={publishingMarketTheme || !marketThemeName.trim()}
+                className="w-full rounded-2xl bg-black dark:bg-white dark:text-black text-white px-6 py-2.5 text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50"
+              >
+                {publishingMarketTheme ? 'Publishing...' : 'List Theme for Sale 🚀'}
+              </button>
+            </div>
+          </div>
+
+          {/* Earnings & Payouts Card */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Creator Earnings & Payouts 💳</h2>
+            <p className="text-xs text-gray-500 mb-6">Track your theme marketplace sales and request withdrawals to your UPI account.</p>
+            
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Total Earned</span>
+                <p className="text-lg font-black text-gray-900 dark:text-white mt-1">₹{(creatorStats.totalEarned / 100).toFixed(2)}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Pending Payout</span>
+                <p className="text-lg font-black text-gray-900 dark:text-white mt-1">₹{(creatorStats.pendingWithdrawal / 100).toFixed(2)}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Paid Out</span>
+                <p className="text-lg font-black text-gray-900 dark:text-white mt-1">₹{(creatorStats.paidOut / 100).toFixed(2)}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-green-50/50 dark:bg-green-950/10 border border-green-100 dark:border-green-900/20">
+                <span className="text-[10px] uppercase font-bold text-green-600 dark:text-green-400">Available</span>
+                <p className="text-lg font-black text-green-700 dark:text-green-400 mt-1">
+                  ₹{((creatorStats.totalEarned - creatorStats.pendingWithdrawal - creatorStats.paidOut) / 100).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* Payout Form */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 space-y-4">
+              <h3 className="text-xs font-bold text-gray-700 dark:text-slate-300">Request Payout (Min. ₹500)</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  type="text"
+                  placeholder="UPI ID (e.g. user@ybl)"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-850 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                />
+                <input
+                  type="number"
+                  placeholder="Amount in ₹ (e.g. 500)"
+                  value={payoutAmount}
+                  onChange={(e) => setPayoutAmount(e.target.value)}
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-850 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleRequestPayout}
+                disabled={requestingPayout || !upiId.trim() || !payoutAmount}
+                className="w-full rounded-xl bg-[#FF6B6B] text-white px-4 py-2.5 text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50"
+              >
+                {requestingPayout ? 'Submitting request...' : 'Request Payout 💸'}
+              </button>
+            </div>
+
+            {/* Sales List */}
+            {creatorStats.sales && creatorStats.sales.length > 0 && (
+              <div className="mt-6 border-t border-gray-100 dark:border-slate-800 pt-6">
+                <h3 className="text-xs font-bold text-gray-700 dark:text-slate-300 mb-3">Recent Sales Transactions</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {creatorStats.sales.map((sale: any) => (
+                    <div key={sale.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-slate-800 text-xs">
+                      <div>
+                        <p className="font-extrabold text-gray-900 dark:text-white">{sale.themeName}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{new Date(sale.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <span className="font-bold text-green-600">+₹{(sale.earnings / 100).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Add Link or Product Card */}
@@ -1045,6 +1271,7 @@ export function DashboardClient({
               themeTextColor={themeTextColor}
               themeBgImage={themeBgImage}
               themeButtonStyle={themeButtonStyle}
+              themeBackdrop={themeBackdrop}
             />
           </div>
         </div>

@@ -8,9 +8,10 @@ interface StoreClientProps {
   userId: number;
   purchasedThemeIds: string[];
   userEmail: string;
+  communityThemes: StoreTheme[];
 }
 
-export default function StoreClient({ userId, purchasedThemeIds, userEmail }: StoreClientProps) {
+export default function StoreClient({ userId, purchasedThemeIds, userEmail, communityThemes = [] }: StoreClientProps) {
   const [purchased, setPurchased] = useState<string[]>(purchasedThemeIds);
   const [filter, setFilter] = useState<'all' | 'premium' | 'exclusive' | 'bundles'>('all');
   const [category, setCategory] = useState<'All' | 'Anime' | 'Minimal' | 'Luxury' | 'Gaming' | 'Creator' | 'Business'>('All');
@@ -104,7 +105,9 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail }: St
     }
   };
 
-  const filteredThemes = STORE_THEMES.filter((theme) => {
+  const allThemes = [...STORE_THEMES, ...communityThemes];
+
+  const filteredThemes = allThemes.filter((theme) => {
     // Tier check
     if (filter === 'premium' && theme.tier !== 'premium') return false;
     if (filter === 'exclusive' && theme.tier !== 'exclusive') return false;
@@ -224,7 +227,8 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail }: St
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredThemes.map((theme) => {
               const isFree = theme.tier === 'free';
-              const isOwned = isFree || purchased.includes(theme.id);
+              const themeKey = isNaN(Number(theme.id)) ? theme.id : `market_${theme.id}`;
+              const isOwned = isFree || purchased.includes(themeKey);
 
               return (
                 <div key={theme.id} className="relative flex flex-col rounded-3xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-md transition-all">

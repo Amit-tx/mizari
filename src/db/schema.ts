@@ -36,6 +36,7 @@ export const profiles = pgTable(
     themeTextColor: varchar('theme_text_color', { length: 30 }).default('#1a1a2e').notNull(),
     themeBgImage: text('theme_bg_image').default(''),
     themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(),
+    themeBackdrop: varchar('theme_backdrop', { length: 30 }).default('glass-light').notNull(),
     likes: integer('likes').default(0).notNull(), // Reactions count
     showWishes: integer('show_wishes').default(1).notNull(), // 1 = enabled, 0 = disabled
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -127,3 +128,77 @@ export type NewLink = typeof links.$inferInsert;
 export type Wish = typeof wishes.$inferSelect;
 export type NewWish = typeof wishes.$inferInsert;
 export type ThemePurchase = typeof themePurchases.$inferSelect;
+
+export const marketplaceThemes = pgTable('marketplace_themes', {
+  id: serial('id').primaryKey(),
+  creatorId: integer('creator_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 128 }).notNull(),
+  price: integer('price').default(49).notNull(), // In INR (e.g. 49, 99)
+  bgColor: varchar('bg_color', { length: 30 }).default('#fafafa').notNull(),
+  textColor: varchar('text_color', { length: 30 }).default('#1a1a2e').notNull(),
+  bgImage: text('bg_image').default(''),
+  buttonStyle: varchar('button_style', { length: 30 }).default('rounded-xl').notNull(),
+  backdropStyle: varchar('backdrop_style', { length: 30 }).default('glass-light').notNull(),
+  status: varchar('status', { length: 20 }).default('active').notNull(), // active | pending | rejected
+  salesCount: integer('sales_count').default(0).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const marketplaceTransactions = pgTable('marketplace_transactions', {
+  id: serial('id').primaryKey(),
+  themeId: integer('theme_id')
+    .notNull()
+    .references(() => marketplaceThemes.id, { onDelete: 'cascade' }),
+  buyerId: integer('buyer_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  orderId: varchar('order_id', { length: 128 }),
+  totalAmount: integer('total_amount').default(0).notNull(),     // in paise (e.g. 4900)
+  creatorEarnings: integer('creator_earnings').default(0).notNull(), // 85% share (in paise)
+  platformFee: integer('platform_fee').default(0).notNull(),         // 15% share (in paise)
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // pending | paid
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const creatorBalances = pgTable('creator_balances', {
+  userId: integer('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  totalEarned: integer('total_earned').default(0).notNull(),       // in paise
+  pendingWithdrawal: integer('pending_withdrawal').default(0).notNull(), // in paise
+  paidOut: integer('paid_out').default(0).notNull(),               // in paise
+  upiId: varchar('upi_id', { length: 128 }).default(''),
+});
+
+// Relations
+export const marketplaceThemesRelations = relations(marketplaceThemes, ({ one }) => ({
+  creator: one(users, {
+    fields: [marketplaceThemes.creatorId],
+    references: [users.id],
+  }),
+}));
+
+export const marketplaceTransactionsRelations = relations(marketplaceTransactions, ({ one }) => ({
+  theme: one(marketplaceThemes, {
+    fields: [marketplaceTransactions.themeId],
+    references: [marketplaceThemes.id],
+  }),
+  buyer: one(users, {
+    fields: [marketplaceTransactions.buyerId],
+    references: [users.id],
+  }),
+}));
+
+export const creatorBalancesRelations = relations(creatorBalances, ({ one }) => ({
+  user: one(users, {
+    fields: [creatorBalances.userId],
+    references: [users.id],
+  }),
+}));
+
+export type MarketplaceTheme = typeof marketplaceThemes.$inferSelect;
+export type NewMarketplaceTheme = typeof marketplaceThemes.$inferInsert;
+export type MarketplaceTransaction = typeof marketplaceTransactions.$inferSelect;
+export type CreatorBalance = typeof creatorBalances.$inferSelect;
