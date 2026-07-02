@@ -42,13 +42,21 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   if (!user) redirect('/login');
 
   // Fetch all profiles of this user
-  const userProfiles = await withRetry(() =>
-    db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.userId, userId))
-      .orderBy(asc(profiles.id))
-  );
+  // Wrap in try/catch to surface DB column mismatch errors clearly
+  let userProfiles: typeof profiles.$inferSelect[] = [];
+  try {
+    userProfiles = await withRetry(() =>
+      db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.userId, userId))
+        .orderBy(asc(profiles.id))
+    );
+  } catch (profileErr: any) {
+    // Surface the real error so it appears in Vercel logs
+    console.error('[dashboard] profiles query failed:', profileErr?.message || profileErr);
+    throw new Error(`Dashboard DB error: ${profileErr?.message || 'profiles query failed'}`);
+  }
 
   // Determine active profile from query param, fallback to first profile
   const parsedParams = await searchParams;
@@ -161,8 +169,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         themeTextColor: activeProfile.themeTextColor,
         themeBgImage: activeProfile.themeBgImage || '',
         themeButtonStyle: activeProfile.themeButtonStyle as 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow',
-        themeBackdrop: activeProfile.themeBackdrop,
-        themeRotateInterval: activeProfile.themeRotateInterval,
+        themeBackdrop: activeProfile.themeBackdrop ?? 'glass-light',
+        themeRotateInterval: activeProfile.themeRotateInterval ?? 'none',
         likes: activeProfile.likes,
         showWishes: activeProfile.showWishes,
         xp: activeProfile.xp,
