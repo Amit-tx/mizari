@@ -38,6 +38,8 @@ const THEME_TABS = [
   { id: 'country', label: 'Countries', emoji: '🌍' },
   { id: 'vehicle', label: 'Vehicles', emoji: '🚗' },
   { id: 'gaming', label: 'Gaming', emoji: '🎮' },
+  { id: 'cyberpunk', label: 'Cyberpunk', emoji: '🦾' },
+  { id: 'mystic', label: 'Mystic & Magic', emoji: '🔮' },
 ];
 
 interface ProfileInfo {
@@ -105,6 +107,7 @@ export function DashboardClient({
   const [themeButtonStyle, setThemeButtonStyle] = useState<'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'>(activeProfile.themeButtonStyle);
   const [themeBackdrop, setThemeBackdrop] = useState<string>(activeProfile.themeBackdrop || 'glass-light');
   const [themeRotateInterval, setThemeRotateInterval] = useState<string>(activeProfile.themeRotateInterval || 'none');
+  const [themeSearchQuery, setThemeSearchQuery] = useState('');
   
   const [linksList, setLinksList] = useState(initialLinks);
   
@@ -365,8 +368,33 @@ export function DashboardClient({
 
   // Select Preset Theme
   const handleSelectPreset = async (presetId: string) => {
-    setThemeType(presetId);
-    await handleSaveTheme(presetId);
+    // 1. Get theme data from catalog
+    const theme = STORE_THEMES.find((t) => t.id === presetId);
+    if (theme) {
+      // Update states instantly so the Live Preview refreshes immediately!
+      setThemeType(theme.id);
+      setThemeBgColor(theme.bgColor);
+      setThemeTextColor(theme.textColor);
+      setThemeBgImage('');
+    } else {
+      setThemeType(presetId);
+    }
+    // 2. Save in the background (no UI blocking spinner)
+    const targetType = presetId;
+    const targetBg = theme?.bgColor || themeBgColor;
+    const targetText = theme?.textColor || themeTextColor;
+    updateThemeSettings(
+      activeProfile.id,
+      userId,
+      targetType,
+      targetBg,
+      targetText,
+      themeButtonStyle,
+      themeBackdrop,
+      themeRotateInterval
+    ).catch((err) => {
+      console.error(err);
+    });
   };
 
   // Remove Background Image
@@ -815,13 +843,33 @@ export function DashboardClient({
                   className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold focus:outline-none dark:border-slate-700 dark:bg-slate-800 text-gray-700 dark:text-slate-200 cursor-pointer"
                 >
                   <option value="none">Off (No rotation)</option>
-                  <option value="1h">Every 1 hour</option>
                   <option value="3h">Every 3 hours</option>
+                  <option value="5h">Every 5 hours</option>
                   <option value="6h">Every 6 hours</option>
                   <option value="12h">Every 12 hours</option>
                   <option value="24h">Every 24 hours</option>
                 </select>
               </div>
+            </div>
+
+            {/* Theme Search Input */}
+            <div className="mb-4 relative">
+              <input
+                type="text"
+                placeholder="🔍 Search themes by name, tags, description..."
+                value={themeSearchQuery}
+                onChange={(e) => setThemeSearchQuery(e.target.value)}
+                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 text-gray-800 dark:text-slate-100 shadow-sm"
+              />
+              {themeSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setThemeSearchQuery('')}
+                  className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-655"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             {/* Theme Tabs */}
@@ -845,6 +893,15 @@ export function DashboardClient({
             {/* Themes Grid */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1">
               {STORE_THEMES.filter((t) => {
+                if (themeSearchQuery.trim() !== '') {
+                  const q = themeSearchQuery.toLowerCase();
+                  return (
+                    t.name.toLowerCase().includes(q) ||
+                    t.description.toLowerCase().includes(q) ||
+                    t.categories.some(cat => cat.toLowerCase().includes(q)) ||
+                    t.tags.some(tag => tag.toLowerCase().includes(q))
+                  );
+                }
                 if (activeThemeTab === 'japan') {
                   return japanThemes.some((jt) => jt.slug === t.id) || t.id === 'sakura' || t.id === 'momiji' || t.id === 'zen' || t.id === 'ame' || t.id === 'mizukaze' || t.id === 'aozora';
                 } else if (activeThemeTab === 'anime') {

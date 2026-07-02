@@ -95,9 +95,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const diffMs = now.getTime() - lastRotated.getTime();
     const diffHrs = diffMs / (1000 * 60 * 60);
 
-    let intervalHrs = 1;
-    if (profile.themeRotateInterval === '1h') intervalHrs = 1;
-    else if (profile.themeRotateInterval === '3h') intervalHrs = 3;
+    let intervalHrs = 5;
+    if (profile.themeRotateInterval === '3h') intervalHrs = 3;
+    else if (profile.themeRotateInterval === '5h') intervalHrs = 5;
     else if (profile.themeRotateInterval === '6h') intervalHrs = 6;
     else if (profile.themeRotateInterval === '12h') intervalHrs = 12;
     else if (profile.themeRotateInterval === '24h') intervalHrs = 24;

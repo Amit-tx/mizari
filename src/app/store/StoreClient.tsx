@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react';
 import { STORE_THEMES, BUNDLE_DEALS, StoreTheme } from '@/components/StoreThemes';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ProfilePreview } from '@/components/ProfilePreview';
+
+const MOCK_LINKS = [
+  { id: 1, title: "✨ Follow my Instagram", url: "https://instagram.com", isProduct: 0 },
+  { id: 2, title: "🎥 Subscribe to my YouTube", url: "https://youtube.com", isProduct: 0 },
+  { id: 3, title: "🛍️ Check out my Store", url: "https://mizari.co", isProduct: 1, price: "₹499", discount: "20% OFF" }
+];
 
 interface StoreClientProps {
   userId: number | null;
@@ -19,6 +26,8 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
   const [category, setCategory] = useState<'All' | 'Anime' | 'Minimal' | 'Luxury' | 'Gaming' | 'Creator' | 'Business'>('All');
   const [loadingTheme, setLoadingTheme] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activePreviewTheme, setActivePreviewTheme] = useState<StoreTheme | null>(null);
 
   // Load Razorpay SDK
   useEffect(() => {
@@ -114,6 +123,16 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
   const allThemes = [...STORE_THEMES, ...communityThemes];
 
   const filteredThemes = allThemes.filter((theme) => {
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      const matches = 
+        theme.name.toLowerCase().includes(q) ||
+        theme.description.toLowerCase().includes(q) ||
+        theme.categories.some(cat => cat.toLowerCase().includes(q)) ||
+        theme.tags.some(tag => tag.toLowerCase().includes(q));
+      if (!matches) return false;
+    }
+
     // Tier check
     if (filter === 'premium' && theme.tier !== 'premium') return false;
     if (filter === 'exclusive' && theme.tier !== 'exclusive') return false;
@@ -148,6 +167,25 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
             <button onClick={() => setMessage(null)} className="text-xs underline hover:no-underline">Dismiss</button>
           </div>
         )}
+
+        {/* Search Bar */}
+        <div className="mb-6 relative max-w-md w-full">
+          <input
+            type="text"
+            placeholder="🔍 Search themes by name, description, tags..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 text-gray-800 dark:text-slate-100 shadow-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              ✕
+            </button>
+          )}
+        </div>
 
         {/* Tier & Bundle Navigation */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
@@ -280,21 +318,30 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
                       <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">{theme.description}</p>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
-                      <span className="text-xl font-black text-gray-900 dark:text-white">
+                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <span className="text-lg font-black text-gray-900 dark:text-white">
                         {isFree ? 'Free' : `₹${theme.price}`}
                       </span>
-                      <button
-                        onClick={() => !isOwned && handlePurchase(theme.id)}
-                        disabled={isOwned || loadingTheme === theme.id}
-                        className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all ${
-                          isOwned
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-default'
-                            : 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white hover:shadow-md'
-                        }`}
-                      >
-                        {isOwned ? 'Owned ✅' : loadingTheme === theme.id ? 'Processing...' : 'Buy Theme 🔒'}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setActivePreviewTheme(theme)}
+                          className="px-3.5 py-2 text-xs font-bold rounded-xl border border-gray-250 dark:border-slate-750 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          Preview 👁️
+                        </button>
+                        <button
+                          onClick={() => !isOwned && handlePurchase(theme.id)}
+                          disabled={isOwned || loadingTheme === theme.id}
+                          className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all ${
+                            isOwned
+                              ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-default'
+                              : 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white hover:shadow-md'
+                          }`}
+                        >
+                          {isOwned ? 'Owned ✅' : loadingTheme === theme.id ? 'Processing...' : 'Buy Theme 🔒'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -303,6 +350,44 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
           </div>
         )}
       </div>
+
+      {activePreviewTheme && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] max-w-sm w-full p-4 border border-gray-150 dark:border-slate-800 shadow-2xl relative flex flex-col max-h-[90vh]">
+            <button
+              onClick={() => setActivePreviewTheme(null)}
+              className="absolute top-4 right-4 z-50 h-8 w-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/20 transition-all font-bold text-gray-805 dark:text-slate-100"
+            >
+              ✕
+            </button>
+            <h3 className="text-center font-black text-xs text-gray-500 dark:text-slate-400 mb-3 tracking-wide uppercase">
+              ✨ Live Theme Preview: {activePreviewTheme.name}
+            </h3>
+            <div className="flex-1 overflow-y-auto rounded-2xl border border-gray-100 dark:border-slate-850 relative bg-slate-50 dark:bg-slate-950">
+              <ProfilePreview
+                username="demouser"
+                bio="This is a live preview of how your page will look with this theme applied!"
+                avatarUrl=""
+                links={MOCK_LINKS as any}
+                themeType={activePreviewTheme.id}
+                themeBgColor={activePreviewTheme.bgColor}
+                themeTextColor={activePreviewTheme.textColor}
+                themeBgImage={activePreviewTheme.bgGradient || ''}
+                themeButtonStyle={activePreviewTheme.btnStyle || 'rounded-xl'}
+                themeBackdrop="glass-dark"
+              />
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={() => setActivePreviewTheme(null)}
+                className="w-full py-3 rounded-2xl bg-[#FF6B6B] hover:bg-[#FF5555] text-white text-xs font-black transition-all shadow-lg"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
