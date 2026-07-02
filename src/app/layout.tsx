@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   description:
     'One link for everything. Share your content, social profiles, and more with a single, beautiful Mizari page.',
   keywords: ['link in bio', 'linktree alternative', 'social links', 'mizari'],
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({

@@ -72,6 +72,19 @@ export async function POST(req: NextRequest) {
 
         if (!mTheme) return NextResponse.json({ error: 'Community theme not found' }, { status: 404 });
 
+        // Idempotency guard: if this order was already processed (e.g. a
+        // network retry or double-click fired the handler twice), don't
+        // credit the creator or record a duplicate transaction again.
+        const [existingTxn] = await db
+          .select({ id: marketplaceTransactions.id })
+          .from(marketplaceTransactions)
+          .where(eq(marketplaceTransactions.orderId, razorpay_order_id))
+          .limit(1);
+
+        if (existingTxn) {
+          return NextResponse.json({ success: true, alreadyProcessed: true });
+        }
+
         const totalAmount = mTheme.price * 100; // in paise
         const creatorEarnings = Math.round(totalAmount * 0.85); // 85% creator split
         const platformFee = totalAmount - creatorEarnings; // 15% platform split

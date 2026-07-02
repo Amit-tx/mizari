@@ -13,6 +13,16 @@ async function verifyOwnership(userId: number): Promise<boolean> {
   return session?.user?.id === String(userId);
 }
 
+async function verifyProfileOwnership(profileId: number, userId: number): Promise<boolean> {
+  if (!(await verifyOwnership(userId))) return false;
+  const [profile] = await db
+    .select({ id: profiles.id })
+    .from(profiles)
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)))
+    .limit(1);
+  return !!profile;
+}
+
 // Create a new profile under a user account (Personal / Business / Gaming)
 export async function createProfile(
   userId: number,
@@ -259,7 +269,7 @@ export async function addLink(
   discount: string = '',
   productImage: string = ''
 ): Promise<Link | null> {
-  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   const [newLink] = await db
     .insert(links)
@@ -281,7 +291,7 @@ export async function updateLink(
   discount: string = '',
   productImage: string = ''
 ) {
-  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db
     .update(links)
@@ -291,7 +301,7 @@ export async function updateLink(
 
 // Delete link
 export async function deleteLink(id: number, profileId: number, userId: number) {
-  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db
     .delete(links)
@@ -300,7 +310,7 @@ export async function deleteLink(id: number, profileId: number, userId: number) 
 
 // Reorder links in a profile
 export async function reorderLinks(linkIds: number[], profileId: number, userId: number) {
-  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   const updates = linkIds.map((id, index) =>
     db
