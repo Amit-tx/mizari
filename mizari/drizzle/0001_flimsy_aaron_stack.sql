@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "show_wishes" integer DEFAULT 1 NOT NULL;
