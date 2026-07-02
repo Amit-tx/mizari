@@ -108,30 +108,43 @@ export async function requestPayout(
 export async function getCreatorStats(userId: number) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
-  const [balance] = await db
-    .select()
-    .from(creatorBalances)
-    .where(eq(creatorBalances.userId, userId))
-    .limit(1);
+  // Wrapped in try/catch: marketplace tables may not exist yet if the
+  // 0002 migration hasn't been run. Returns safe zero-state instead of crashing.
+  try {
+    const [balance] = await db
+      .select()
+      .from(creatorBalances)
+      .where(eq(creatorBalances.userId, userId))
+      .limit(1);
 
-  const sales = await db
-    .select({
-      id: marketplaceTransactions.id,
-      amount: marketplaceTransactions.totalAmount,
-      earnings: marketplaceTransactions.creatorEarnings,
-      createdAt: marketplaceTransactions.createdAt,
-      themeName: marketplaceThemes.name,
-    })
-    .from(marketplaceTransactions)
-    .innerJoin(marketplaceThemes, eq(marketplaceTransactions.themeId, marketplaceThemes.id))
-    .where(eq(marketplaceThemes.creatorId, userId))
-    .orderBy(desc(marketplaceTransactions.createdAt));
+    const sales = await db
+      .select({
+        id: marketplaceTransactions.id,
+        amount: marketplaceTransactions.totalAmount,
+        earnings: marketplaceTransactions.creatorEarnings,
+        createdAt: marketplaceTransactions.createdAt,
+        themeName: marketplaceThemes.name,
+      })
+      .from(marketplaceTransactions)
+      .innerJoin(marketplaceThemes, eq(marketplaceTransactions.themeId, marketplaceThemes.id))
+      .where(eq(marketplaceThemes.creatorId, userId))
+      .orderBy(desc(marketplaceTransactions.createdAt));
 
-  return {
-    totalEarned: balance?.totalEarned || 0,
-    pendingWithdrawal: balance?.pendingWithdrawal || 0,
-    paidOut: balance?.paidOut || 0,
-    upiId: balance?.upiId || '',
-    sales,
-  };
+    return {
+      totalEarned: balance?.totalEarned || 0,
+      pendingWithdrawal: balance?.pendingWithdrawal || 0,
+      paidOut: balance?.paidOut || 0,
+      upiId: balance?.upiId || '',
+      sales,
+    };
+  } catch (err) {
+    console.warn('[getCreatorStats] Marketplace tables missing — run migration 0002:', err);
+    return {
+      totalEarned: 0,
+      pendingWithdrawal: 0,
+      paidOut: 0,
+      upiId: '',
+      sales: [],
+    };
+  }
 }

@@ -60,25 +60,31 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   // Daily Active check-in (10 XP per calendar day)
+  // Wrapped in try/catch: if xp/daily_active_days columns don't yet exist in
+  // the DB (migration pending), the dashboard still loads — just without XP update.
   if (activeProfile) {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const lastActiveStr = activeProfile.lastActiveAt
-      ? new Date(activeProfile.lastActiveAt).toISOString().split('T')[0]
-      : null;
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const lastActiveStr = activeProfile.lastActiveAt
+        ? new Date(activeProfile.lastActiveAt).toISOString().split('T')[0]
+        : null;
 
-    if (todayStr !== lastActiveStr) {
-      await db
-        .update(profiles)
-        .set({
-          dailyActiveDays: (activeProfile.dailyActiveDays || 0) + 1,
-          lastActiveAt: new Date(),
-          xp: (activeProfile.xp || 0) + 10,
-        })
-        .where(eq(profiles.id, activeProfile.id));
+      if (todayStr !== lastActiveStr) {
+        await db
+          .update(profiles)
+          .set({
+            dailyActiveDays: (activeProfile.dailyActiveDays || 0) + 1,
+            lastActiveAt: new Date(),
+            xp: (activeProfile.xp || 0) + 10,
+          })
+          .where(eq(profiles.id, activeProfile.id));
 
-      activeProfile.dailyActiveDays = (activeProfile.dailyActiveDays || 0) + 1;
-      activeProfile.lastActiveAt = new Date();
-      activeProfile.xp = (activeProfile.xp || 0) + 10;
+        activeProfile.dailyActiveDays = (activeProfile.dailyActiveDays || 0) + 1;
+        activeProfile.lastActiveAt = new Date();
+        activeProfile.xp = (activeProfile.xp || 0) + 10;
+      }
+    } catch (xpErr) {
+      console.warn('[dashboard] XP daily check-in failed (migration pending?):', xpErr);
     }
   }
 
@@ -104,12 +110,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     totalClicks += profLinks.reduce((sum, link) => sum + link.clicks, 0);
   }
 
-  const { themePurchases } = await import('@/db/schema');
-  const purchases = await db
-    .select()
-    .from(themePurchases)
-    .where(and(eq(themePurchases.userId, userId), eq(themePurchases.status, 'paid')));
-  const purchasedThemeIds = purchases.map((p) => p.themeId);
+  let purchasedThemeIds: string[] = [];
+  try {
+    const { themePurchases } = await import('@/db/schema');
+    const purchases = await db
+      .select()
+      .from(themePurchases)
+      .where(and(eq(themePurchases.userId, userId), eq(themePurchases.status, 'paid')));
+    purchasedThemeIds = purchases.map((p) => p.themeId);
+  } catch (purchaseErr) {
+    console.warn('[dashboard] theme_purchases query failed (migration pending?):', purchaseErr);
+  }
 
   return (
     <DashboardClient
