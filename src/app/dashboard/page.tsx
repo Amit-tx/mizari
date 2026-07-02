@@ -1,8 +1,8 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { users, profiles, links } from '@/db/schema';
-import { eq, asc, and, inArray } from 'drizzle-orm';
+import { users, profiles, links, wishes, clickLogs } from '@/db/schema';
+import { eq, asc, and, inArray, or, desc } from 'drizzle-orm';
 import { DashboardClient } from './DashboardClient';
 
 // Neon's serverless HTTP driver occasionally has a transient network blip
@@ -42,21 +42,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   if (!user) redirect('/login');
 
   // Fetch all profiles of this user
-  // Wrap in try/catch to surface DB column mismatch errors clearly
-  let userProfiles: typeof profiles.$inferSelect[] = [];
-  try {
-    userProfiles = await withRetry(() =>
-      db
-        .select()
-        .from(profiles)
-        .where(eq(profiles.userId, userId))
-        .orderBy(asc(profiles.id))
-    );
-  } catch (profileErr: any) {
-    // Surface the real error so it appears in Vercel logs
-    console.error('[dashboard] profiles query failed:', profileErr?.message || profileErr);
-    throw new Error(`Dashboard DB error: ${profileErr?.message || 'profiles query failed'}`);
-  }
+  const userProfiles = await withRetry(() =>
+    db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .orderBy(asc(profiles.id))
+  );
 
   // Determine active profile from query param, fallback to first profile
   const parsedParams = await searchParams;
@@ -88,8 +80,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   // Daily Active check-in (10 XP per calendar day)
-  // Wrapped in try/catch: if xp/daily_active_days columns don't yet exist in
-  // the DB (migration pending), the dashboard still loads — just without XP update.
   if (activeProfile) {
     try {
       const todayStr = new Date().toISOString().split('T')[0];
@@ -124,6 +114,36 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       .where(eq(links.profileId, activeProfile.id))
       .orderBy(asc(links.order))
   );
+
+  // Fetch wishes for active profile guestbook moderation
+  const profileWishes = await withRetry(() =>
+    db
+      .select()
+      .from(wishes)
+      .where(eq(wishes.profileId, activeProfile.id))
+      .orderBy(desc(wishes.id))
+  );
+
+  // Fetch click logs for rich analytics
+  const linkIds = profileLinks.map((l) => l.id);
+  let profileClickLogs: any[] = [];
+  try {
+    const conditions = [
+      and(eq(clickLogs.targetType, 'view'), eq(clickLogs.targetId, activeProfile.id))
+    ];
+    if (linkIds.length > 0) {
+      conditions.push(and(eq(clickLogs.targetType, 'click'), inArray(clickLogs.targetId, linkIds)));
+    }
+    
+    profileClickLogs = await db
+      .select()
+      .from(clickLogs)
+      .where(or(...conditions))
+      .orderBy(desc(clickLogs.id))
+      .limit(1000);
+  } catch (logErr) {
+    console.warn('[dashboard] click_logs query failed:', logErr);
+  }
 
   // Calculate stats for all user profiles (for creator level calculation)
   let totalClicks = 0;
@@ -169,17 +189,27 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         themeTextColor: activeProfile.themeTextColor,
         themeBgImage: activeProfile.themeBgImage || '',
         themeButtonStyle: activeProfile.themeButtonStyle as 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow',
-        themeBackdrop: activeProfile.themeBackdrop ?? 'glass-light',
-        themeRotateInterval: activeProfile.themeRotateInterval ?? 'none',
+        themeBackdrop: activeProfile.themeBackdrop,
+        themeRotateInterval: activeProfile.themeRotateInterval,
         likes: activeProfile.likes,
         showWishes: activeProfile.showWishes,
         xp: activeProfile.xp,
         prestige: activeProfile.prestige,
+        guestbookStyle: activeProfile.guestbookStyle as 'tanabata' | 'classic',
+        guestbookHeading: activeProfile.guestbookHeading || 'Guestbook',
+        announcementText: activeProfile.announcementText || '',
+        announcementLink: activeProfile.announcementLink || '',
+        announcementActive: activeProfile.announcementActive,
+        announcementColor: activeProfile.announcementColor || '#FF6B6B',
+        birthday: activeProfile.birthday || '',
+        enableDynamicTheme: activeProfile.enableDynamicTheme,
       }}
       userEmail={user.email}
-      initialLinks={profileLinks}
+      initialLinks={profileLinks as any}
       totalClicks={totalClicks}
       purchasedThemeIds={purchasedThemeIds}
+      profileWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color, createdAt: w.createdAt.toISOString() }))}
+      profileClickLogs={profileClickLogs.map((l) => ({ id: l.id, visitorIp: l.visitorIp, targetId: l.targetId, targetType: l.targetType, referrer: l.referrer, device: l.device, browser: l.browser, country: l.country, createdAt: l.createdAt.toISOString() }))}
     />
   );
 }

@@ -88,7 +88,11 @@ export function isBotUserAgent(userAgent: string | null): boolean {
 export async function validateIpCooldown(
   ipAddress: string,
   targetId: number,
-  targetType: 'click' | 'view'
+  targetType: 'click' | 'view',
+  referrer: string = 'direct',
+  device: string = 'desktop',
+  browser: string = 'unknown',
+  country: string = 'unknown'
 ): Promise<boolean> {
   const hashedIp = crypto.createHash('sha256').update(ipAddress).digest('hex');
   const cooldownDuration = targetType === 'view' ? 2 * 60 * 60 * 1000 : 1 * 60 * 60 * 1000; // 2h views, 1h clicks
@@ -114,6 +118,10 @@ export async function validateIpCooldown(
     visitorIp: hashedIp,
     targetId,
     targetType,
+    referrer,
+    device,
+    browser,
+    country,
   });
 
   return true; // allowed

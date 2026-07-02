@@ -41,12 +41,28 @@ export async function addWish(profileId: number, sender: string, text: string, c
   revalidatePath('/[username]', 'page');
 }
 
-// Increment likes/reactions on a profile
-export async function incrementLikes(profileId: number) {
+// Increment specific reaction or general likes on a profile
+export async function addReaction(profileId: number, reactionType: string) {
+  const allowedTypes = ['like', 'love', 'haha', 'wow', 'sad', 'fire'];
+  if (!allowedTypes.includes(reactionType)) throw new Error('Invalid reaction type');
+
+  // We map the string reactionType to corresponding columns in profiles schema
   await db
     .update(profiles)
-    .set({ likes: sql`${profiles.likes} + 1` })
+    .set({
+      reactionLike: reactionType === 'like' ? sql`${profiles.reactionLike} + 1` : undefined,
+      reactionLove: reactionType === 'love' ? sql`${profiles.reactionLove} + 1` : undefined,
+      reactionHaha: reactionType === 'haha' ? sql`${profiles.reactionHaha} + 1` : undefined,
+      reactionWow: reactionType === 'wow' ? sql`${profiles.reactionWow} + 1` : undefined,
+      reactionSad: reactionType === 'sad' ? sql`${profiles.reactionSad} + 1` : undefined,
+      reactionFire: reactionType === 'fire' ? sql`${profiles.reactionFire} + 1` : undefined,
+      likes: sql`${profiles.likes} + 1`, // increment total likes for fallback/levels calculation
+    })
     .where(eq(profiles.id, profileId));
 
   revalidatePath('/[username]', 'page');
+}
+
+export async function incrementLikes(profileId: number) {
+  await addReaction(profileId, 'love');
 }

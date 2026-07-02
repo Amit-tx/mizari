@@ -3,6 +3,7 @@ import { links } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
 import { isBotUserAgent, validateIpCooldown, grantXp } from '@/utils/xp';
+import { parseUserAgent, parseReferrer } from '@/utils/analytics';
 
 export async function GET(
   request: NextRequest,
@@ -27,13 +28,24 @@ export async function GET(
 
   const userAgent = request.headers.get('user-agent');
   const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+  const referrerHeader = request.headers.get('referer');
+  const countryHeader = request.headers.get('x-vercel-ip-country') || 'local';
+
+  const { device, browser } = parseUserAgent(userAgent);
+  const parsedReferrer = parseReferrer(referrerHeader);
 
   // Apply anti-spam filtering (block bots and enforce 1-hour IP cooldown per link)
-  // Wrapped in try/catch: click_logs table may not exist yet if migration 0002
-  // hasn't been run. Fallback: always increment clicks (no rate-limiting yet).
   if (!isBotUserAgent(userAgent)) {
     try {
-      const isAllowed = await validateIpCooldown(ipAddress, linkId, 'click');
+      const isAllowed = await validateIpCooldown(
+        ipAddress,
+        linkId,
+        'click',
+        parsedReferrer,
+        device,
+        browser,
+        countryHeader
+      );
       if (isAllowed) {
         await db
           .update(links)

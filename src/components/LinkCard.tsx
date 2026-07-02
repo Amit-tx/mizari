@@ -12,7 +12,11 @@ interface LinkCardProps {
     isProduct: number, 
     price: string, 
     discount: string, 
-    productImage: string
+    productImage: string,
+    scheduledStart: string | null,
+    scheduledEnd: string | null,
+    productCategory: string,
+    isSensitive: number
   ) => void;
   onDelete: (id: number) => void;
   onMoveUp: (id: number) => void;
@@ -33,8 +37,38 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
   const [productImage, setProductImage] = useState(link.productImage || '');
   const [uploading, setUploading] = useState(false);
 
+  // Helper to format ISO date to datetime-local input string (YYYY-MM-DDTHH:mm)
+  const formatDateForInput = (d: any) => {
+    if (!d) return '';
+    try {
+      const date = new Date(d);
+      const tzOffset = date.getTimezoneOffset() * 60000;
+      return (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
+    } catch(e) {
+      return '';
+    }
+  };
+
+  // Additional settings states
+  const [scheduledStart, setScheduledStart] = useState(formatDateForInput(link.scheduledStart));
+  const [scheduledEnd, setScheduledEnd] = useState(formatDateForInput(link.scheduledEnd));
+  const [productCategory, setProductCategory] = useState(link.productCategory || '');
+  const [isSensitive, setIsSensitive] = useState(link.isSensitive || 0);
+
   const handleSave = () => {
-    onUpdate(link.id, title, url, isProduct, price, discount, productImage);
+    onUpdate(
+      link.id, 
+      title, 
+      url, 
+      isProduct, 
+      price, 
+      discount, 
+      productImage,
+      scheduledStart || null,
+      scheduledEnd || null,
+      productCategory,
+      isSensitive
+    );
     setEditing(false);
   };
 
@@ -45,7 +79,19 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
     setPrice(link.price || '');
     setDiscount(link.discount || '');
     setProductImage(link.productImage || '');
+    setScheduledStart(formatDateForInput(link.scheduledStart));
+    setScheduledEnd(formatDateForInput(link.scheduledEnd));
+    setProductCategory(link.productCategory || '');
+    setIsSensitive(link.isSensitive || 0);
     setEditing(false);
+  };
+
+  const checkIsSensitive = (l: any) => {
+    if (l.isSensitive === 1) return true;
+    if (l.isSensitive === -1) return false;
+    const lowercaseUrl = (l.url || '').toLowerCase();
+    const adultDomains = ['onlyfans.com', 'fansly.com', 'manyvids.com', 'pornhub.com'];
+    return adultDomains.some(domain => lowercaseUrl.includes(domain));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +102,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('type', 'background'); // Uploads as background/product type
+      formData.append('type', 'background');
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -129,29 +175,85 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               />
             </div>
 
+            {/* Scheduling & Warning Settings */}
+            <div className="grid gap-3 grid-cols-2 p-3.5 rounded-xl bg-gray-55 dark:bg-slate-950/20 border border-gray-100 dark:border-slate-805">
+              <div className="col-span-2">
+                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
+                  18+ Sensitive Warning
+                </label>
+                <select
+                  value={isSensitive}
+                  onChange={(e) => setIsSensitive(Number(e.target.value))}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-850 dark:text-white font-bold"
+                >
+                  <option value={0}>Auto-Detect (OnlyFans, Fansly, etc.)</option>
+                  <option value={1}>Always Show 18+ Warning</option>
+                  <option value={-1}>Always Bypass Warning</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
+                  Start Schedule (Optional)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={scheduledStart}
+                  onChange={(e) => setScheduledStart(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-850 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
+                  End Schedule (Optional)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={scheduledEnd}
+                  onChange={(e) => setScheduledEnd(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-850 dark:text-white"
+                />
+              </div>
+            </div>
+
             {isProduct === 1 && (
-              <div className="grid gap-3 grid-cols-2 p-4 rounded-xl bg-gray-55 dark:bg-slate-950/40 border border-gray-100 dark:border-slate-800">
+              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-slate-950/40 border border-gray-100 dark:border-slate-800">
+                <div className="grid gap-3 grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Price (e.g. $49 or ₹999)</label>
+                    <input
+                      type="text"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="Price"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Discount (e.g. 20% OFF)</label>
+                    <input
+                      type="text"
+                      value={discount}
+                      onChange={(e) => setDiscount(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="e.g. 20% OFF"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Price (e.g. $49 or ₹999)</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Product Category (e.g. Fashion, Tech)</label>
                   <input
                     type="text"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    value={productCategory}
+                    onChange={(e) => setProductCategory(e.target.value)}
                     className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                    placeholder="Price"
+                    placeholder="Category Name"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-550 dark:text-slate-400 mb-1">Discount Tag (e.g. 20% OFF)</label>
-                  <input
-                    type="text"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                    placeholder="e.g. 20% OFF"
-                  />
-                </div>
-                <div className="col-span-2 pt-2 space-y-2">
+
+                <div className="space-y-2 pt-1">
                   <label className="block text-xs font-bold text-gray-500 dark:text-slate-400">Product Image</label>
                   <div className="flex flex-col gap-2">
                     <input
@@ -159,7 +261,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                       value={productImage}
                       onChange={(e) => setProductImage(e.target.value)}
                       className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                      placeholder="Paste Image URL here (e.g. Amazon image URL)..."
+                      placeholder="Paste Image URL here..."
                     />
                     <div className="flex items-center gap-3">
                       {productImage && (
@@ -185,7 +287,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-2">
             <button onClick={handleSave} className="rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-4 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110">Save</button>
             <button onClick={handleCancel} className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">Cancel</button>
           </div>
@@ -196,16 +298,36 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
             {link.isProduct === 1 && link.productImage && (
               <img src={link.productImage} alt={link.title} className="h-12 w-12 rounded-xl object-cover border border-gray-100 flex-shrink-0" />
             )}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="truncate text-sm font-bold text-gray-900 dark:text-white">{link.title}</h3>
                 {link.isProduct === 1 && (
-                  <span className="rounded-md bg-orange-50 px-1.5 py-0.5 text-[10px] font-extrabold text-orange-600 dark:bg-orange-950/20 dark:text-orange-400">🛍️ PRODUCT</span>
+                  <span className="rounded-md bg-orange-50 px-1.5 py-0.5 text-[9px] font-extrabold text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 uppercase">🛍️ PRODUCT</span>
                 )}
               </div>
               <p className="truncate text-xs text-gray-500 dark:text-slate-400 mt-0.5">{link.url}</p>
+              
+              {/* Category, Schedule & Sensitive tags */}
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {link.productCategory && (
+                  <span className="rounded bg-slate-100 dark:bg-slate-800 text-[8px] font-extrabold px-1.5 py-0.5 text-slate-500">
+                    📂 {link.productCategory}
+                  </span>
+                )}
+                {(link.scheduledStart || link.scheduledEnd) && (
+                  <span className="rounded bg-indigo-50 dark:bg-indigo-950/20 text-[8px] font-extrabold px-1.5 py-0.5 text-indigo-600 dark:text-indigo-400">
+                    ⏰ Scheduled
+                  </span>
+                )}
+                {checkIsSensitive(link) && (
+                  <span className="rounded bg-red-50 dark:bg-red-950/20 text-[8px] font-extrabold px-1.5 py-0.5 text-red-600 dark:text-red-400">
+                    ⚠️ 18+ warning active
+                  </span>
+                )}
+              </div>
+
               {link.isProduct === 1 && link.price && (
-                <div className="flex items-center gap-1.5 mt-1 text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                <div className="flex items-center gap-1.5 mt-2 text-xs font-extrabold text-slate-800 dark:text-slate-200">
                   <span>{link.price}</span>
                   {link.discount && (
                     <span className="text-emerald-600 dark:text-emerald-400 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 px-1 rounded">{link.discount}</span>
@@ -215,7 +337,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-1 border-t border-gray-50 pt-3 sm:border-t-0 sm:pt-0">
+          <div className="flex items-center justify-end gap-1 border-t border-gray-100 pt-3 sm:border-t-0 sm:pt-0">
             <span className="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-slate-800 dark:text-slate-300 mr-1">{link.clicks} clicks</span>
             <button onClick={() => onMoveUp(link.id)} disabled={isFirst} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200" aria-label="Move up">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7"/></svg>

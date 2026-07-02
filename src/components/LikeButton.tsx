@@ -1,100 +1,182 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
-import { incrementLikes } from '@/app/[username]/actions';
+import { addReaction } from '@/app/[username]/actions';
 
 interface LikeButtonProps {
   profileId: number;
-  initialLikes: number;
+  initialLikes?: number; // fallback
   themeTextColor?: string;
+  initialLike?: number;
+  initialLove?: number;
+  initialHaha?: number;
+  initialWow?: number;
+  initialSad?: number;
+  initialFire?: number;
 }
 
-export function LikeButton({ profileId, initialLikes, themeTextColor }: LikeButtonProps) {
-  const [likes, setLikes] = useState(initialLikes);
-  const [isPending, startTransition] = useTransition();
-  const [hearts, setHearts] = useState<{ id: number; left: number }[]>([]);
-  const [hasLiked, setHasLiked] = useState(false);
+interface ReactionOption {
+  type: string;
+  emoji: string;
+  label: string;
+}
 
-  // Check localStorage on mount to see if this device already liked this profile
+const REACTION_OPTIONS: ReactionOption[] = [
+  { type: 'like', emoji: '👍', label: 'Like' },
+  { type: 'love', emoji: '❤️', label: 'Love' },
+  { type: 'fire', emoji: '🔥', label: 'Fire' },
+  { type: 'haha', emoji: '😂', label: 'Haha' },
+  { type: 'wow', emoji: '🎉', label: 'Wow' },
+  { type: 'sad', emoji: '😢', label: 'Sad' },
+];
+
+export function LikeButton({
+  profileId,
+  initialLikes = 0,
+  themeTextColor,
+  initialLike = 0,
+  initialLove = 0,
+  initialHaha = 0,
+  initialWow = 0,
+  initialSad = 0,
+  initialFire = 0,
+}: LikeButtonProps) {
+  // Store reaction counts in state
+  const [counts, setCounts] = useState<Record<string, number>>({
+    like: initialLike,
+    love: initialLove,
+    fire: initialFire,
+    haha: initialHaha,
+    wow: initialWow,
+    sad: initialSad,
+  });
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [reactedTypes, setReactedTypes] = useState<string[]>([]);
+  const [isPending, startTransition] = useTransition();
+  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; left: number }[]>([]);
+
+  // Load reacted states from localStorage
   useEffect(() => {
-    const likedProfiles = JSON.parse(localStorage.getItem('mizari_liked') || '[]');
-    if (likedProfiles.includes(profileId)) {
-      setHasLiked(true);
+    try {
+      const reacted = JSON.parse(localStorage.getItem(`mizari_reacted_${profileId}`) || '[]');
+      setReactedTypes(reacted);
+    } catch (e) {
+      console.error(e);
     }
   }, [profileId]);
 
-  const handleLike = () => {
-    if (hasLiked) return; // Already liked from this device
+  const handleReact = (type: string, emoji: string) => {
+    if (reactedTypes.includes(type)) return; // prevent duplicate clicks for this reaction type
 
-    // Mark as liked in localStorage
-    const likedProfiles = JSON.parse(localStorage.getItem('mizari_liked') || '[]');
-    likedProfiles.push(profileId);
-    localStorage.setItem('mizari_liked', JSON.stringify(likedProfiles));
-    setHasLiked(true);
+    // Save state in localStorage
+    const updated = [...reactedTypes, type];
+    localStorage.setItem(`mizari_reacted_${profileId}`, JSON.stringify(updated));
+    setReactedTypes(updated);
 
-    // Spawn a floating heart animation
-    const newHeart = {
-      id: Date.now(),
-      left: Math.random() * 40 - 20,
+    // Spawn floating emoji particle
+    const particle = {
+      id: Date.now() + Math.random(),
+      emoji,
+      left: Math.random() * 80 - 40, // random dispersion
     };
-    setHearts((prev) => [...prev, newHeart]);
+    setFloatingEmojis((prev) => [...prev, particle]);
     setTimeout(() => {
-      setHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
-    }, 1000);
+      setFloatingEmojis((prev) => prev.filter((item) => item.id !== particle.id));
+    }, 1200);
 
-    // Optimistically update UI
-    setLikes((prev) => prev + 1);
+    // Optimistically update count
+    setCounts((prev) => ({
+      ...prev,
+      [type]: prev[type] + 1,
+    }));
 
-    // Run Server Action
+    // Trigger server action
     startTransition(async () => {
       try {
-        await incrementLikes(profileId);
+        await addReaction(profileId, type);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to react:', err);
       }
     });
   };
 
+  const totalLikes = Object.values(counts).reduce((a, b) => a + b, 0);
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center">
-      {/* Floating Hearts Animation Container */}
-      <div className="relative w-0 h-0">
-        {hearts.map((heart) => (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+      {/* Floating Particle Container */}
+      <div className="relative w-0 h-0 self-center">
+        {floatingEmojis.map((item) => (
           <span
-            key={heart.id}
-            className="absolute bottom-6 text-2xl animate-float-heart pointer-events-none"
-            style={{ 
-              left: `${heart.left}px`,
-              animationDuration: '1s',
+            key={item.id}
+            className="absolute bottom-12 text-3xl animate-float-emoji pointer-events-none"
+            style={{
+              left: `${item.left}px`,
+              animationDuration: '1.2s',
               animationTimingFunction: 'ease-out',
             }}
           >
-            ❤️
+            {item.emoji}
           </span>
         ))}
       </div>
 
-      {/* Main Floating Like Button */}
+      {/* Expanded Reaction Panel */}
+      {isOpen && (
+        <div className="mb-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-slate-900/90 p-2 shadow-2xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95 animate-scale-up mr-2">
+          {REACTION_OPTIONS.map((opt) => {
+            const hasReacted = reactedTypes.includes(opt.type);
+            return (
+              <button
+                key={opt.type}
+                onClick={() => handleReact(opt.type, opt.emoji)}
+                disabled={hasReacted || isPending}
+                className={`flex flex-col items-center rounded-full p-2 transition-all active:scale-90 ${
+                  hasReacted
+                    ? 'bg-white/10 text-white cursor-default'
+                    : 'hover:bg-white/10 text-slate-350 hover:text-white'
+                }`}
+                title={`${opt.label} (${counts[opt.type]})`}
+              >
+                <span className="text-xl transition-transform hover:scale-125">{opt.emoji}</span>
+                <span className="mt-0.5 text-[9px] font-bold opacity-80">{counts[opt.type]}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Main Trigger Floating Action Button */}
       <button
-        onClick={handleLike}
-        disabled={isPending || hasLiked}
+        onClick={() => setIsOpen(!isOpen)}
         className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all active:scale-95 ${
-          hasLiked 
-            ? 'border-pink-400 bg-pink-500 text-white cursor-default scale-100' 
-            : 'border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 hover:scale-105 dark:border-pink-900/30 dark:bg-pink-950/20 dark:text-pink-400 dark:hover:bg-pink-950/40'
+          isOpen
+            ? 'border-indigo-400 bg-indigo-600 text-white scale-100'
+            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:scale-105 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
         }`}
-        title={hasLiked ? 'You already liked this!' : 'Send Love ❤️'}
+        title="React to this profile"
       >
-        <span className="text-xl">{hasLiked ? '💖' : '❤️'}</span>
+        <span className="text-xl">{isOpen ? '✕' : '✨'}</span>
       </button>
 
-      {/* Likes Count Badge */}
-      <span 
-        className="mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-white/10"
+      {/* Total Reactions Count Badge */}
+      <span
+        className="mt-1 mr-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900/10 dark:bg-white/10 select-none"
         style={themeTextColor ? { color: themeTextColor } : {}}
       >
-        {likes}
+        {totalLikes} reactions
       </span>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes floatEmoji {
+          0% { transform: translateY(0) scale(0.8); opacity: 1; }
+          100% { transform: translateY(-140px) scale(1.5); opacity: 0; }
+        }
+        .animate-float-emoji {
+          animation: floatEmoji 1.2s forwards;
+        }
+      `}} />
     </div>
   );
 }

@@ -164,41 +164,7 @@ export default function AnimeReactiveSky({
         </svg>
       </div>
 
-      {/* particles */}
-      <div className="absolute inset-0 pointer-events-none z-[4]">
-        {leaves.map((l) => (
-          <span
-            key={l.id}
-            className="absolute -top-[5%]"
-            style={{
-              left: `${l.left}%`,
-              width: l.size,
-              height: l.size,
-              background: "#2E8B57",
-              borderRadius: "0% 70% 0% 70%",
-              opacity: 0.6,
-              animation: `mizari-leaf-fall ${l.duration}s linear infinite`,
-              animationDelay: `${l.delay}s`,
-            }}
-          />
-        ))}
-        {orbs.map((c) => (
-          <span
-            key={c.id}
-            className="absolute -top-[5%] rounded-full"
-            style={{
-              left: `${c.left}%`,
-              width: 4,
-              height: 20,
-              opacity: 0.85,
-              background: `linear-gradient(180deg, #FFFFFF, ${c.color})`,
-              boxShadow: `0 0 10px ${c.color}`,
-              animation: `mizari-chakra-rise ${c.duration}s linear infinite`,
-              animationDelay: `${c.delay}s`,
-            }}
-          />
-        ))}
-      </div>
+      {/* particles disabled */}
 
       {/* content */}
       {showContent && (

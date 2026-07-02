@@ -16,6 +16,10 @@ import { ShareButton } from '@/components/ShareButton';
 import { LikeButton } from '@/components/LikeButton';
 import { Branding } from '@/components/Branding';
 import { TanabataTree } from '@/components/TanabataTree';
+import { ClassicGuestbook } from '@/components/ClassicGuestbook';
+import { AnnouncementBanner } from '@/components/AnnouncementBanner';
+import { BirthdayConfetti } from '@/components/BirthdayConfetti';
+import { LinksAndProducts } from '@/components/LinksAndProducts';
 import { AmbientPlayer } from '@/components/AmbientPlayer';
 import { getStoreThemeById } from '@/components/StoreThemes';
 import AnimeReactiveSky from '@/components/AnimeReactiveSky';
@@ -76,7 +80,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .where(eq(links.profileId, profile.id))
     .orderBy(asc(links.order));
 
-  // Fetch latest 10 wishes for the Tanabata Tree
+  // Apply scheduling filter
+  const nowTime = new Date();
+  const activeLinks = allLinks.filter((link) => {
+    if (link.scheduledStart && nowTime < new Date(link.scheduledStart)) return false;
+    if (link.scheduledEnd && nowTime > new Date(link.scheduledEnd)) return false;
+    return true;
+  });
+
+  // Fetch latest 10 wishes for the Guestbook/Tanabata Tree
   const profileWishes = await db
     .select()
     .from(wishes)
@@ -85,8 +97,41 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .limit(10);
 
   // Separate standard links and product cards
-  const standardLinks = allLinks.filter((l) => !l.isProduct || l.isProduct === 0);
-  const productLinks = allLinks.filter((l) => l.isProduct === 1);
+  const standardLinks = activeLinks.filter((l) => !l.isProduct || l.isProduct === 0);
+  const productLinks = activeLinks.filter((l) => l.isProduct === 1);
+
+  // Dynamic Theme Shifts: Day/Night, Festivals, and Birthday
+  const today = new Date();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayMmDd = `${mm}-${dd}`;
+  const isBirthday = profile.birthday === todayMmDd;
+  let activeBirthdayConfetti = false;
+
+  if (profile.enableDynamicTheme === 1) {
+    let dynamicTheme = profile.themeType;
+    if (isBirthday) {
+      activeBirthdayConfetti = true;
+      dynamicTheme = 'haru_spring'; // Pink birthday theme
+    } else if (todayMmDd === '10-31') {
+      dynamicTheme = 'demon_slayer'; // Spooky Halloween theme
+    } else if (todayMmDd === '12-24' || todayMmDd === '12-25') {
+      dynamicTheme = 'fuyu_winter'; // Winter theme
+    } else if (todayMmDd === '03-20') {
+      dynamicTheme = 'sakura'; // Cherry blossom/spring
+    } else if (todayMmDd === '11-01' || todayMmDd === '11-12') {
+      dynamicTheme = 'natsu_matsuri'; // Lanterns/Diwali
+    } else {
+      // Hour-based shift
+      const currentHour = today.getHours();
+      if (currentHour >= 6 && currentHour < 18) {
+        dynamicTheme = 'aozora'; // Sunrise -> Sunset: light sky
+      } else {
+        dynamicTheme = 'tsukiyo'; // Sunset -> Sunrise: dark sky
+      }
+    }
+    profile.themeType = dynamicTheme;
+  }
 
   // Check if theme rotation is enabled and has elapsed
   if (profile.themeRotateInterval && profile.themeRotateInterval !== 'none') {
@@ -327,9 +372,24 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div 
-      className="relative flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 transition-all duration-300 bg-cover bg-center overflow-y-auto"
+      className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-start bg-cover bg-center overflow-y-auto w-full transition-all duration-300"
       style={bgStyle}
     >
+      {/* Announcement Banner */}
+      {profile.announcementActive === 1 && profile.announcementText && (
+        <AnnouncementBanner
+          profileId={profile.id}
+          text={profile.announcementText}
+          link={profile.announcementLink || undefined}
+          bgColor={profile.announcementColor}
+        />
+      )}
+
+      {/* Birthday Confetti animations */}
+      {activeBirthdayConfetti && <BirthdayConfetti />}
+
+      {/* Main page body */}
+      <div className="relative flex w-full items-start justify-center px-4 py-12 bg-cover bg-center">
       {/* Living / Reactive Day/Night Cycle Skies */}
       {rawJapanTheme && (
         <div className="absolute inset-0 z-0">
@@ -367,6 +427,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         profileId={profile.id} 
         initialLikes={profile.likes} 
         themeTextColor={preset?.textColor || profile.themeTextColor} 
+        initialLike={profile.reactionLike}
+        initialLove={profile.reactionLove}
+        initialHaha={profile.reactionHaha}
+        initialWow={profile.reactionWow}
+        initialSad={profile.reactionSad}
+        initialFire={profile.reactionFire}
       />
       
       {/* Share Button */}
@@ -445,89 +511,40 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               )}
             </div>
 
-            {/* Standard Links */}
-            <div className="mt-8 space-y-3.5">
-              {standardLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={`/api/click/${link.id}`}
-                  className={`group block w-full px-5 py-3.5 text-center text-sm font-bold ${getButtonClass()}`}
-                  style={getButtonStyle()}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {getPlatformIcon(link.url)}
-                    <span>{link.title}</span>
-                    <svg className="ml-1 inline-block h-3.5 w-3.5 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </div>
-                </a>
-              ))}
-            </div>
-
-            {/* Affiliate Product Cards Section */}
-            {productLinks.length > 0 && (
-              <div className="mt-8 pt-6 border-t border-gray-250/20">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider mb-4 opacity-75" style={textStyle}>
-                  🛍 Seymous Featured Products
-                </h3>
-                <div className="grid gap-4 grid-cols-2">
-                  {productLinks.map((product) => (
-                    <a 
-                      key={product.id}
-                      href={`/api/click/${product.id}`}
-                      className="group/prod flex flex-col rounded-2xl border border-gray-100 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
-                      style={preset ? { borderColor: `${preset.btnBorder}25` } : {}}
-                    >
-                      {/* Product Image */}
-                      <div className="relative h-28 w-full bg-gray-50 dark:bg-slate-800 overflow-hidden">
-                        {product.productImage ? (
-                          <img src={product.productImage} alt={product.title} className="h-full w-full object-cover group-hover/prod:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-2xl">🛍️</div>
-                        )}
-                        {/* Discount Tag */}
-                        {product.discount && (
-                          <span className="absolute top-2 left-2 rounded bg-red-550 px-1.5 py-0.5 text-[9px] font-extrabold text-white">
-                            {product.discount}
-                          </span>
-                        )}
-                      </div>
-                      {/* Product Info */}
-                      <div className="p-3 flex-1 flex flex-col justify-between text-left">
-                        <div>
-                          <h4 className="line-clamp-1 text-xs font-bold text-gray-800 dark:text-gray-200">{product.title}</h4>
-                          {product.price && (
-                            <p className="mt-1 text-xs font-extrabold text-[#FF6B6B]">{product.price}</p>
-                          )}
-                        </div>
-                        {/* Buy Button */}
-                        <div 
-                          className="mt-3 w-full rounded-xl bg-[#FF6B6B] py-1.5 text-center text-[10px] font-extrabold text-white hover:brightness-110 transition-all"
-                          style={preset ? { backgroundColor: preset.btnBg, color: preset.btnText, borderColor: preset.btnBorder } : {}}
-                        >
-                          Shop Now
-                        </div>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Links and Products Section */}
+            <LinksAndProducts
+              standardLinks={standardLinks}
+              productLinks={productLinks}
+              profileId={profile.id}
+              buttonClass={getButtonClass()}
+              buttonStyle={getButtonStyle()}
+              textStyle={textStyle}
+              preset={preset}
+            />
           </div>
         </div>
 
-        {/* Tanabata Wish Tree */}
+        {/* Guestbook Section */}
         {profile.showWishes === 1 && (
-          <TanabataTree 
-            userId={profile.id} 
-            initialWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color }))} 
-            textColor={preset?.textColor || profile.themeTextColor}
-          />
+          profile.guestbookStyle === 'classic' ? (
+            <ClassicGuestbook
+              profileId={profile.id}
+              initialWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color }))}
+              guestbookHeading={profile.guestbookHeading || 'Guestbook'}
+              textColor={preset?.textColor || profile.themeTextColor}
+            />
+          ) : (
+            <TanabataTree 
+              userId={profile.id} 
+              initialWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color }))} 
+              textColor={preset?.textColor || profile.themeTextColor}
+            />
+          )
         )}
 
         {/* Branding */}
         <Branding />
+      </div>
       </div>
     </div>
   );

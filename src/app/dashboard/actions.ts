@@ -273,13 +273,30 @@ export async function addLink(
   isProduct: number = 0,
   price: string = '',
   discount: string = '',
-  productImage: string = ''
+  productImage: string = '',
+  scheduledStart: string | null = null,
+  scheduledEnd: string | null = null,
+  productCategory: string = '',
+  isSensitive: number = 0
 ): Promise<Link | null> {
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   const [newLink] = await db
     .insert(links)
-    .values({ profileId, title, url, order, isProduct, price, discount, productImage })
+    .values({ 
+      profileId, 
+      title, 
+      url, 
+      order, 
+      isProduct, 
+      price, 
+      discount, 
+      productImage,
+      scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
+      scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
+      productCategory,
+      isSensitive
+    })
     .returning();
 
   return newLink || null;
@@ -295,13 +312,28 @@ export async function updateLink(
   isProduct: number = 0,
   price: string = '',
   discount: string = '',
-  productImage: string = ''
+  productImage: string = '',
+  scheduledStart: string | null = null,
+  scheduledEnd: string | null = null,
+  productCategory: string = '',
+  isSensitive: number = 0
 ) {
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db
     .update(links)
-    .set({ title, url, isProduct, price, discount, productImage })
+    .set({ 
+      title, 
+      url, 
+      isProduct, 
+      price, 
+      discount, 
+      productImage,
+      scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
+      scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
+      productCategory,
+      isSensitive
+    })
     .where(and(eq(links.id, id), eq(links.profileId, profileId)));
 }
 
@@ -402,4 +434,75 @@ export async function ascendProfilePrestige(
 
   revalidatePath('/dashboard', 'page');
   return { success: true, newPrestige: nextPrestige };
+}
+
+// Update announcement settings
+export async function updateAnnouncementSettings(
+  profileId: number,
+  userId: number,
+  text: string,
+  link: string,
+  active: number,
+  color: string
+) {
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  await db
+    .update(profiles)
+    .set({
+      announcementText: text.trim(),
+      announcementLink: link.trim(),
+      announcementActive: active,
+      announcementColor: color,
+    })
+    .where(eq(profiles.id, profileId));
+  revalidatePath('/dashboard', 'page');
+}
+
+// Update guestbook settings
+export async function updateGuestbookSettings(
+  profileId: number,
+  userId: number,
+  style: 'tanabata' | 'classic',
+  heading: string
+) {
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  await db
+    .update(profiles)
+    .set({
+      guestbookStyle: style,
+      guestbookHeading: heading.trim() || 'Guestbook',
+    })
+    .where(eq(profiles.id, profileId));
+  revalidatePath('/dashboard', 'page');
+}
+
+// Delete a guestbook wish (moderation)
+export async function deleteGuestbookWish(wishId: number, profileId: number, userId: number) {
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  await db
+    .delete(wishes)
+    .where(and(eq(wishes.id, wishId), eq(wishes.profileId, profileId)));
+  revalidatePath('/dashboard', 'page');
+}
+
+// Update dynamic themes settings
+export async function updateDynamicThemeSettings(
+  profileId: number,
+  userId: number,
+  enableDynamicTheme: number,
+  birthday: string
+) {
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  await db
+    .update(profiles)
+    .set({
+      enableDynamicTheme,
+      birthday: birthday.trim(),
+    })
+    .where(eq(profiles.id, profileId));
+  revalidatePath('/dashboard', 'page');
 }

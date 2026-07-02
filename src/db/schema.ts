@@ -36,8 +36,8 @@ export const profiles = pgTable(
     themeTextColor: varchar('theme_text_color', { length: 30 }).default('#1a1a2e').notNull(),
     themeBgImage: text('theme_bg_image').default(''),
     themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(),
-    themeBackdrop: varchar('theme_backdrop', { length: 30 }).default('glass-light'),
-    themeRotateInterval: varchar('theme_rotate_interval', { length: 20 }).default('none'),
+    themeBackdrop: varchar('theme_backdrop', { length: 30 }).default('glass-light').notNull(),
+    themeRotateInterval: varchar('theme_rotate_interval', { length: 20 }).default('none').notNull(),
     lastThemeRotatedAt: timestamp('last_theme_rotated_at', { withTimezone: true }),
     likes: integer('likes').default(0).notNull(), // Reactions count
     showWishes: integer('show_wishes').default(1).notNull(), // 1 = enabled, 0 = disabled
@@ -47,6 +47,20 @@ export const profiles = pgTable(
     lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
     xp: integer('xp').default(0).notNull(),
     prestige: integer('prestige').default(0).notNull(),
+    guestbookStyle: varchar('guestbook_style', { length: 30 }).default('tanabata').notNull(),
+    guestbookHeading: varchar('guestbook_heading', { length: 100 }).default('Guestbook').notNull(),
+    reactionLike: integer('reaction_like').default(0).notNull(),
+    reactionLove: integer('reaction_love').default(0).notNull(),
+    reactionHaha: integer('reaction_haha').default(0).notNull(),
+    reactionWow: integer('reaction_wow').default(0).notNull(),
+    reactionSad: integer('reaction_sad').default(0).notNull(),
+    reactionFire: integer('reaction_fire').default(0).notNull(),
+    announcementText: text('announcement_text').default(''),
+    announcementLink: text('announcement_link').default(''),
+    announcementActive: integer('announcement_active').default(0).notNull(),
+    announcementColor: varchar('announcement_color', { length: 30 }).default('#FF6B6B').notNull(),
+    birthday: varchar('birthday', { length: 10 }).default('').notNull(),
+    enableDynamicTheme: integer('enable_dynamic_theme').default(0).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   }
 );
@@ -65,6 +79,10 @@ export const links = pgTable('links', {
   price: varchar('price', { length: 30 }).default(''),
   discount: varchar('discount', { length: 30 }).default(''),
   productImage: text('product_image').default(''),
+  scheduledStart: timestamp('scheduled_start', { withTimezone: true }),
+  scheduledEnd: timestamp('scheduled_end', { withTimezone: true }),
+  productCategory: varchar('product_category', { length: 100 }).default('').notNull(),
+  isSensitive: integer('is_sensitive').default(0).notNull(),
 });
 
 export const wishes = pgTable('wishes', {
@@ -216,6 +234,10 @@ export const clickLogs = pgTable('click_logs', {
   visitorIp: varchar('visitor_ip', { length: 128 }).notNull(),
   targetId: integer('target_id').notNull(), // linkId for clicks, profileId for views
   targetType: varchar('target_type', { length: 20 }).notNull(), // 'click' | 'view'
+  referrer: varchar('referrer', { length: 255 }).default('direct').notNull(),
+  device: varchar('device', { length: 50 }).default('desktop').notNull(),
+  browser: varchar('browser', { length: 50 }).default('unknown').notNull(),
+  country: varchar('country', { length: 50 }).default('unknown').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 

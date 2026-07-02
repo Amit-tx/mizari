@@ -19,7 +19,11 @@ import {
   createProfile,
   updateWishTreeToggle,
   changeUserEmail,
-  ascendProfilePrestige
+  ascendProfilePrestige,
+  updateAnnouncementSettings,
+  updateGuestbookSettings,
+  deleteGuestbookWish,
+  updateDynamicThemeSettings
 } from './actions';
 import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
 import { getLevelInfo, LEVEL_MAP } from '@/utils/xp';
@@ -68,11 +72,21 @@ interface DashboardClientProps {
     showWishes: number;
     xp: number;
     prestige: number;
+    guestbookStyle: 'tanabata' | 'classic';
+    guestbookHeading: string;
+    announcementText: string;
+    announcementLink: string;
+    announcementActive: number;
+    announcementColor: string;
+    birthday: string;
+    enableDynamicTheme: number;
   };
   userEmail: string;
   initialLinks: Link[];
   totalClicks: number;
   purchasedThemeIds: string[];
+  profileWishes?: { id: number; sender: string; text: string; color: string; createdAt: string }[];
+  profileClickLogs?: { id: number; visitorIp: string; targetId: number; targetType: string; referrer: string; device: string; browser: string; country: string; createdAt: string }[];
 }
 
 export function DashboardClient({ 
@@ -82,7 +96,9 @@ export function DashboardClient({
   userEmail,
   initialLinks,
   totalClicks,
-  purchasedThemeIds
+  purchasedThemeIds,
+  profileWishes = [],
+  profileClickLogs = []
 }: DashboardClientProps) {
   const router = useRouter();
 
@@ -108,6 +124,7 @@ export function DashboardClient({
   const [themeBackdrop, setThemeBackdrop] = useState<string>(activeProfile.themeBackdrop || 'glass-light');
   const [themeRotateInterval, setThemeRotateInterval] = useState<string>(activeProfile.themeRotateInterval || 'none');
   const [themeSearchQuery, setThemeSearchQuery] = useState('');
+  const [activeThemeTab, setActiveThemeTab] = useState<string>('japan');
   
   const [linksList, setLinksList] = useState(initialLinks);
   
@@ -118,6 +135,33 @@ export function DashboardClient({
   const [price, setPrice] = useState('');
   const [discount, setDiscount] = useState('');
   const [productImage, setProductImage] = useState('');
+  const [scheduledStart, setScheduledStart] = useState('');
+  const [scheduledEnd, setScheduledEnd] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+  const [isSensitive, setIsSensitive] = useState(0);
+
+  // Pagination for themes
+  const [visibleThemesCount, setVisibleThemesCount] = useState(20);
+
+  // Reset pagination when tab or search changes
+  useEffect(() => {
+    setVisibleThemesCount(20);
+  }, [activeThemeTab, themeSearchQuery]);
+
+  // Announcement Banner States
+  const [announcementText, setAnnouncementText] = useState(activeProfile.announcementText || '');
+  const [announcementLink, setAnnouncementLink] = useState(activeProfile.announcementLink || '');
+  const [announcementActive, setAnnouncementActive] = useState(activeProfile.announcementActive === 1);
+  const [announcementColor, setAnnouncementColor] = useState(activeProfile.announcementColor || '#FF6B6B');
+
+  // Guestbook Style & Heading States
+  const [guestbookStyle, setGuestbookStyle] = useState<'tanabata' | 'classic'>(activeProfile.guestbookStyle || 'tanabata');
+  const [guestbookHeading, setGuestbookHeading] = useState(activeProfile.guestbookHeading || 'Guestbook');
+  const [wishesList, setWishesList] = useState(profileWishes);
+
+  // Dynamic Themes States
+  const [enableDynamicTheme, setEnableDynamicTheme] = useState(activeProfile.enableDynamicTheme === 1);
+  const [birthday, setBirthday] = useState(activeProfile.birthday || '');
   
   // New Profile States
   const [newProfileName, setNewProfileName] = useState('');
@@ -130,7 +174,6 @@ export function DashboardClient({
   const [uploadingProd, setUploadingProd] = useState(false);
   const [message, setMessage] = useState('');
   const [showMobilePreview, setShowMobilePreview] = useState(false);
-  const [activeThemeTab, setActiveThemeTab] = useState<string>('japan');
 
   // Marketplace States
   const [creatorStats, setCreatorStats] = useState<{
@@ -489,7 +532,11 @@ export function DashboardClient({
       isProduct, 
       price, 
       discount, 
-      productImage
+      productImage,
+      scheduledStart || null,
+      scheduledEnd || null,
+      productCategory,
+      isSensitive
     );
     if (link) {
       setLinksList([...linksList, link]);
@@ -499,6 +546,10 @@ export function DashboardClient({
       setDiscount('');
       setProductImage('');
       setIsProduct(0);
+      setScheduledStart('');
+      setScheduledEnd('');
+      setProductCategory('');
+      setIsSensitive(0);
       showMessage('Product/Link added!');
     }
     setSaving(false);
@@ -511,10 +562,30 @@ export function DashboardClient({
     isProd: number,
     prc: string,
     disc: string,
-    img: string
+    img: string,
+    schStart: string | null = null,
+    schEnd: string | null = null,
+    category: string = '',
+    sensitive: number = 0
   ) => {
-    await updateLink(id, activeProfile.id, userId, title, url, isProd, prc, disc, img);
-    setLinksList(linksList.map((l) => (l.id === id ? { ...l, title, url, isProduct: isProd, price: prc, discount: disc, productImage: img } : l)));
+    await updateLink(id, activeProfile.id, userId, title, url, isProd, prc, disc, img, schStart, schEnd, category, sensitive);
+    setLinksList(linksList.map((l) => (
+      l.id === id 
+        ? { 
+            ...l, 
+            title, 
+            url, 
+            isProduct: isProd, 
+            price: prc, 
+            discount: disc, 
+            productImage: img,
+            scheduledStart: schStart ? new Date(schStart) : null,
+            scheduledEnd: schEnd ? new Date(schEnd) : null,
+            productCategory: category,
+            isSensitive: sensitive
+          } 
+        : l
+    )));
     showMessage('Link updated!');
   };
 
@@ -540,6 +611,74 @@ export function DashboardClient({
     [newList[idx], newList[idx + 1]] = [newList[idx + 1], newList[idx]];
     setLinksList(newList);
     await reorderLinks(newList.map((l) => l.id), activeProfile.id, userId);
+  };
+
+  const handleSaveAnnouncement = async () => {
+    setSaving(true);
+    try {
+      await updateAnnouncementSettings(
+        activeProfile.id,
+        userId,
+        announcementText,
+        announcementLink,
+        announcementActive ? 1 : 0,
+        announcementColor
+      );
+      showMessage('Announcement settings saved!');
+    } catch(e) {
+      console.error(e);
+      alert('Failed to save announcement settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveGuestbook = async () => {
+    setSaving(true);
+    try {
+      await updateGuestbookSettings(
+        activeProfile.id,
+        userId,
+        guestbookStyle,
+        guestbookHeading
+      );
+      showMessage('Guestbook preferences saved!');
+    } catch(e) {
+      console.error(e);
+      alert('Failed to save guestbook preferences');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteWish = async (wishId: number) => {
+    if (!confirm('Are you sure you want to delete this guestbook entry?')) return;
+    try {
+      await deleteGuestbookWish(wishId, activeProfile.id, userId);
+      setWishesList(wishesList.filter(w => w.id !== wishId));
+      showMessage('Guestbook entry deleted!');
+    } catch(e) {
+      console.error(e);
+      alert('Failed to delete guestbook entry');
+    }
+  };
+
+  const handleSaveDynamicTheme = async () => {
+    setSaving(true);
+    try {
+      await updateDynamicThemeSettings(
+        activeProfile.id,
+        userId,
+        enableDynamicTheme ? 1 : 0,
+        birthday
+      );
+      showMessage('Dynamic theme settings saved!');
+    } catch(e) {
+      console.error(e);
+      alert('Failed to save dynamic theme settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // --- HTML5 Drag & Drop handlers ---
@@ -891,63 +1030,75 @@ export function DashboardClient({
             </div>
 
             {/* Themes Grid */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1">
-              {STORE_THEMES.filter((t) => {
-                if (themeSearchQuery.trim() !== '') {
-                  const q = themeSearchQuery.toLowerCase();
-                  return (
-                    t.name.toLowerCase().includes(q) ||
-                    t.description.toLowerCase().includes(q) ||
-                    t.categories.some(cat => cat.toLowerCase().includes(q)) ||
-                    t.tags.some(tag => tag.toLowerCase().includes(q))
-                  );
+            <div 
+              className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1"
+              onScroll={(e) => {
+                const target = e.currentTarget;
+                if (target.scrollHeight - target.scrollTop <= target.clientHeight + 20) {
+                  setVisibleThemesCount((prev) => prev + 10);
                 }
-                if (activeThemeTab === 'japan') {
-                  return japanThemes.some((jt) => jt.slug === t.id) || t.id === 'sakura' || t.id === 'momiji' || t.id === 'zen' || t.id === 'ame' || t.id === 'mizukaze' || t.id === 'aozora';
-                } else if (activeThemeTab === 'anime') {
-                  return animeThemes.some((at) => at.slug === t.id) || t.id === 'tsukiyo' || t.id === 'frieren' || t.id === 'demon_slayer';
-                } else {
-                  return t.categories?.some(c => c.toLowerCase() === activeThemeTab);
-                }
-              }).map((theme) => {
-                const isFree = theme.price === 0;
-                const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
+              }}
+            >
+              {(() => {
+                const filteredThemes = STORE_THEMES.filter((t) => {
+                  if (themeSearchQuery.trim() !== '') {
+                    const q = themeSearchQuery.toLowerCase();
+                    return (
+                      t.name.toLowerCase().includes(q) ||
+                      t.description.toLowerCase().includes(q) ||
+                      t.categories.some(cat => cat.toLowerCase().includes(q)) ||
+                      t.tags.some(tag => tag.toLowerCase().includes(q))
+                    );
+                  }
+                  if (activeThemeTab === 'japan') {
+                    return japanThemes.some((jt) => jt.slug === t.id) || t.id === 'sakura' || t.id === 'momiji' || t.id === 'zen' || t.id === 'ame' || t.id === 'mizukaze' || t.id === 'aozora';
+                  } else if (activeThemeTab === 'anime') {
+                    return animeThemes.some((at) => at.slug === t.id) || t.id === 'tsukiyo' || t.id === 'frieren' || t.id === 'demon_slayer';
+                  } else {
+                    return t.categories?.some(c => c.toLowerCase() === activeThemeTab);
+                  }
+                });
 
-                return (
-                  <div key={theme.id} className="relative group min-w-0 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isUnlocked) {
-                          handleSelectPreset(theme.id);
-                        } else {
-                          if (confirm(`"${theme.name}" is a premium theme. Would you like to go to the Theme Store to unlock it?`)) {
-                            router.push('/store');
+                return filteredThemes.slice(0, visibleThemesCount).map((theme) => {
+                  const isFree = theme.price === 0;
+                  const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
+
+                  return (
+                    <div key={theme.id} className="relative group min-w-0 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isUnlocked) {
+                            handleSelectPreset(theme.id);
+                          } else {
+                            if (confirm(`"${theme.name}" is a premium theme. Would you like to go to the Theme Store to unlock it?`)) {
+                              router.push('/store');
+                            }
                           }
-                        }
-                      }}
-                      className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 min-w-0 overflow-hidden ${
-                        themeType === theme.id
-                          ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
-                          : 'border-gray-250 hover:border-gray-350 dark:border-slate-800 dark:hover:border-slate-700'
-                      } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
-                      style={{ background: theme.bgGradient || theme.bgColor }}
-                    >
-                      <span className="text-xl mb-0.5 relative flex items-center justify-center">
-                        {theme.emoji}
-                        {!isUnlocked && (
-                          <span className="absolute -top-1 -right-1 text-[10px] bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
-                            🔒
-                          </span>
-                        )}
-                      </span>
-                      <span className="text-[10px] font-extrabold text-center block truncate w-full px-1" style={{ color: theme.textColor }}>
-                        {theme.name}
-                      </span>
-                    </button>
-                  </div>
-                );
-              })}
+                        }}
+                        className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 min-w-0 overflow-hidden ${
+                          themeType === theme.id
+                            ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
+                            : 'border-gray-250 hover:border-gray-350 dark:border-slate-800 dark:hover:border-slate-700'
+                        } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
+                        style={{ background: theme.bgGradient || theme.bgColor }}
+                      >
+                        <span className="text-xl mb-0.5 relative flex items-center justify-center">
+                          {theme.emoji}
+                          {!isUnlocked && (
+                            <span className="absolute -top-1 -right-1 text-[10px] bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
+                              🔒
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[10px] font-extrabold text-center block truncate w-full px-1" style={{ color: theme.textColor }}>
+                          {theme.name}
+                        </span>
+                      </button>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 
@@ -1289,7 +1440,7 @@ export function DashboardClient({
                       type="text"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      className="mt-1.5 w-full rounded-xl border border-gray-255 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. $49"
                     />
                   </div>
@@ -1299,10 +1450,22 @@ export function DashboardClient({
                       type="text"
                       value={discount}
                       onChange={(e) => setDiscount(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      className="mt-1.5 w-full rounded-xl border border-gray-255 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. 20% OFF"
                     />
                   </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Product Category (e.g. Clothing, Tech)</label>
+                    <input
+                      type="text"
+                      value={productCategory}
+                      onChange={(e) => setProductCategory(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-gray-255 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="e.g. Tech Accessories"
+                    />
+                  </div>
+
                   <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
                     <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Product Image</label>
                     <div className="flex flex-col gap-2">
@@ -1337,6 +1500,40 @@ export function DashboardClient({
                   </div>
                 </div>
               )}
+
+              {/* Scheduling and sensitive settings */}
+              <div className="grid gap-4 sm:grid-cols-3 p-4 rounded-2xl bg-gray-55 dark:bg-slate-850/40 border border-gray-200 dark:border-slate-800">
+                <div>
+                  <label className="block text-xs font-bold text-gray-650 dark:text-slate-400">18+ Sensitive Warning</label>
+                  <select
+                    value={isSensitive}
+                    onChange={(e) => setIsSensitive(Number(e.target.value))}
+                    className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white font-bold"
+                  >
+                    <option value={0}>Auto-Detect (OnlyFans, Fansly, etc.)</option>
+                    <option value={1}>Always Show 18+ Warning</option>
+                    <option value={-1}>Bypass Warning</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-655 dark:text-slate-400">Start Schedule (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledStart}
+                    onChange={(e) => setScheduledStart(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-655 dark:text-slate-400">End Schedule (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledEnd}
+                    onChange={(e) => setScheduledEnd(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+              </div>
 
               <button
                 onClick={handleAddLink}
@@ -1383,6 +1580,317 @@ export function DashboardClient({
                   />
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Visitor Analytics Panel */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Visitor Analytics 📊</h2>
+            <p className="text-xs text-gray-500 mb-6">Real-time traffic analysis, referrer sources, and visitor devices.</p>
+
+            {/* Total count summaries */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Profile Views</span>
+                <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
+                  {profileClickLogs.filter(l => l.targetType === 'view').length}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-55 dark:bg-slate-800/40">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Link Clicks</span>
+                <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
+                  {profileClickLogs.filter(l => l.targetType === 'click').length}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-55 dark:bg-slate-800/40">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Click-Through</span>
+                <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
+                  {(() => {
+                    const views = profileClickLogs.filter(l => l.targetType === 'view').length;
+                    const clicks = profileClickLogs.filter(l => l.targetType === 'click').length;
+                    if (views === 0) return '0.0%';
+                    return `${((clicks / views) * 100).toFixed(1)}%`;
+                  })()}
+                </p>
+              </div>
+            </div>
+
+            {/* Traffic Sources Breakdown */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xs font-extrabold text-gray-700 dark:text-slate-350 uppercase mb-3">Top Traffic Sources</h3>
+                <div className="space-y-2">
+                  {(() => {
+                    const referrers: Record<string, number> = {};
+                    profileClickLogs.forEach(l => {
+                      const ref = l.referrer || 'direct';
+                      referrers[ref] = (referrers[ref] || 0) + 1;
+                    });
+                    const sorted = Object.entries(referrers).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                    const total = profileClickLogs.length || 1;
+
+                    return sorted.map(([ref, count]) => {
+                      const pct = Math.round((count / total) * 100);
+                      return (
+                        <div key={ref} className="space-y-1">
+                          <div className="flex justify-between text-xs font-bold text-gray-650 dark:text-slate-400">
+                            <span>{ref === 'direct' ? 'Direct / Search' : ref}</span>
+                            <span>{count} ({pct}%)</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-slate-800">
+                            <div className="h-full rounded-full bg-[#FF6B6B]" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              {/* Device and Browser Breakdown */}
+              <div className="grid gap-6 sm:grid-cols-2 pt-4 border-t border-gray-100 dark:border-slate-800">
+                <div>
+                  <h4 className="text-xs font-extrabold text-gray-750 dark:text-slate-350 uppercase mb-3">Devices</h4>
+                  <div className="space-y-2">
+                    {(() => {
+                      const devices: Record<string, number> = {};
+                      profileClickLogs.forEach(l => {
+                        const dev = l.device || 'desktop';
+                        devices[dev] = (devices[dev] || 0) + 1;
+                      });
+                      const total = profileClickLogs.length || 1;
+                      return Object.entries(devices).map(([dev, count]) => {
+                        const pct = Math.round((count / total) * 100);
+                        return (
+                          <div key={dev} className="flex items-center justify-between text-xs font-bold text-gray-650 dark:text-slate-400">
+                            <span className="capitalize">{dev}</span>
+                            <span>{pct}%</span>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-extrabold text-gray-750 dark:text-slate-355 uppercase mb-3">Browsers</h4>
+                  <div className="space-y-2">
+                    {(() => {
+                      const browsers: Record<string, number> = {};
+                      profileClickLogs.forEach(l => {
+                        const br = l.browser || 'chrome';
+                        browsers[br] = (browsers[br] || 0) + 1;
+                      });
+                      const total = profileClickLogs.length || 1;
+                      return Object.entries(browsers).sort((a,b)=>b[1]-a[1]).slice(0, 3).map(([br, count]) => {
+                        const pct = Math.round((count / total) * 100);
+                        return (
+                          <div key={br} className="flex items-center justify-between text-xs font-bold text-gray-650 dark:text-slate-400">
+                            <span className="capitalize">{br}</span>
+                            <span>{pct}%</span>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Announcement Banner Settings */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Announcement Banner 📢</h2>
+            <p className="text-xs text-gray-500 mb-6">Display a prominent flashing announcement bar at the top of your page.</p>
+
+            <div className="space-y-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={announcementActive}
+                  onChange={(e) => setAnnouncementActive(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                />
+                <span>Active Banner</span>
+              </label>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-1">Banner Text</label>
+                <input
+                  type="text"
+                  value={announcementText}
+                  onChange={(e) => setAnnouncementText(e.target.value)}
+                  placeholder="e.g. 🔥 New Merchandise available now! Get 20% OFF!"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-1">Banner Link (Optional Redirect URL)</label>
+                <input
+                  type="url"
+                  value={announcementLink}
+                  onChange={(e) => setAnnouncementLink(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-655 dark:text-slate-400 mb-2">Banner Color</label>
+                <div className="flex gap-2">
+                  {['#FF6B6B', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setAnnouncementColor(color)}
+                      className={`h-7 w-7 rounded-full transition-transform ${
+                        announcementColor === color ? 'scale-110 ring-2 ring-[#FF6B6B]/40' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={announcementColor}
+                    onChange={(e) => setAnnouncementColor(e.target.value)}
+                    className="h-7 w-7 cursor-pointer border-0 bg-transparent rounded-full"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveAnnouncement}
+                disabled={saving}
+                className="w-full rounded-xl bg-black dark:bg-white dark:text-black text-white py-2.5 text-xs font-bold transition-all hover:opacity-90"
+              >
+                {saving ? 'Saving...' : 'Save Banner Settings 📢'}
+              </button>
+            </div>
+          </div>
+
+          {/* Guestbook preferences & moderation */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Guestbook & Moderation 🎋</h2>
+            <p className="text-xs text-gray-500 mb-6">Change your guestbook layout and moderate entries left by visitors.</p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-2">Guestbook Style</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-600 dark:text-slate-400">
+                    <input
+                      type="radio"
+                      name="guestbookStyle"
+                      value="tanabata"
+                      checked={guestbookStyle === 'tanabata'}
+                      onChange={() => setGuestbookStyle('tanabata')}
+                      className="text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                    />
+                    <span>🎋 Tanabata Tree</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-600 dark:text-slate-400">
+                    <input
+                      type="radio"
+                      name="guestbookStyle"
+                      value="classic"
+                      checked={guestbookStyle === 'classic'}
+                      onChange={() => setGuestbookStyle('classic')}
+                      className="text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                    />
+                    <span>📓 Classic Guestbook</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-1">Guestbook Heading</label>
+                <input
+                  type="text"
+                  value={guestbookHeading}
+                  onChange={(e) => setGuestbookHeading(e.target.value)}
+                  placeholder="e.g. Leave a wish"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveGuestbook}
+                disabled={saving}
+                className="w-full rounded-xl bg-black dark:bg-white dark:text-black text-white py-2.5 text-xs font-bold transition-all hover:opacity-90"
+              >
+                {saving ? 'Saving...' : 'Save Guestbook Settings 🎋'}
+              </button>
+
+              {/* Moderate Entries list */}
+              <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
+                <h3 className="text-xs font-extrabold text-gray-700 dark:text-slate-350 uppercase mb-3">Moderate Wishes ({wishesList.length})</h3>
+                {wishesList.length === 0 ? (
+                  <p className="text-[11px] text-gray-400 dark:text-slate-500 py-2">No wishes written yet.</p>
+                ) : (
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                    {wishesList.map((wish) => (
+                      <div key={wish.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-850">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">{wish.text}</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">By {wish.sender || 'Anonymous'} &bull; {new Date(wish.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteWish(wish.id)}
+                          className="rounded-lg p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                          title="Delete post"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Light/Dark Theme & Birthdays */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Dynamic & Birthday Themes 🎂</h2>
+            <p className="text-xs text-gray-500 mb-6">Automatically change profile style by time of day (Day/Night) or your Birthday.</p>
+
+            <div className="space-y-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={enableDynamicTheme}
+                  onChange={(e) => setEnableDynamicTheme(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                />
+                <span>Enable Dynamic Light/Dark Theme (Morning/Night cycle)</span>
+              </label>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-655 dark:text-slate-400 mb-1">Your Birthday (MM-DD format)</label>
+                <input
+                  type="text"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  placeholder="e.g. 07-28"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white font-mono"
+                />
+                <p className="text-[10px] text-gray-500 dark:text-slate-450 mt-1">
+                  On this day, visitors will see a festive birthday confetti shower and a customized celebration card!
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveDynamicTheme}
+                disabled={saving}
+                className="w-full rounded-xl bg-black dark:bg-white dark:text-black text-white py-2.5 text-xs font-bold transition-all hover:opacity-90"
+              >
+                {saving ? 'Saving...' : 'Save Dynamic & Birthday Settings 🎂'}
+              </button>
             </div>
           </div>
 

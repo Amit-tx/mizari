@@ -37,12 +37,12 @@ export async function publishTheme(
     creatorId: userId,
     name: themeName,
     price,
-    bgColor: profile.themeBgColor ?? '#fafafa',
-    textColor: profile.themeTextColor ?? '#1a1a2e',
+    bgColor: profile.themeBgColor,
+    textColor: profile.themeTextColor,
     bgImage: profile.themeBgImage || '',
-    buttonStyle: profile.themeButtonStyle ?? 'rounded-xl',
-    backdropStyle: profile.themeBackdrop ?? 'glass-light',
-    status: 'active',
+    buttonStyle: profile.themeButtonStyle,
+    backdropStyle: profile.themeBackdrop,
+    status: 'active', // Direct active!
   });
 
   revalidatePath('/dashboard', 'page');
