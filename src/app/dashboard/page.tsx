@@ -21,6 +21,16 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 2): Promise<T> {
   throw lastErr;
 }
 
+function safeIsoString(val: any): string {
+  if (!val) return new Date().toISOString();
+  if (val instanceof Date) return val.toISOString();
+  try {
+    return new Date(val).toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
 interface DashboardPageProps {
   searchParams: Promise<{ profileId?: string }>;
 }
@@ -208,8 +218,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       initialLinks={profileLinks as any}
       totalClicks={totalClicks}
       purchasedThemeIds={purchasedThemeIds}
-      profileWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color, createdAt: w.createdAt.toISOString() }))}
-      profileClickLogs={profileClickLogs.map((l) => ({ id: l.id, visitorIp: l.visitorIp, targetId: l.targetId, targetType: l.targetType, referrer: l.referrer, device: l.device, browser: l.browser, country: l.country, createdAt: l.createdAt.toISOString() }))}
+      profileWishes={profileWishes.map((w) => ({ id: w.id, sender: w.sender, text: w.text, color: w.color, createdAt: safeIsoString(w.createdAt) }))}
+      profileClickLogs={profileClickLogs.map((l) => ({ id: l.id, visitorIp: l.visitorIp, targetId: l.targetId, targetType: l.targetType, referrer: l.referrer, device: l.device, browser: l.browser, country: l.country, createdAt: safeIsoString(l.createdAt) }))}
     />
   );
 }
