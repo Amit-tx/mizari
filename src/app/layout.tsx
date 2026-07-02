@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { SessionProvider } from '@/components/SessionProvider';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ChunkErrorHandler } from '@/components/ChunkErrorHandler';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -47,6 +48,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-[var(--bg-primary)] font-sans text-[var(--text-primary)] antialiased">
+        <ChunkErrorHandler />
         <SessionProvider>
           <ThemeProvider>
             <Header />
