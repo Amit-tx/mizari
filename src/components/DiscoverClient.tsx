@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { getLevelInfo } from '@/utils/xp';
+import { getLevelInfo } from '@/utils/xp-client';
 
 interface Profile {
   id: number;

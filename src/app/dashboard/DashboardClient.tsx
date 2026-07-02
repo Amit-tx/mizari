@@ -26,7 +26,7 @@ import {
   updateDynamicThemeSettings
 } from './actions';
 import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
-import { getLevelInfo, LEVEL_MAP } from '@/utils/xp';
+import { getLevelInfo, LEVEL_MAP } from '@/utils/xp-client';
 import type { Link } from '@/db/schema';
 
 const THEME_TABS = [
