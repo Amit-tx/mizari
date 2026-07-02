@@ -1,12 +1,13 @@
 'use server';
 
 import { db } from '@/db';
-import { users, profiles, links, wishes, type Link } from '@/db/schema';
+import { users, profiles, links, wishes, themePurchases, type Link } from '@/db/schema';
 import { eq, and, asc, sum } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { del } from '@vercel/blob';
 import crypto from 'crypto';
 import { revalidatePath } from 'next/cache';
+import { getStoreThemeById } from '@/components/StoreThemes';
 
 async function verifyOwnership(userId: number): Promise<boolean> {
   const session = await auth();
@@ -92,9 +93,6 @@ export async function updateThemeSettings(
   themeBackdrop: string
 ) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
-
-  const { themePurchases } = require('@/db/schema');
-  const { getStoreThemeById } = require('@/components/StoreThemes');
 
   // Check if theme is free or purchased
   const storeTheme = getStoreThemeById(themeType);

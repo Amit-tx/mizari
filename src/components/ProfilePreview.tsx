@@ -4,6 +4,7 @@ import { getStoreThemeById } from './StoreThemes';
 import AnimeReactiveSky from './AnimeReactiveSky';
 import LivingSky from './LivingSky';
 import { japanThemes, animeThemes } from '@/data/themes';
+import { getPhase } from '@/data/timePhases';
 
 interface ProfilePreviewProps {
   username: string;
@@ -60,7 +61,6 @@ export function ProfilePreview({
 
   // Apply reactive color science overrides dynamically in memory
   if (rawJapanTheme && preset) {
-    const { getPhase } = require('@/data/timePhases');
     const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
     const currentPhase = getPhase(currentHour);
     preset.textColor = currentPhase.color;

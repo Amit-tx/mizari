@@ -21,6 +21,7 @@ import { getStoreThemeById } from '@/components/StoreThemes';
 import AnimeReactiveSky from '@/components/AnimeReactiveSky';
 import LivingSky from '@/components/LivingSky';
 import type { Metadata } from 'next';
+import { getLevelInfo } from '@/utils/xp';
 
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
@@ -349,7 +350,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 
                 {/* Level / Prestige Achievement Badge */}
                 {(() => {
-                  const { getLevelInfo } = require('@/utils/xp');
                   const levelInfo = getLevelInfo(profile.xp || 0, profile.prestige || 0);
                   if (levelInfo.isPrestige) {
                     return (

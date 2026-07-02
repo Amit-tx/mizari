@@ -5,6 +5,7 @@ import { themePurchases, profiles } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { BUNDLE_DEALS } from '@/components/StoreThemes';
+import { grantXp } from '@/utils/xp';
 
 export async function POST(req: NextRequest) {
   try {
@@ -156,7 +157,6 @@ export async function POST(req: NextRequest) {
           .limit(1);
 
         if (creatorProfile) {
-          const { grantXp } = require('@/utils/xp');
           await grantXp(creatorProfile.id, 500);
         }
       } else {
