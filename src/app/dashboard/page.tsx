@@ -5,6 +5,22 @@ import { users, profiles, links } from '@/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { DashboardClient } from './DashboardClient';
 
+// Neon's serverless HTTP driver occasionally has a transient network blip
+// (cold start, brief timeout). One retry avoids turning that into a full
+// page crash for the user.
+async function withRetry<T>(fn: () => Promise<T>, attempts = 2): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[dashboard] query attempt ${i + 1} failed, retrying:`, err);
+    }
+  }
+  throw lastErr;
+}
+
 interface DashboardPageProps {
   searchParams: Promise<{ profileId?: string }>;
 }
@@ -15,20 +31,24 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const userId = parseInt(session.user.id);
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const [user] = await withRetry(() =>
+    db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+  );
 
   if (!user) redirect('/login');
 
   // Fetch all profiles of this user
-  const userProfiles = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.userId, userId))
-    .orderBy(asc(profiles.id));
+  const userProfiles = await withRetry(() =>
+    db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .orderBy(asc(profiles.id))
+  );
 
   // Determine active profile from query param, fallback to first profile
   const parsedParams = await searchParams;
@@ -89,11 +109,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   // Fetch links for active profile
-  const profileLinks = await db
-    .select()
-    .from(links)
-    .where(eq(links.profileId, activeProfile.id))
-    .orderBy(asc(links.order));
+  const profileLinks = await withRetry(() =>
+    db
+      .select()
+      .from(links)
+      .where(eq(links.profileId, activeProfile.id))
+      .orderBy(asc(links.order))
+  );
 
   // Calculate stats for all user profiles (for creator level calculation)
   let totalClicks = 0;
