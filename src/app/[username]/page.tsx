@@ -2,6 +2,7 @@ import { db } from '@/db';
 import { profiles, links, wishes } from '@/db/schema';
 import { eq, asc, desc } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
+import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
@@ -21,7 +22,6 @@ import { getStoreThemeById } from '@/components/StoreThemes';
 import AnimeReactiveSky from '@/components/AnimeReactiveSky';
 import LivingSky from '@/components/LivingSky';
 import type { Metadata } from 'next';
-import { getLevelInfo } from '@/utils/xp';
 
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
@@ -152,21 +152,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     }
   }
 
-  // Sky-worthy core Store themes also get a local-time-driven sunrise →
-  // day → sunset → night cycle with twinkling stars, reusing the same
-  // engine built for the anime theme catalog. Kept to night/sky-flavored
-  // themes only, so minimal/business themes keep their flat color identity.
-  const SKY_WORTHY_CORE_THEMES = new Set([
-    'galaxy_dream', 'cyber_tokyo', 'tsukiyo', 'hoshi', 'sky_kingdom',
-    'ocean_sunset', 'railway_sunset', 'shrine_festival', 'frieren',
-    'demon_slayer', 'moonlight_forest', 'ame',
-  ]);
-  let corePhases: import('@/data/themes').AnimeReactivePhase[] | null = null;
-  if (!rawJapanTheme && !rawAnimeTheme && preset && SKY_WORTHY_CORE_THEMES.has(profile.themeType)) {
-    const { buildAutoPhases } = await import('@/data/themes');
-    corePhases = buildAutoPhases(preset.name || 'Mizari', preset.btnBg || preset.textColor || '#7C3AED');
-  }
-
   // Determine background style
   let bgStyle: React.CSSProperties = {};
   if (rawJapanTheme || rawAnimeTheme) {
@@ -276,11 +261,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           <AnimeReactiveSky phases={rawAnimeTheme.reactivePhases} showContent={false} />
         </div>
       )}
-      {corePhases && (
-        <div className="absolute inset-0 z-0">
-          <AnimeReactiveSky phases={corePhases} showContent={false} />
-        </div>
-      )}
 
       {/* Seasonal Background Animations */}
       {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
@@ -350,6 +330,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 
                 {/* Level / Prestige Achievement Badge */}
                 {(() => {
+                  const { getLevelInfo } = require('@/utils/xp');
                   const levelInfo = getLevelInfo(profile.xp || 0, profile.prestige || 0);
                   if (levelInfo.isPrestige) {
                     return (
@@ -460,6 +441,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             textColor={preset?.textColor || profile.themeTextColor}
           />
         )}
+
+        {/* Ad slot */}
+        <div className="mt-4">
+          <AdSlot slot="profile-footer" size="responsive" />
+        </div>
 
         {/* Branding */}
         <Branding />

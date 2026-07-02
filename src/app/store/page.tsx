@@ -16,30 +16,23 @@ export default async function StorePage() {
 
   const { themePurchases, marketplaceThemes } = await import('@/db/schema');
   
-  // Wrapped in try/catch: these tables may not exist yet if migration 0002
-  // hasn't been run. Store still renders with built-in themes only.
   let purchasedThemeIds: string[] = [];
-  let mThemes: any[] = [];
-
-  try {
-    if (userId) {
-      const purchases = await db
-        .select()
-        .from(themePurchases)
-        .where(eq(themePurchases.userId, userId));
-
-      purchasedThemeIds = purchases
-        .filter((p) => p.status === 'paid')
-        .map((p) => p.themeId);
-    }
-
-    mThemes = await db
+  if (userId) {
+    const purchases = await db
       .select()
-      .from(marketplaceThemes)
-      .where(eq(marketplaceThemes.status, 'active'));
-  } catch (err) {
-    console.warn('[StorePage] marketplace tables missing — run migration 0002:', err);
+      .from(themePurchases)
+      .where(eq(themePurchases.userId, userId));
+
+    purchasedThemeIds = purchases
+      .filter((p) => p.status === 'paid')
+      .map((p) => p.themeId);
   }
+
+  // Fetch active marketplace community themes
+  const mThemes = await db
+    .select()
+    .from(marketplaceThemes)
+    .where(eq(marketplaceThemes.status, 'active'));
 
   const communityThemes = mThemes.map((ct) => {
     // Determine tags/categories based on styling config

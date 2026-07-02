@@ -1,27 +1,16 @@
 'use server';
 
 import { db } from '@/db';
-import { users, profiles, links, wishes, themePurchases, type Link } from '@/db/schema';
+import { users, profiles, links, wishes, type Link } from '@/db/schema';
 import { eq, and, asc, sum } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { del } from '@vercel/blob';
 import crypto from 'crypto';
 import { revalidatePath } from 'next/cache';
-import { getStoreThemeById } from '@/components/StoreThemes';
 
 async function verifyOwnership(userId: number): Promise<boolean> {
   const session = await auth();
   return session?.user?.id === String(userId);
-}
-
-async function verifyProfileOwnership(profileId: number, userId: number): Promise<boolean> {
-  if (!(await verifyOwnership(userId))) return false;
-  const [profile] = await db
-    .select({ id: profiles.id })
-    .from(profiles)
-    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)))
-    .limit(1);
-  return !!profile;
 }
 
 // Create a new profile under a user account (Personal / Business / Gaming)
@@ -93,6 +82,9 @@ export async function updateThemeSettings(
   themeBackdrop: string
 ) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
+
+  const { themePurchases } = require('@/db/schema');
+  const { getStoreThemeById } = require('@/components/StoreThemes');
 
   // Check if theme is free or purchased
   const storeTheme = getStoreThemeById(themeType);
@@ -267,7 +259,7 @@ export async function addLink(
   discount: string = '',
   productImage: string = ''
 ): Promise<Link | null> {
-  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   const [newLink] = await db
     .insert(links)
@@ -289,7 +281,7 @@ export async function updateLink(
   discount: string = '',
   productImage: string = ''
 ) {
-  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
     .update(links)
@@ -299,7 +291,7 @@ export async function updateLink(
 
 // Delete link
 export async function deleteLink(id: number, profileId: number, userId: number) {
-  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
     .delete(links)
@@ -308,7 +300,7 @@ export async function deleteLink(id: number, profileId: number, userId: number) 
 
 // Reorder links in a profile
 export async function reorderLinks(linkIds: number[], profileId: number, userId: number) {
-  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+  if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   const updates = linkIds.map((id, index) =>
     db

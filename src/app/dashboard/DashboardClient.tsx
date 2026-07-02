@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
+import { AdSlot } from '@/components/AdSlot';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';

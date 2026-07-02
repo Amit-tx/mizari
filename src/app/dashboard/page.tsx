@@ -5,22 +5,6 @@ import { users, profiles, links } from '@/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { DashboardClient } from './DashboardClient';
 
-// Neon's serverless HTTP driver occasionally has a transient network blip
-// (cold start, brief timeout). One retry avoids turning that into a full
-// page crash for the user.
-async function withRetry<T>(fn: () => Promise<T>, attempts = 2): Promise<T> {
-  let lastErr: unknown;
-  for (let i = 0; i < attempts; i++) {
-    try {
-      return await fn();
-    } catch (err) {
-      lastErr = err;
-      console.warn(`[dashboard] query attempt ${i + 1} failed, retrying:`, err);
-    }
-  }
-  throw lastErr;
-}
-
 interface DashboardPageProps {
   searchParams: Promise<{ profileId?: string }>;
 }
@@ -31,24 +15,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const userId = parseInt(session.user.id);
 
-  const [user] = await withRetry(() =>
-    db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1)
-  );
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
   if (!user) redirect('/login');
 
   // Fetch all profiles of this user
-  const userProfiles = await withRetry(() =>
-    db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.userId, userId))
-      .orderBy(asc(profiles.id))
-  );
+  const userProfiles = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, userId))
+    .orderBy(asc(profiles.id));
 
   // Determine active profile from query param, fallback to first profile
   const parsedParams = await searchParams;
@@ -80,42 +60,34 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   // Daily Active check-in (10 XP per calendar day)
-  // Wrapped in try/catch: if xp/daily_active_days columns don't yet exist in
-  // the DB (migration pending), the dashboard still loads — just without XP update.
   if (activeProfile) {
-    try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const lastActiveStr = activeProfile.lastActiveAt
-        ? new Date(activeProfile.lastActiveAt).toISOString().split('T')[0]
-        : null;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastActiveStr = activeProfile.lastActiveAt
+      ? new Date(activeProfile.lastActiveAt).toISOString().split('T')[0]
+      : null;
 
-      if (todayStr !== lastActiveStr) {
-        await db
-          .update(profiles)
-          .set({
-            dailyActiveDays: (activeProfile.dailyActiveDays || 0) + 1,
-            lastActiveAt: new Date(),
-            xp: (activeProfile.xp || 0) + 10,
-          })
-          .where(eq(profiles.id, activeProfile.id));
+    if (todayStr !== lastActiveStr) {
+      await db
+        .update(profiles)
+        .set({
+          dailyActiveDays: (activeProfile.dailyActiveDays || 0) + 1,
+          lastActiveAt: new Date(),
+          xp: (activeProfile.xp || 0) + 10,
+        })
+        .where(eq(profiles.id, activeProfile.id));
 
-        activeProfile.dailyActiveDays = (activeProfile.dailyActiveDays || 0) + 1;
-        activeProfile.lastActiveAt = new Date();
-        activeProfile.xp = (activeProfile.xp || 0) + 10;
-      }
-    } catch (xpErr) {
-      console.warn('[dashboard] XP daily check-in failed (migration pending?):', xpErr);
+      activeProfile.dailyActiveDays = (activeProfile.dailyActiveDays || 0) + 1;
+      activeProfile.lastActiveAt = new Date();
+      activeProfile.xp = (activeProfile.xp || 0) + 10;
     }
   }
 
   // Fetch links for active profile
-  const profileLinks = await withRetry(() =>
-    db
-      .select()
-      .from(links)
-      .where(eq(links.profileId, activeProfile.id))
-      .orderBy(asc(links.order))
-  );
+  const profileLinks = await db
+    .select()
+    .from(links)
+    .where(eq(links.profileId, activeProfile.id))
+    .orderBy(asc(links.order));
 
   // Calculate stats for all user profiles (for creator level calculation)
   let totalClicks = 0;
@@ -132,17 +104,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     totalClicks += profLinks.reduce((sum, link) => sum + link.clicks, 0);
   }
 
-  let purchasedThemeIds: string[] = [];
-  try {
-    const { themePurchases } = await import('@/db/schema');
-    const purchases = await db
-      .select()
-      .from(themePurchases)
-      .where(and(eq(themePurchases.userId, userId), eq(themePurchases.status, 'paid')));
-    purchasedThemeIds = purchases.map((p) => p.themeId);
-  } catch (purchaseErr) {
-    console.warn('[dashboard] theme_purchases query failed (migration pending?):', purchaseErr);
-  }
+  const { themePurchases } = await import('@/db/schema');
+  const purchases = await db
+    .select()
+    .from(themePurchases)
+    .where(and(eq(themePurchases.userId, userId), eq(themePurchases.status, 'paid')));
+  const purchasedThemeIds = purchases.map((p) => p.themeId);
 
   return (
     <DashboardClient

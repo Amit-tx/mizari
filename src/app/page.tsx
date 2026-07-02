@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AdSlot } from '@/components/AdSlot';
 
 const features = [
   {
@@ -76,6 +77,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Ad slot below hero */}
+      <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <AdSlot slot="hero-banner" size="responsive" />
+      </div>
 
       {/* Features */}
       <section id="features" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">

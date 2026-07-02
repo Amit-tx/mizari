@@ -196,7 +196,7 @@ function readableText(bgHex: string): string {
   return luminance > 0.55 ? "#1A1410" : "#F5EFE8";
 }
 
-export function buildAutoPhases(seriesName: string, accent: string): AnimeReactivePhase[] {
+function buildAutoPhases(seriesName: string, accent: string): AnimeReactivePhase[] {
   const black = "#0A0A0F";
   const white = "#FAF6EE";
   const nightSky = `linear-gradient(180deg, ${mix(black, accent, 0.18)} 0%, ${mix(black, accent, 0.32)} 55%, ${black} 100%)`;

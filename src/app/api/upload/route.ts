@@ -4,7 +4,6 @@ import { auth } from '@/auth';
 import { db } from '@/db';
 import { profiles } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { checkImageSafety } from '@/lib/moderateImage';
 
 export async function POST(request: Request) {
   try {
@@ -26,32 +25,6 @@ export async function POST(request: Request) {
     const profileId = parseInt(profileIdStr);
     if (type !== 'avatar' && type !== 'background') {
       return NextResponse.json({ error: 'Invalid upload type' }, { status: 400 });
-    }
-
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Only JPG, PNG, WEBP, and GIF images are allowed.' },
-        { status: 400 }
-      );
-    }
-
-    const MAX_SIZE_BYTES = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: 'File is too large. Maximum size is 5MB.' },
-        { status: 400 }
-      );
-    }
-
-    // Screen for nudity/explicit content before it's stored or shown
-    // publicly on a profile or theme background.
-    const moderation = await checkImageSafety(file);
-    if (!moderation.safe) {
-      return NextResponse.json(
-        { error: 'This image was flagged as inappropriate and cannot be uploaded.' },
-        { status: 400 }
-      );
     }
 
     // Fetch existing profile to verify ownership and get old image URL

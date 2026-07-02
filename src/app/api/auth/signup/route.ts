@@ -1,9 +1,8 @@
 import { db } from '@/db';
 import { users, profiles } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
-import { grantXp } from '@/utils/xp';
 
 const RESERVED_USERNAMES = [
   'mizari',
@@ -111,6 +110,9 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (referrerProfile) {
+        const { sql } = require('drizzle-orm');
+        const { grantXp } = require('@/utils/xp');
+        
         await db
           .update(profiles)
           .set({ referrals: sql`COALESCE(${profiles.referrals}, 0) + 1` })
