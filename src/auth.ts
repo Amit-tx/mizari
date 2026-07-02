@@ -74,21 +74,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        const email = user.email!.toLowerCase();
+
+        // Find or create user by email in our users table
+        let [dbUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+
+        if (!dbUser) {
+          const [newUser] = await db
+            .insert(users)
+            .values({
+              email,
+            })
+            .returning();
+          dbUser = newUser;
+        }
+
+        const dbUserId = dbUser.id;
+        token.id = String(dbUserId);
+
         // Fetch username from profiles table
         let [profile] = await db
           .select()
           .from(profiles)
-          .where(eq(profiles.userId, parseInt(user.id!)))
+          .where(eq(profiles.userId, dbUserId))
           .limit(1);
           
         if (!profile) {
           // Create fallback profile if missing
+          const emailPrefix = email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
+          const fallbackUsername = `${emailPrefix}_${Math.floor(Math.random() * 100)}`;
+          
           const [newProfile] = await db
             .insert(profiles)
             .values({
-              userId: parseInt(user.id!),
-              username: `user_${user.id}`,
+              userId: dbUserId,
+              username: fallbackUsername.toLowerCase(),
               profileType: 'personal',
               themeType: 'light',
             })

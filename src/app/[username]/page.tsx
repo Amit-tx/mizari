@@ -1,8 +1,7 @@
 import { db } from '@/db';
 import { profiles, links, wishes } from '@/db/schema';
-import { eq, asc, desc } from 'drizzle-orm';
+import { eq, asc, desc, and } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import { AdSlot } from '@/components/AdSlot';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
@@ -22,6 +21,7 @@ import { getStoreThemeById } from '@/components/StoreThemes';
 import AnimeReactiveSky from '@/components/AnimeReactiveSky';
 import LivingSky from '@/components/LivingSky';
 import type { Metadata } from 'next';
+import { getLevelInfo } from '@/utils/xp';
 
 interface ProfilePageProps {
   params: Promise<{ username: string }>;
@@ -88,6 +88,71 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const standardLinks = allLinks.filter((l) => !l.isProduct || l.isProduct === 0);
   const productLinks = allLinks.filter((l) => l.isProduct === 1);
 
+  // Check if theme rotation is enabled and has elapsed
+  if (profile.themeRotateInterval && profile.themeRotateInterval !== 'none') {
+    const now = new Date();
+    const lastRotated = profile.lastThemeRotatedAt ? new Date(profile.lastThemeRotatedAt) : new Date(profile.createdAt);
+    const diffMs = now.getTime() - lastRotated.getTime();
+    const diffHrs = diffMs / (1000 * 60 * 60);
+
+    let intervalHrs = 1;
+    if (profile.themeRotateInterval === '1h') intervalHrs = 1;
+    else if (profile.themeRotateInterval === '3h') intervalHrs = 3;
+    else if (profile.themeRotateInterval === '6h') intervalHrs = 6;
+    else if (profile.themeRotateInterval === '12h') intervalHrs = 12;
+    else if (profile.themeRotateInterval === '24h') intervalHrs = 24;
+
+    if (diffHrs >= intervalHrs) {
+      // Fetch user to check if amit_trillion
+      const { users, themePurchases } = await import('@/db/schema');
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, profile.userId))
+        .limit(1);
+      const isOwner = user?.email.toLowerCase() === 'amit_trillion@proton.me';
+
+      // Fetch theme purchases
+      const purchases = await db
+        .select()
+        .from(themePurchases)
+        .where(
+          and(
+            eq(themePurchases.userId, profile.userId),
+            eq(themePurchases.status, 'paid')
+          )
+        );
+      const purchasedIds = purchases.map((p) => p.themeId);
+
+      // Load STORE_THEMES
+      const { STORE_THEMES } = await import('@/components/StoreThemes');
+      const eligibleThemes = STORE_THEMES.filter(
+        (t) => t.price === 0 || isOwner || purchasedIds.includes(t.id)
+      );
+
+      if (eligibleThemes.length > 0) {
+        let nextTheme = eligibleThemes[Math.floor(Math.random() * eligibleThemes.length)];
+        if (eligibleThemes.length > 1 && nextTheme.id === profile.themeType) {
+          const others = eligibleThemes.filter((t) => t.id !== profile.themeType);
+          nextTheme = others[Math.floor(Math.random() * others.length)];
+        }
+
+        // Update database
+        await db
+          .update(profiles)
+          .set({
+            themeType: nextTheme.id,
+            lastThemeRotatedAt: now,
+          })
+          .where(eq(profiles.id, profile.id));
+
+        // Update local memory reference
+        profile.themeType = nextTheme.id;
+        profile.lastThemeRotatedAt = now;
+      }
+    }
+  }
+
   // Check if marketplace community theme
   const isMarketTheme = profile.themeType.startsWith('market_');
   if (isMarketTheme) {
@@ -150,6 +215,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       preset.btnText = activePhase.text;
       preset.btnBorder = `${activePhase.accent}55`;
     }
+  }
+
+  // Sky-worthy core Store themes also get a local-time-driven sunrise →
+  // day → sunset → night cycle with twinkling stars, reusing the same
+  // engine built for the anime theme catalog. Kept to night/sky-flavored
+  // themes only, so minimal/business themes keep their flat color identity.
+  const SKY_WORTHY_CORE_THEMES = new Set([
+    'galaxy_dream', 'cyber_tokyo', 'tsukiyo', 'hoshi', 'sky_kingdom',
+    'ocean_sunset', 'railway_sunset', 'shrine_festival', 'frieren',
+    'demon_slayer', 'moonlight_forest', 'ame',
+  ]);
+  let corePhases: import('@/data/themes').AnimeReactivePhase[] | null = null;
+  if (!rawJapanTheme && !rawAnimeTheme && preset && SKY_WORTHY_CORE_THEMES.has(profile.themeType)) {
+    const { buildAutoPhases } = await import('@/data/themes');
+    corePhases = buildAutoPhases(preset.name || 'Mizari', preset.btnBg || preset.textColor || '#7C3AED');
   }
 
   // Determine background style
@@ -261,6 +341,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           <AnimeReactiveSky phases={rawAnimeTheme.reactivePhases} showContent={false} />
         </div>
       )}
+      {corePhases && (
+        <div className="absolute inset-0 z-0">
+          <AnimeReactiveSky phases={corePhases} showContent={false} />
+        </div>
+      )}
 
       {/* Seasonal Background Animations */}
       {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
@@ -330,7 +415,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 
                 {/* Level / Prestige Achievement Badge */}
                 {(() => {
-                  const { getLevelInfo } = require('@/utils/xp');
                   const levelInfo = getLevelInfo(profile.xp || 0, profile.prestige || 0);
                   if (levelInfo.isPrestige) {
                     return (
@@ -441,11 +525,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             textColor={preset?.textColor || profile.themeTextColor}
           />
         )}
-
-        {/* Ad slot */}
-        <div className="mt-4">
-          <AdSlot slot="profile-footer" size="responsive" />
-        </div>
 
         {/* Branding */}
         <Branding />

@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LinkCard } from '@/components/LinkCard';
 import { ProfilePreview } from '@/components/ProfilePreview';
-import { AdSlot } from '@/components/AdSlot';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';
@@ -25,6 +24,21 @@ import {
 import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
 import { getLevelInfo, LEVEL_MAP } from '@/utils/xp';
 import type { Link } from '@/db/schema';
+
+const THEME_TABS = [
+  { id: 'japan', label: 'Japan presets', emoji: '🇯🇵' },
+  { id: 'anime', label: 'Anime themes', emoji: '🍥' },
+  { id: 'romantic', label: 'Romantic', emoji: '❤️' },
+  { id: 'fire', label: 'Fire & Energy', emoji: '🔥' },
+  { id: 'space', label: 'Space', emoji: '🌌' },
+  { id: 'glass', label: 'Glass & Modern', emoji: '💎' },
+  { id: 'developer', label: 'Developer', emoji: '💻' },
+  { id: 'gradient', label: 'Gradients', emoji: '🌈' },
+  { id: 'seasonal', label: 'Seasonal', emoji: '🎄' },
+  { id: 'country', label: 'Countries', emoji: '🌍' },
+  { id: 'vehicle', label: 'Vehicles', emoji: '🚗' },
+  { id: 'gaming', label: 'Gaming', emoji: '🎮' },
+];
 
 interface ProfileInfo {
   id: number;
@@ -47,6 +61,7 @@ interface DashboardClientProps {
     themeBgImage: string;
     themeButtonStyle: 'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow';
     themeBackdrop: string;
+    themeRotateInterval: string;
     likes: number;
     showWishes: number;
     xp: number;
@@ -89,6 +104,7 @@ export function DashboardClient({
   const [themeBgImage, setThemeBgImage] = useState(activeProfile.themeBgImage);
   const [themeButtonStyle, setThemeButtonStyle] = useState<'rounded-xl' | 'rounded-full' | 'rounded-none' | 'shadow'>(activeProfile.themeButtonStyle);
   const [themeBackdrop, setThemeBackdrop] = useState<string>(activeProfile.themeBackdrop || 'glass-light');
+  const [themeRotateInterval, setThemeRotateInterval] = useState<string>(activeProfile.themeRotateInterval || 'none');
   
   const [linksList, setLinksList] = useState(initialLinks);
   
@@ -111,7 +127,7 @@ export function DashboardClient({
   const [uploadingProd, setUploadingProd] = useState(false);
   const [message, setMessage] = useState('');
   const [showMobilePreview, setShowMobilePreview] = useState(false);
-  const [activeThemeTab, setActiveThemeTab] = useState<'japan' | 'anime'>('japan');
+  const [activeThemeTab, setActiveThemeTab] = useState<string>('japan');
 
   // Marketplace States
   const [creatorStats, setCreatorStats] = useState<{
@@ -338,10 +354,11 @@ export function DashboardClient({
   };
 
   // Save Theme Settings
-  const handleSaveTheme = async (newThemeType?: string) => {
+  const handleSaveTheme = async (newThemeType?: string, newRotateInterval?: string) => {
     setSaving(true);
     const targetType = newThemeType || themeType;
-    await updateThemeSettings(activeProfile.id, userId, targetType, themeBgColor, themeTextColor, themeButtonStyle, themeBackdrop);
+    const targetInterval = newRotateInterval !== undefined ? newRotateInterval : themeRotateInterval;
+    await updateThemeSettings(activeProfile.id, userId, targetType, themeBgColor, themeTextColor, themeButtonStyle, themeBackdrop, targetInterval);
     setSaving(false);
     showMessage('Theme settings saved!');
   };
@@ -777,30 +794,52 @@ export function DashboardClient({
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Preset & Seasonal Themes</h2>
             <p className="text-xs text-gray-500 mb-6">Select a predefined theme to instant-apply beautiful animated day/night styles.</p>
 
+            {/* Theme Auto-Rotator Timer */}
+            <div className="mb-6 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                  ⏱️ Theme Auto-Rotator
+                </h3>
+                <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                  Automatically change your profile theme periodically using available themes.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={themeRotateInterval}
+                  onChange={async (e) => {
+                    const val = e.target.value;
+                    setThemeRotateInterval(val);
+                    await handleSaveTheme(themeType, val);
+                  }}
+                  className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold focus:outline-none dark:border-slate-700 dark:bg-slate-800 text-gray-700 dark:text-slate-200 cursor-pointer"
+                >
+                  <option value="none">Off (No rotation)</option>
+                  <option value="1h">Every 1 hour</option>
+                  <option value="3h">Every 3 hours</option>
+                  <option value="6h">Every 6 hours</option>
+                  <option value="12h">Every 12 hours</option>
+                  <option value="24h">Every 24 hours</option>
+                </select>
+              </div>
+            </div>
+
             {/* Theme Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3">
-              <button
-                type="button"
-                onClick={() => setActiveThemeTab('japan')}
-                className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
-                  activeThemeTab === 'japan'
-                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                    : 'border-gray-200 dark:border-slate-800 text-gray-650 dark:text-slate-400 bg-white dark:bg-slate-850'
-                }`}
-              >
-                🇯🇵 Japan presets
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveThemeTab('anime')}
-                className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
-                  activeThemeTab === 'anime'
-                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                    : 'border-gray-200 dark:border-slate-800 text-gray-650 dark:text-slate-400 bg-white dark:bg-slate-850'
-                }`}
-              >
-                🍥 Anime themes
-              </button>
+            <div className="flex gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar scrollbar-thin">
+              {THEME_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveThemeTab(tab.id)}
+                  className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all whitespace-nowrap ${
+                    activeThemeTab === tab.id
+                      ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                      : 'border-gray-200 dark:border-slate-800 text-gray-650 dark:text-slate-400 bg-white dark:bg-slate-850'
+                  }`}
+                >
+                  {tab.emoji} {tab.label}
+                </button>
+              ))}
             </div>
 
             {/* Themes Grid */}
@@ -808,8 +847,10 @@ export function DashboardClient({
               {STORE_THEMES.filter((t) => {
                 if (activeThemeTab === 'japan') {
                   return japanThemes.some((jt) => jt.slug === t.id) || t.id === 'sakura' || t.id === 'momiji' || t.id === 'zen' || t.id === 'ame' || t.id === 'mizukaze' || t.id === 'aozora';
-                } else {
+                } else if (activeThemeTab === 'anime') {
                   return animeThemes.some((at) => at.slug === t.id) || t.id === 'tsukiyo' || t.id === 'frieren' || t.id === 'demon_slayer';
+                } else {
+                  return t.categories?.some(c => c.toLowerCase() === activeThemeTab);
                 }
               }).map((theme) => {
                 const isFree = theme.price === 0;

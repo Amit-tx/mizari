@@ -10,10 +10,17 @@ import Credentials from 'next-auth/providers/credentials';
  */
 export const authConfig = {
   providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
+    // Only register Google if credentials are actually configured.
+    // Passing undefined clientId/clientSecret makes NextAuth throw on
+    // init, which breaks EVERY provider (including Credentials/email-password).
+    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+      ? [
+          Google({
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+          }),
+        ]
+      : []),
     // Credentials provider is declared here but the authorize function
     // is overridden in auth.ts where we can use Node.js APIs
     Credentials({

@@ -1,10 +1,11 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { SessionProvider } from '@/components/SessionProvider';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ChunkErrorHandler } from '@/components/ChunkErrorHandler';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -16,6 +17,12 @@ export const metadata: Metadata = {
   description:
     'One link for everything. Share your content, social profiles, and more with a single, beautiful Mizari page.',
   keywords: ['link in bio', 'linktree alternative', 'social links', 'mizari'],
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -41,6 +48,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-[var(--bg-primary)] font-sans text-[var(--text-primary)] antialiased">
+        <ChunkErrorHandler />
         <SessionProvider>
           <ThemeProvider>
             <Header />

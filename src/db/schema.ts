@@ -37,6 +37,8 @@ export const profiles = pgTable(
     themeBgImage: text('theme_bg_image').default(''),
     themeButtonStyle: varchar('theme_button_style', { length: 30 }).default('rounded-xl').notNull(),
     themeBackdrop: varchar('theme_backdrop', { length: 30 }).default('glass-light').notNull(),
+    themeRotateInterval: varchar('theme_rotate_interval', { length: 20 }).default('none').notNull(),
+    lastThemeRotatedAt: timestamp('last_theme_rotated_at', { withTimezone: true }),
     likes: integer('likes').default(0).notNull(), // Reactions count
     showWishes: integer('show_wishes').default(1).notNull(), // 1 = enabled, 0 = disabled
     views: integer('views').default(0).notNull(),
