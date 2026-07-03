@@ -141,11 +141,11 @@ export function DashboardClient({
   const [isSensitive, setIsSensitive] = useState(0);
 
   // Pagination for themes
-  const [visibleThemesCount, setVisibleThemesCount] = useState(20);
+  const [visibleThemesCount, setVisibleThemesCount] = useState(24);
 
   // Reset pagination when tab or search changes
   useEffect(() => {
-    setVisibleThemesCount(20);
+    setVisibleThemesCount(24);
   }, [activeThemeTab, themeSearchQuery]);
 
   // Announcement Banner States
@@ -1031,11 +1031,11 @@ export function DashboardClient({
 
             {/* Themes Grid */}
             <div 
-              className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-80 overflow-y-auto pr-1"
+              className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-[460px] md:max-h-[500px] overflow-y-auto pr-1"
               onScroll={(e) => {
                 const target = e.currentTarget;
                 if (target.scrollHeight - target.scrollTop <= target.clientHeight + 20) {
-                  setVisibleThemesCount((prev) => prev + 10);
+                  setVisibleThemesCount((prev) => prev + 12);
                 }
               }}
             >
@@ -1061,7 +1061,7 @@ export function DashboardClient({
 
                 return filteredThemes.slice(0, visibleThemesCount).map((theme) => {
                   const isFree = theme.price === 0;
-                  const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
+                  const isUnlocked = true; // All themes are unlocked
 
                   return (
                     <div key={theme.id} className="relative group min-w-0 overflow-hidden">
@@ -1100,6 +1100,43 @@ export function DashboardClient({
                 });
               })()}
             </div>
+
+            {/* Load More Button */}
+            {(() => {
+              const filteredThemes = STORE_THEMES.filter((t) => {
+                if (themeSearchQuery.trim() !== '') {
+                  const q = themeSearchQuery.toLowerCase();
+                  return (
+                    t.name.toLowerCase().includes(q) ||
+                    t.description.toLowerCase().includes(q) ||
+                    t.categories.some(cat => cat.toLowerCase().includes(q)) ||
+                    t.tags.some(tag => tag.toLowerCase().includes(q))
+                  );
+                }
+                if (activeThemeTab === 'japan') {
+                  return japanThemes.some((jt) => jt.slug === t.id) || t.id === 'sakura' || t.id === 'momiji' || t.id === 'zen' || t.id === 'ame' || t.id === 'mizukaze' || t.id === 'aozora';
+                } else if (activeThemeTab === 'anime') {
+                  return animeThemes.some((at) => at.slug === t.id) || t.id === 'tsukiyo' || t.id === 'frieren' || t.id === 'demon_slayer';
+                } else {
+                  return t.categories?.some(c => c.toLowerCase() === activeThemeTab);
+                }
+              });
+
+              if (filteredThemes.length > visibleThemesCount) {
+                return (
+                  <div className="flex justify-center mt-4 pt-2 border-t border-gray-50 dark:border-slate-800/40">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleThemesCount((prev) => prev + 12)}
+                      className="px-6 py-2.5 text-xs font-extrabold text-white bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] rounded-full hover:shadow-md transition-all cursor-pointer shadow-lg shadow-[#FF6B6B]/15"
+                    >
+                      Load More Themes 🔄
+                    </button>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* Custom Theme & Background Builder */}

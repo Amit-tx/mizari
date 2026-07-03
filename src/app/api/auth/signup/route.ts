@@ -43,8 +43,9 @@ export async function POST(request: NextRequest) {
     const usernameLower = username.toLowerCase().trim();
     const emailLower = email.toLowerCase().trim();
 
-    // Brand protection: Only amit_trillion@proton.me can register @mizari username
-    if (usernameLower === 'mizari' && emailLower !== 'amit_trillion@proton.me') {
+    // Brand protection: Only amit_trillion@proton.me can register @mizari, @mizu, or @amit username
+    const brandProtectionUsernames = ['mizari', 'mizu', 'amit'];
+    if (brandProtectionUsernames.includes(usernameLower) && emailLower !== 'amit_trillion@proton.me') {
       return NextResponse.json(
         { error: 'This username is reserved for brand protection.' },
         { status: 403 }

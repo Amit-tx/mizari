@@ -233,7 +233,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
         {filter === 'bundles' && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12">
             {BUNDLE_DEALS.map((bundle) => {
-              const allPurchased = bundle.themes.every((tid) => purchased.includes(tid));
+              const allPurchased = true;
               return (
                 <div key={bundle.id} className="relative flex flex-col rounded-3xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center gap-3 mb-4">
@@ -272,7 +272,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
             {filteredThemes.map((theme) => {
               const isFree = theme.tier === 'free';
               const themeKey = isNaN(Number(theme.id)) ? theme.id : `market_${theme.id}`;
-              const isOwned = isFree || purchased.includes(themeKey);
+              const isOwned = true;
 
               return (
                 <div key={theme.id} className="relative flex flex-col rounded-3xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-md transition-all">

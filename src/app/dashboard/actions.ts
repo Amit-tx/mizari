@@ -95,32 +95,7 @@ export async function updateThemeSettings(
 ) {
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
-  // Check if theme is free or purchased
-  const storeTheme = getStoreThemeById(themeType);
-  if (storeTheme && storeTheme.tier !== 'free') {
-    // Check if user is the admin/owner (gets all unlocked)
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const isOwner = user?.email.toLowerCase() === 'amit_trillion@proton.me';
-
-    if (!isOwner) {
-      // Check if purchased
-      const [purchase] = await db
-        .select()
-        .from(themePurchases)
-        .where(
-          and(
-            eq(themePurchases.userId, userId),
-            eq(themePurchases.themeId, themeType),
-            eq(themePurchases.status, 'paid')
-          )
-        )
-        .limit(1);
-
-      if (!purchase) {
-        throw new Error('This is a premium theme. Please purchase it in the Theme Store.');
-      }
-    }
-  }
+  // Theme purchase check bypassed: all themes are unlocked for everyone
 
   const updateData: any = {
     themeType,
