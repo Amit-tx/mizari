@@ -52,11 +52,9 @@ export function LinksAndProducts({
       .filter(cat => cat && cat.trim() !== '')
   ))];
 
-  // Check if a link is sensitive
+  // Check if a link is sensitive (Always disabled/false)
   const checkIsSensitive = (link: Link) => {
-    if (link.isSensitive === 1) return true;
-    if (link.isSensitive === -1) return false;
-    return isAdultPlatform(link.url);
+    return false;
   };
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, link: Link) => {

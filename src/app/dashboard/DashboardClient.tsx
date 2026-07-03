@@ -1522,7 +1522,10 @@ export function DashboardClient({
               {isProduct === 1 && (
                 <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-800 animate-fade-in">
                   <div>
-                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Price (e.g. $29.99)</label>
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Price (e.g. $29.99)
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Show the price of the product next to the link. Perfect for selling courses, merchandise, or ebooks!">ℹ️</span>
+                    </label>
                     <input
                       type="text"
                       value={price}
@@ -1532,7 +1535,10 @@ export function DashboardClient({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Discount Tag (e.g. 10% OFF)</label>
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Discount Tag (e.g. 10% OFF)
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Show a discount percentage or tag (e.g., '20% OFF', 'SALE') to attract more clicks and sales.">ℹ️</span>
+                    </label>
                     <input
                       type="text"
                       value={discount}
@@ -1543,7 +1549,10 @@ export function DashboardClient({
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Product Category (e.g. Clothing, Tech)</label>
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Product Category (e.g. Clothing, Tech)
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Group your product under a category label (e.g., 'Ebooks', 'Software') to help visitors filter your products.">ℹ️</span>
+                    </label>
                     <input
                       type="text"
                       value={productCategory}
@@ -1554,7 +1563,10 @@ export function DashboardClient({
                   </div>
 
                   <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
-                    <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">Product Image</label>
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Product Image
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Upload or paste an image URL of your product. This will display a beautiful preview image on the link card.">ℹ️</span>
+                    </label>
                     <div className="flex flex-col gap-2">
                       <input
                         type="url"
@@ -1588,22 +1600,13 @@ export function DashboardClient({
                 </div>
               )}
 
-              {/* Scheduling and sensitive settings */}
-              <div className="grid gap-4 sm:grid-cols-3 p-4 rounded-2xl bg-gray-55 dark:bg-slate-850/40 border border-gray-200 dark:border-slate-800">
+              {/* Scheduling settings */}
+              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-850/40 border border-gray-200 dark:border-slate-800">
                 <div>
-                  <label className="block text-xs font-bold text-gray-650 dark:text-slate-400">18+ Sensitive Warning</label>
-                  <select
-                    value={isSensitive}
-                    onChange={(e) => setIsSensitive(Number(e.target.value))}
-                    className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white font-bold"
-                  >
-                    <option value={0}>Auto-Detect (OnlyFans, Fansly, etc.)</option>
-                    <option value={1}>Always Show 18+ Warning</option>
-                    <option value={-1}>Bypass Warning</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-655 dark:text-slate-400">Start Schedule (Optional)</label>
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                    Start Schedule (Optional)
+                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Set the exact date & time when this link should automatically become visible on your profile page.">ℹ️</span>
+                  </label>
                   <input
                     type="datetime-local"
                     value={scheduledStart}
@@ -1612,7 +1615,10 @@ export function DashboardClient({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-655 dark:text-slate-400">End Schedule (Optional)</label>
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                    End Schedule (Optional)
+                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Set the exact date & time when this link should automatically disappear from your profile page.">ℹ️</span>
+                  </label>
                   <input
                     type="datetime-local"
                     value={scheduledEnd}

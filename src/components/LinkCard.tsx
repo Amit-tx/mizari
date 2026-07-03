@@ -175,26 +175,12 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               />
             </div>
 
-            {/* Scheduling & Warning Settings */}
+            {/* Scheduling Settings */}
             <div className="grid gap-3 grid-cols-2 p-3.5 rounded-xl bg-gray-55 dark:bg-slate-950/20 border border-gray-100 dark:border-slate-805">
-              <div className="col-span-2">
-                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
-                  18+ Sensitive Warning
-                </label>
-                <select
-                  value={isSensitive}
-                  onChange={(e) => setIsSensitive(Number(e.target.value))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-850 dark:text-white font-bold"
-                >
-                  <option value={0}>Auto-Detect (OnlyFans, Fansly, etc.)</option>
-                  <option value={1}>Always Show 18+ Warning</option>
-                  <option value={-1}>Always Bypass Warning</option>
-                </select>
-              </div>
-
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
+                <label className="flex items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
                   Start Schedule (Optional)
+                  <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Set the exact date & time when this link should automatically become visible on your profile page.">ℹ️</span>
                 </label>
                 <input
                   type="datetime-local"
@@ -205,8 +191,9 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               </div>
 
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
+                <label className="flex items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
                   End Schedule (Optional)
+                  <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Set the exact date & time when this link should automatically disappear from your profile page.">ℹ️</span>
                 </label>
                 <input
                   type="datetime-local"
@@ -221,7 +208,10 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-slate-950/40 border border-gray-100 dark:border-slate-800">
                 <div className="grid gap-3 grid-cols-2">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Price (e.g. $49 or ₹999)</label>
+                    <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                      Price (e.g. $49 or ₹999)
+                      <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Show the price of the product next to the link. Perfect for selling courses, merchandise, or ebooks!">ℹ️</span>
+                    </label>
                     <input
                       type="text"
                       value={price}
@@ -231,7 +221,10 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Discount (e.g. 20% OFF)</label>
+                    <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                      Discount (e.g. 20% OFF)
+                      <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Show a discount percentage or tag (e.g., '20% OFF', 'SALE') to attract more clicks and sales.">ℹ️</span>
+                    </label>
                     <input
                       type="text"
                       value={discount}
@@ -243,7 +236,10 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">Product Category (e.g. Fashion, Tech)</label>
+                  <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
+                    Product Category (e.g. Fashion, Tech)
+                    <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Group your product under a category label (e.g., 'Ebooks', 'Software') to help visitors filter your products.">ℹ️</span>
+                  </label>
                   <input
                     type="text"
                     value={productCategory}
@@ -254,7 +250,10 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 </div>
 
                 <div className="space-y-2 pt-1">
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400">Product Image</label>
+                  <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400">
+                    Product Image
+                    <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Upload or paste an image URL of your product. This will display a beautiful preview image on the link card.">ℹ️</span>
+                  </label>
                   <div className="flex flex-col gap-2">
                     <input
                       type="url"
@@ -317,11 +316,6 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 {(link.scheduledStart || link.scheduledEnd) && (
                   <span className="rounded bg-indigo-50 dark:bg-indigo-950/20 text-[8px] font-extrabold px-1.5 py-0.5 text-indigo-600 dark:text-indigo-400">
                     ⏰ Scheduled
-                  </span>
-                )}
-                {checkIsSensitive(link) && (
-                  <span className="rounded bg-red-50 dark:bg-red-950/20 text-[8px] font-extrabold px-1.5 py-0.5 text-red-600 dark:text-red-400">
-                    ⚠️ 18+ warning active
                   </span>
                 )}
               </div>
