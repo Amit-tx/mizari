@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
-import { addReaction } from '@/app/[username]/actions';
+import { changeReaction } from '@/app/[username]/actions';
 
 interface LikeButtonProps {
   profileId: number;
@@ -52,51 +52,66 @@ export function LikeButton({
   });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [reactedTypes, setReactedTypes] = useState<string[]>([]);
+  const [activeReaction, setActiveReaction] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; left: number }[]>([]);
 
   // Load reacted states from localStorage
   useEffect(() => {
     try {
-      const reacted = JSON.parse(localStorage.getItem(`mizari_reacted_${profileId}`) || '[]');
-      setReactedTypes(reacted);
+      const reacted = localStorage.getItem(`mizari_reacted_${profileId}`);
+      setActiveReaction(reacted); // will be string or null
     } catch (e) {
       console.error(e);
     }
   }, [profileId]);
 
   const handleReact = (type: string, emoji: string) => {
-    if (reactedTypes.includes(type)) return; // prevent duplicate clicks for this reaction type
+    if (isPending) return;
 
-    // Save state in localStorage
-    const updated = [...reactedTypes, type];
-    localStorage.setItem(`mizari_reacted_${profileId}`, JSON.stringify(updated));
-    setReactedTypes(updated);
+    const oldReaction = activeReaction;
+    const isTogglingOff = oldReaction === type;
+    const newReaction = isTogglingOff ? null : type;
 
-    // Spawn floating emoji particle
-    const particle = {
-      id: Date.now() + Math.random(),
-      emoji,
-      left: Math.random() * 80 - 40, // random dispersion
-    };
-    setFloatingEmojis((prev) => [...prev, particle]);
-    setTimeout(() => {
-      setFloatingEmojis((prev) => prev.filter((item) => item.id !== particle.id));
-    }, 1200);
+    // 1. Update localStorage
+    if (newReaction) {
+      localStorage.setItem(`mizari_reacted_${profileId}`, newReaction);
+    } else {
+      localStorage.removeItem(`mizari_reacted_${profileId}`);
+    }
+    setActiveReaction(newReaction);
 
-    // Optimistically update count
-    setCounts((prev) => ({
-      ...prev,
-      [type]: prev[type] + 1,
-    }));
+    // 2. Optimistically update UI counts
+    setCounts((prev) => {
+      const next = { ...prev };
+      if (oldReaction && next[oldReaction] !== undefined) {
+        next[oldReaction] = Math.max(0, next[oldReaction] - 1);
+      }
+      if (newReaction && next[newReaction] !== undefined) {
+        next[newReaction] = next[newReaction] + 1;
+      }
+      return next;
+    });
 
-    // Trigger server action
+    // 3. Spawn floating emoji particle if adding a reaction
+    if (newReaction) {
+      const particle = {
+        id: Date.now() + Math.random(),
+        emoji,
+        left: Math.random() * 80 - 40,
+      };
+      setFloatingEmojis((prev) => [...prev, particle]);
+      setTimeout(() => {
+        setFloatingEmojis((prev) => prev.filter((item) => item.id !== particle.id));
+      }, 1200);
+    }
+
+    // 4. Trigger server action
     startTransition(async () => {
       try {
-        await addReaction(profileId, type);
+        await changeReaction(profileId, oldReaction, newReaction);
       } catch (err) {
-        console.error('Failed to react:', err);
+        console.error('Failed to update reaction:', err);
       }
     });
   };
@@ -126,15 +141,15 @@ export function LikeButton({
       {isOpen && (
         <div className="mb-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-slate-900/90 p-2 shadow-2xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95 animate-scale-up mr-2">
           {REACTION_OPTIONS.map((opt) => {
-            const hasReacted = reactedTypes.includes(opt.type);
+            const hasReacted = activeReaction === opt.type;
             return (
               <button
                 key={opt.type}
                 onClick={() => handleReact(opt.type, opt.emoji)}
-                disabled={hasReacted || isPending}
+                disabled={isPending}
                 className={`flex flex-col items-center rounded-full p-2 transition-all active:scale-90 ${
                   hasReacted
-                    ? 'bg-white/10 text-white cursor-default'
+                    ? 'bg-indigo-600/30 border border-indigo-400/50 text-indigo-400 font-black'
                     : 'hover:bg-white/10 text-slate-350 hover:text-white'
                 }`}
                 title={`${opt.label} (${counts[opt.type]})`}
@@ -157,7 +172,7 @@ export function LikeButton({
         }`}
         title="React to this profile"
       >
-        <span className="text-xl">{isOpen ? '✕' : '✨'}</span>
+        <span className="text-xl">{isOpen ? '✕' : (activeReaction ? REACTION_OPTIONS.find(o => o.type === activeReaction)?.emoji : '✨')}</span>
       </button>
 
       {/* Total Reactions Count Badge */}
@@ -180,3 +195,4 @@ export function LikeButton({
     </div>
   );
 }
+

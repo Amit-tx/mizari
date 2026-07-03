@@ -108,7 +108,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const isBirthday = profile.birthday === todayMmDd;
   let activeBirthdayConfetti = false;
 
-  if (profile.enableDynamicTheme === 1) {
+  if (false && profile.enableDynamicTheme === 1) {
     let dynamicTheme = profile.themeType;
     if (isBirthday) {
       activeBirthdayConfetti = true;
@@ -239,8 +239,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   } : undefined;
 
   const { japanThemes, animeThemes } = await import('@/data/themes');
-  const rawJapanTheme = japanThemes.find((jt) => jt.slug === profile.themeType);
-  const rawAnimeTheme = animeThemes.find((at) => at.slug === profile.themeType);
+  const rawJapanTheme = japanThemes.find((jt) => jt.slug.replace(/-/g, '_') === profile.themeType);
+  const rawAnimeTheme = animeThemes.find((at) => at.slug.replace(/-/g, '_') === profile.themeType);
 
   // Apply reactive color science overrides dynamically in memory
   if (rawJapanTheme && preset) {

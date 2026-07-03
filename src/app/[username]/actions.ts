@@ -41,28 +41,56 @@ export async function addWish(profileId: number, sender: string, text: string, c
   revalidatePath('/[username]', 'page');
 }
 
-// Increment specific reaction or general likes on a profile
-export async function addReaction(profileId: number, reactionType: string) {
+// Change specific reaction on a profile (single active reaction model)
+export async function changeReaction(
+  profileId: number,
+  oldReaction: string | null,
+  newReaction: string | null
+) {
   const allowedTypes = ['like', 'love', 'haha', 'wow', 'sad', 'fire'];
-  if (!allowedTypes.includes(reactionType)) throw new Error('Invalid reaction type');
+  if (oldReaction && !allowedTypes.includes(oldReaction)) throw new Error('Invalid old reaction');
+  if (newReaction && !allowedTypes.includes(newReaction)) throw new Error('Invalid new reaction');
 
-  // We map the string reactionType to corresponding columns in profiles schema
-  await db
-    .update(profiles)
-    .set({
-      reactionLike: reactionType === 'like' ? sql`${profiles.reactionLike} + 1` : undefined,
-      reactionLove: reactionType === 'love' ? sql`${profiles.reactionLove} + 1` : undefined,
-      reactionHaha: reactionType === 'haha' ? sql`${profiles.reactionHaha} + 1` : undefined,
-      reactionWow: reactionType === 'wow' ? sql`${profiles.reactionWow} + 1` : undefined,
-      reactionSad: reactionType === 'sad' ? sql`${profiles.reactionSad} + 1` : undefined,
-      reactionFire: reactionType === 'fire' ? sql`${profiles.reactionFire} + 1` : undefined,
-      likes: sql`${profiles.likes} + 1`, // increment total likes for fallback/levels calculation
-    })
-    .where(eq(profiles.id, profileId));
+  const updateData: any = {};
+
+  if (oldReaction) {
+    // Decrement old
+    const col = oldReaction === 'like' ? 'reactionLike' :
+                oldReaction === 'love' ? 'reactionLove' :
+                oldReaction === 'haha' ? 'reactionHaha' :
+                oldReaction === 'wow' ? 'reactionWow' :
+                oldReaction === 'sad' ? 'reactionSad' : 'reactionFire';
+    updateData[col] = sql`GREATEST(0, ${profiles[col]} - 1)`;
+  }
+
+  if (newReaction) {
+    // Increment new
+    const col = newReaction === 'like' ? 'reactionLike' :
+                newReaction === 'love' ? 'reactionLove' :
+                newReaction === 'haha' ? 'reactionHaha' :
+                newReaction === 'wow' ? 'reactionWow' :
+                newReaction === 'sad' ? 'reactionSad' : 'reactionFire';
+    updateData[col] = sql`${profiles[col]} + 1`;
+  }
+
+  // Adjust total likes
+  let likesDiff = 0;
+  if (oldReaction) likesDiff -= 1;
+  if (newReaction) likesDiff += 1;
+  if (likesDiff !== 0) {
+    updateData.likes = sql`GREATEST(0, ${profiles.likes} + ${likesDiff})`;
+  }
+
+  if (Object.keys(updateData).length > 0) {
+    await db
+      .update(profiles)
+      .set(updateData)
+      .where(eq(profiles.id, profileId));
+  }
 
   revalidatePath('/[username]', 'page');
 }
 
 export async function incrementLikes(profileId: number) {
-  await addReaction(profileId, 'love');
+  await changeReaction(profileId, null, 'love');
 }

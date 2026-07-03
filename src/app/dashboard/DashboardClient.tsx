@@ -1081,11 +1081,7 @@ export function DashboardClient({
                   className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold focus:outline-none dark:border-slate-700 dark:bg-slate-800 text-gray-700 dark:text-slate-200 cursor-pointer"
                 >
                   <option value="none">Off (No rotation)</option>
-                  <option value="3h">Every 3 hours</option>
-                  <option value="5h">Every 5 hours</option>
                   <option value="6h">Every 6 hours</option>
-                  <option value="12h">Every 12 hours</option>
-                  <option value="24h">Every 24 hours</option>
                 </select>
               </div>
             </div>
@@ -1946,7 +1942,7 @@ export function DashboardClient({
             </div>
           </div>
 
-          {/* Dynamic Light/Dark Theme & Birthdays */}
+          {/* Dynamic Light/Dark Theme & Birthdays
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Dynamic & Birthday Themes 🎂</h2>
             <p className="text-xs text-gray-500 mb-6">Automatically change profile style by time of day (Day/Night) or your Birthday.</p>
@@ -1986,6 +1982,7 @@ export function DashboardClient({
               </button>
             </div>
           </div>
+          */}
 
           {/* Account Settings: Change Email */}
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
