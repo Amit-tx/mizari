@@ -80,6 +80,13 @@ export function LikeButton({
     const isTogglingOff = oldReaction === type;
     const newReaction = isTogglingOff ? null : type;
 
+    // Snapshot so we can fully roll back if the server disagrees or fails
+    // — previously only `activeReaction` was reverted on failure while
+    // `counts` stayed bumped forever, so every failed/blocked click still
+    // permanently inflated the visible number (looked "unlimited").
+    const prevActiveReaction = activeReaction;
+    const prevCounts = counts;
+
     // 1. Update localStorage (optimistic hint only — server re-verifies)
     if (newReaction) {
       localStorage.setItem(`mizari_reacted_${profileId}`, newReaction);
@@ -116,16 +123,27 @@ export function LikeButton({
     // 4. Trigger server action — server looks up the visitor's real
     // stored reaction itself and reconciles; it doesn't trust our
     // "oldReaction" guess. If the server's result differs from our
-    // optimistic guess (e.g. stale localStorage across devices), snap
-    // the UI to match what the server actually recorded.
+    // optimistic guess, OR the call fails outright (e.g. a migration
+    // hasn't been applied yet), fully roll back to the last confirmed
+    // state — both the active reaction AND the counts — instead of
+    // leaving the bumped count in place.
     startTransition(async () => {
       try {
         const result = await changeReaction(profileId, type);
         if (result.activeReaction !== newReaction) {
           setActiveReaction(result.activeReaction);
+          setCounts(prevCounts);
+          localStorage.removeItem(`mizari_reacted_${profileId}`);
         }
       } catch (err) {
         console.error('Failed to update reaction:', err);
+        setActiveReaction(prevActiveReaction);
+        setCounts(prevCounts);
+        if (prevActiveReaction) {
+          localStorage.setItem(`mizari_reacted_${profileId}`, prevActiveReaction);
+        } else {
+          localStorage.removeItem(`mizari_reacted_${profileId}`);
+        }
       }
     });
   };

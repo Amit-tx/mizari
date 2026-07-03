@@ -1128,9 +1128,14 @@ export function DashboardClient({
               ))}
             </div>
 
-            {/* Themes Grid */}
+            {/* Themes Grid — no inner scroll box on mobile (nested scroll
+                containers are unreliable with touch), the page itself
+                scrolls instead. On larger screens we keep a contained,
+                auto-loading scroll box since mouse-wheel scroll on nested
+                divs works fine there. */}
             <div 
-              className="grid grid-cols-2 gap-3 sm:grid-cols-4 max-h-[460px] md:max-h-[500px] overflow-y-auto pr-1"
+              className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:max-h-[460px] md:max-h-[500px] sm:overflow-y-auto pr-1"
+              style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
               onScroll={(e) => {
                 const target = e.currentTarget;
                 if (target.scrollHeight - target.scrollTop <= target.clientHeight + 20) {
