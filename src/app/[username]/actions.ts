@@ -74,61 +74,68 @@ export async function changeReaction(
     throw new Error('Invalid reaction');
   }
 
-  const visitorHash = await getVisitorHash();
+  try {
+    const visitorHash = await getVisitorHash();
 
-  const [existing] = await db
-    .select()
-    .from(profileReactions)
-    .where(and(eq(profileReactions.profileId, profileId), eq(profileReactions.visitorHash, visitorHash)))
-    .limit(1);
+    const [existing] = await db
+      .select()
+      .from(profileReactions)
+      .where(and(eq(profileReactions.profileId, profileId), eq(profileReactions.visitorHash, visitorHash)))
+      .limit(1);
 
-  const oldReaction = existing?.reactionType ?? null;
+    const oldReaction = existing?.reactionType ?? null;
 
-  // Requesting the reaction you already have toggles it off. Requesting
-  // a different one changes it. Either way, a visitor can only ever have
-  // ONE active reaction recorded server-side — never more than one.
-  const newReaction = oldReaction === requestedReaction ? null : requestedReaction;
+    // Requesting the reaction you already have toggles it off. Requesting
+    // a different one changes it. Either way, a visitor can only ever have
+    // ONE active reaction recorded server-side — never more than one.
+    const newReaction = oldReaction === requestedReaction ? null : requestedReaction;
 
-  if (oldReaction === newReaction) {
-    return { activeReaction: oldReaction };
-  }
-
-  const updateData: any = {};
-  if (oldReaction) {
-    const col = REACTION_COLUMNS[oldReaction];
-    updateData[col] = sql`GREATEST(0, ${profiles[col]} - 1)`;
-  }
-  if (newReaction) {
-    const col = REACTION_COLUMNS[newReaction];
-    updateData[col] = sql`${profiles[col]} + 1`;
-  }
-
-  let likesDiff = 0;
-  if (oldReaction) likesDiff -= 1;
-  if (newReaction) likesDiff += 1;
-  if (likesDiff !== 0) {
-    updateData.likes = sql`GREATEST(0, ${profiles.likes} + ${likesDiff})`;
-  }
-
-  if (Object.keys(updateData).length > 0) {
-    await db.update(profiles).set(updateData).where(eq(profiles.id, profileId));
-  }
-
-  if (newReaction) {
-    if (existing) {
-      await db
-        .update(profileReactions)
-        .set({ reactionType: newReaction, updatedAt: new Date() })
-        .where(eq(profileReactions.id, existing.id));
-    } else {
-      await db.insert(profileReactions).values({ profileId, visitorHash, reactionType: newReaction });
+    if (oldReaction === newReaction) {
+      return { activeReaction: oldReaction };
     }
-  } else if (existing) {
-    await db.delete(profileReactions).where(eq(profileReactions.id, existing.id));
-  }
 
-  revalidatePath('/[username]', 'page');
-  return { activeReaction: newReaction };
+    const updateData: any = {};
+    if (oldReaction) {
+      const col = REACTION_COLUMNS[oldReaction];
+      updateData[col] = sql`GREATEST(0, ${profiles[col]} - 1)`;
+    }
+    if (newReaction) {
+      const col = REACTION_COLUMNS[newReaction];
+      updateData[col] = sql`${profiles[col]} + 1`;
+    }
+
+    let likesDiff = 0;
+    if (oldReaction) likesDiff -= 1;
+    if (newReaction) likesDiff += 1;
+    if (likesDiff !== 0) {
+      updateData.likes = sql`GREATEST(0, ${profiles.likes} + ${likesDiff})`;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await db.update(profiles).set(updateData).where(eq(profiles.id, profileId));
+    }
+
+    if (newReaction) {
+      if (existing) {
+        await db
+          .update(profileReactions)
+          .set({ reactionType: newReaction, updatedAt: new Date() })
+          .where(eq(profileReactions.id, existing.id));
+      } else {
+        await db.insert(profileReactions).values({ profileId, visitorHash, reactionType: newReaction });
+      }
+    } else if (existing) {
+      await db.delete(profileReactions).where(eq(profileReactions.id, existing.id));
+    }
+
+    revalidatePath('/[username]', 'page');
+    return { activeReaction: newReaction };
+  } catch (err) {
+    console.error('changeReaction failed (has the profile_reactions migration been run?):', err);
+    // Degrade gracefully: don't crash the visitor's page, just report
+    // that nothing changed.
+    return { activeReaction: null };
+  }
 }
 
 // Backward-compatible alias — in case any older deployed file still
@@ -147,12 +154,22 @@ export async function addReaction(
 // Returns the current visitor's already-recorded reaction for a profile,
 // if any — used to hydrate the button's initial state from the server
 // instead of trusting localStorage alone.
+//
+// Wrapped defensively: this runs during the public profile PAGE RENDER,
+// so if the profile_reactions migration hasn't been applied to the DB
+// yet, we must NOT let that crash the whole page for every visitor —
+// we just fall back to "no known reaction" until the migration runs.
 export async function getMyReaction(profileId: number): Promise<string | null> {
-  const visitorHash = await getVisitorHash();
-  const [existing] = await db
-    .select({ reactionType: profileReactions.reactionType })
-    .from(profileReactions)
-    .where(and(eq(profileReactions.profileId, profileId), eq(profileReactions.visitorHash, visitorHash)))
-    .limit(1);
-  return existing?.reactionType ?? null;
+  try {
+    const visitorHash = await getVisitorHash();
+    const [existing] = await db
+      .select({ reactionType: profileReactions.reactionType })
+      .from(profileReactions)
+      .where(and(eq(profileReactions.profileId, profileId), eq(profileReactions.visitorHash, visitorHash)))
+      .limit(1);
+    return existing?.reactionType ?? null;
+  } catch (err) {
+    console.error('getMyReaction failed (has the profile_reactions migration been run?):', err);
+    return null;
+  }
 }
