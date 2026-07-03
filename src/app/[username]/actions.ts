@@ -131,6 +131,19 @@ export async function changeReaction(
   return { activeReaction: newReaction };
 }
 
+// Backward-compatible alias — in case any older deployed file still
+// imports `addReaction` instead of `changeReaction`. Handles both the
+// old 3-arg call style (profileId, oldReaction, newReaction) and the
+// new 2-arg style (profileId, requestedReaction).
+export async function addReaction(
+  profileId: number,
+  arg2: string | null,
+  arg3?: string | null
+) {
+  const requested = arg3 !== undefined ? arg3 : arg2;
+  return changeReaction(profileId, requested);
+}
+
 // Returns the current visitor's already-recorded reaction for a profile,
 // if any — used to hydrate the button's initial state from the server
 // instead of trusting localStorage alone.
