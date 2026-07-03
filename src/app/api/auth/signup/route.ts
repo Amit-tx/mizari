@@ -4,6 +4,8 @@ import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { grantXp } from '@/utils/xp';
+import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
+import { verifyTurnstileToken } from '@/utils/turnstile';
 
 const RESERVED_USERNAMES = [
   'mizari',
@@ -22,7 +24,24 @@ const RESERVED_USERNAMES = [
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, email, password, referredBy } = await request.json();
+    const ip = getClientIp(request.headers);
+
+    // Max 5 signup attempts per IP per hour — stops bot username-squatting
+    // and mass fake-account creation scripts.
+    const { allowed, retryAfterSec } = checkRateLimit(`signup:${ip}`, 5, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Too many signup attempts. Please try again in ${Math.ceil((retryAfterSec || 60) / 60)} minute(s).` },
+        { status: 429 }
+      );
+    }
+
+    const { username, email, password, referredBy, turnstileToken } = await request.json();
+
+    const captchaOk = await verifyTurnstileToken(turnstileToken, ip);
+    if (!captchaOk) {
+      return NextResponse.json({ error: 'CAPTCHA verification failed. Please try again.' }, { status: 400 });
+    }
 
     if (!username || !email || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });

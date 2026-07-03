@@ -508,10 +508,14 @@ export function DashboardClient({
     try {
       const res = await requestAccountDeletion(userId);
       if (res.success && res.token) {
+        // Local dev fallback only (no email provider configured)
         const fullLink = `${window.location.origin}/delete-confirm?token=${res.token}`;
         setDeletionLink(fullLink);
+      } else if (res.success) {
+        // Production: token was emailed, not returned to the browser
+        alert('Check your email for a link to confirm account deletion. It expires in 1 hour.');
       } else {
-        alert('Failed to generate deletion token. Please try again.');
+        alert(res.error || 'Failed to request deletion. Please try again.');
       }
     } catch (err) {
       console.error(err);
@@ -928,7 +932,7 @@ export function DashboardClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 animate-scale-up">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New Profile</h3>
-            <p className="text-xs text-gray-550 mt-1">Add another personal, business, or gaming page.</p>
+            <p className="text-xs text-gray-500 mt-1">Add another personal, business, or gaming page.</p>
 
             <form onSubmit={handleCreateProfile} className="mt-4 space-y-4">
               <div>
@@ -967,7 +971,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={() => setShowNewProfileModal(false)}
-                  className="flex-1 rounded-2xl border border-gray-200 py-2.5 text-xs font-bold text-gray-650 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-350 dark:hover:bg-slate-800"
+                  className="flex-1 rounded-2xl border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>
@@ -983,7 +987,7 @@ export function DashboardClient({
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Profile Details</h2>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               {/* Avatar Selector */}
@@ -1056,7 +1060,7 @@ export function DashboardClient({
           </div>
 
           {/* Preset Japanese & Anime Themes */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Preset & Seasonal Themes</h2>
             <p className="text-xs text-gray-500 mb-6">Select a predefined theme to instant-apply beautiful animated day/night styles.</p>
 
@@ -1099,7 +1103,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={() => setThemeSearchQuery('')}
-                  className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-655"
+                  className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-700"
                 >
                   ✕
                 </button>
@@ -1116,7 +1120,7 @@ export function DashboardClient({
                   className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all whitespace-nowrap ${
                     activeThemeTab === tab.id
                       ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                      : 'border-gray-200 dark:border-slate-800 text-gray-650 dark:text-slate-400 bg-white dark:bg-slate-850'
+                      : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800'
                   }`}
                 >
                   {tab.emoji} {tab.label}
@@ -1154,7 +1158,7 @@ export function DashboardClient({
                       className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 min-w-0 overflow-hidden ${
                         themeType === theme.id
                           ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
-                          : 'border-gray-250 hover:border-gray-350 dark:border-slate-800 dark:hover:border-slate-700'
+                          : 'border-gray-200 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
                       } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
                       style={{ background: theme.bgGradient || theme.bgColor }}
                     >
@@ -1190,7 +1194,7 @@ export function DashboardClient({
           </div>
 
           {/* Custom Theme & Background Builder */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-855 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-900 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Custom Theme Builder</h2>
             
             <div className="space-y-6">
@@ -1429,14 +1433,14 @@ export function DashboardClient({
                   placeholder="UPI ID (e.g. user@ybl)"
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value)}
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-850 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
                 />
                 <input
                   type="number"
                   placeholder="Amount in ₹ (e.g. 500)"
                   value={payoutAmount}
                   onChange={(e) => setPayoutAmount(e.target.value)}
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-850 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
                 />
               </div>
               <button
@@ -1471,8 +1475,8 @@ export function DashboardClient({
           </div>
 
           {/* Add Link or Product Card */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
-            <div className="flex gap-4 border-b border-gray-100 dark:border-slate-855 pb-4 mb-4">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex gap-4 border-b border-gray-100 dark:border-slate-900 pb-4 mb-4">
               <button
                 type="button"
                 onClick={() => setIsProduct(0)}
@@ -1503,14 +1507,14 @@ export function DashboardClient({
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-250 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder={isProduct === 1 ? 'Product Name (e.g. Anime Figurine)' : 'Link Title (e.g. My Website)'}
                 />
                 <input
                   type="url"
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-250 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="https://..."
                 />
               </div>
@@ -1526,7 +1530,7 @@ export function DashboardClient({
                       type="text"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-255 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. $49"
                     />
                   </div>
@@ -1539,7 +1543,7 @@ export function DashboardClient({
                       type="text"
                       value={discount}
                       onChange={(e) => setDiscount(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-255 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. 20% OFF"
                     />
                   </div>
@@ -1553,7 +1557,7 @@ export function DashboardClient({
                       type="text"
                       value={productCategory}
                       onChange={(e) => setProductCategory(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-255 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       placeholder="e.g. Tech Accessories"
                     />
                   </div>
@@ -1568,7 +1572,7 @@ export function DashboardClient({
                         type="url"
                         value={productImage}
                         onChange={(e) => setProductImage(e.target.value)}
-                        className="w-full rounded-xl border border-gray-255 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                         placeholder="Paste Image URL here (e.g. Amazon image URL)..."
                       />
                       <div className="flex items-center gap-4">
@@ -1586,7 +1590,7 @@ export function DashboardClient({
                           type="button"
                           disabled={uploadingProd}
                           onClick={() => prodImgInputRef.current?.click()}
-                          className="rounded-xl border border-gray-250 bg-white px-4 py-2 text-xs font-bold text-gray-750 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-355"
+                          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
                         >
                           {uploadingProd ? 'Uploading...' : 'Or Upload Local File'}
                         </button>
@@ -1597,7 +1601,7 @@ export function DashboardClient({
               )}
 
               {/* Scheduling settings */}
-              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-850/40 border border-gray-200 dark:border-slate-800">
+              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-800">
                 <div>
                   <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
                     Start Schedule (Optional)
@@ -1607,7 +1611,7 @@ export function DashboardClient({
                     type="datetime-local"
                     value={scheduledStart}
                     onChange={(e) => setScheduledStart(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 <div>
@@ -1619,7 +1623,7 @@ export function DashboardClient({
                     type="datetime-local"
                     value={scheduledEnd}
                     onChange={(e) => setScheduledEnd(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-250 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -1635,11 +1639,11 @@ export function DashboardClient({
           </div>
 
           {/* Links list with Drag and Drop */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Your links ({linksList.length})
             </h2>
-            <p className="text-xs text-gray-550 mb-4">Drag and drop the cards below to reorder them instantly.</p>
+            <p className="text-xs text-gray-500 mb-4">Drag and drop the cards below to reorder them instantly.</p>
             
             <div className="mt-4 space-y-3">
               {linksList.length === 0 && (
@@ -1673,27 +1677,27 @@ export function DashboardClient({
           </div>
 
           {/* Visitor Analytics Panel */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Visitor Analytics 📊</h2>
             <p className="text-xs text-gray-500 mb-6">Real-time traffic analysis, referrer sources, and visitor devices.</p>
 
             {/* Total count summaries */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40">
-                <span className="text-[10px] uppercase font-bold text-gray-400">Profile Views</span>
-                <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+              <div className="p-3 sm:p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 min-w-0">
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 block truncate">Profile Views</span>
+                <p className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">
                   {profileClickLogs.filter(l => l.targetType === 'view').length}
                 </p>
               </div>
-              <div className="p-4 rounded-2xl bg-gray-55 dark:bg-slate-800/40">
-                <span className="text-[10px] uppercase font-bold text-gray-400">Link Clicks</span>
-                <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
+              <div className="p-3 sm:p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 min-w-0">
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 block truncate">Link Clicks</span>
+                <p className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">
                   {profileClickLogs.filter(l => l.targetType === 'click').length}
                 </p>
               </div>
-              <div className="p-4 rounded-2xl bg-gray-55 dark:bg-slate-800/40">
-                <span className="text-[10px] uppercase font-bold text-gray-400">Click-Through</span>
-                <p className="text-xl font-black text-gray-900 dark:text-white mt-1">
+              <div className="p-3 sm:p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 min-w-0">
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 block truncate">Click-Through</span>
+                <p className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mt-1">
                   {(() => {
                     const views = profileClickLogs.filter(l => l.targetType === 'view').length;
                     const clicks = profileClickLogs.filter(l => l.targetType === 'click').length;
@@ -1707,7 +1711,7 @@ export function DashboardClient({
             {/* Traffic Sources Breakdown */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-xs font-extrabold text-gray-700 dark:text-slate-350 uppercase mb-3">Top Traffic Sources</h3>
+                <h3 className="text-xs font-extrabold text-gray-700 dark:text-slate-300 uppercase mb-3">Top Traffic Sources</h3>
                 <div className="space-y-2">
                   {(() => {
                     const referrers: Record<string, number> = {};
@@ -1722,7 +1726,7 @@ export function DashboardClient({
                       const pct = Math.round((count / total) * 100);
                       return (
                         <div key={ref} className="space-y-1">
-                          <div className="flex justify-between text-xs font-bold text-gray-650 dark:text-slate-400">
+                          <div className="flex justify-between text-xs font-bold text-gray-600 dark:text-slate-400">
                             <span>{ref === 'direct' ? 'Direct / Search' : ref}</span>
                             <span>{count} ({pct}%)</span>
                           </div>
@@ -1739,7 +1743,7 @@ export function DashboardClient({
               {/* Device and Browser Breakdown */}
               <div className="grid gap-6 sm:grid-cols-2 pt-4 border-t border-gray-100 dark:border-slate-800">
                 <div>
-                  <h4 className="text-xs font-extrabold text-gray-750 dark:text-slate-350 uppercase mb-3">Devices</h4>
+                  <h4 className="text-xs font-extrabold text-gray-700 dark:text-slate-300 uppercase mb-3">Devices</h4>
                   <div className="space-y-2">
                     {(() => {
                       const devices: Record<string, number> = {};
@@ -1751,7 +1755,7 @@ export function DashboardClient({
                       return Object.entries(devices).map(([dev, count]) => {
                         const pct = Math.round((count / total) * 100);
                         return (
-                          <div key={dev} className="flex items-center justify-between text-xs font-bold text-gray-650 dark:text-slate-400">
+                          <div key={dev} className="flex items-center justify-between text-xs font-bold text-gray-600 dark:text-slate-400">
                             <span className="capitalize">{dev}</span>
                             <span>{pct}%</span>
                           </div>
@@ -1762,7 +1766,7 @@ export function DashboardClient({
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-extrabold text-gray-750 dark:text-slate-355 uppercase mb-3">Browsers</h4>
+                  <h4 className="text-xs font-extrabold text-gray-700 dark:text-slate-400 uppercase mb-3">Browsers</h4>
                   <div className="space-y-2">
                     {(() => {
                       const browsers: Record<string, number> = {};
@@ -1774,7 +1778,7 @@ export function DashboardClient({
                       return Object.entries(browsers).sort((a,b)=>b[1]-a[1]).slice(0, 3).map(([br, count]) => {
                         const pct = Math.round((count / total) * 100);
                         return (
-                          <div key={br} className="flex items-center justify-between text-xs font-bold text-gray-650 dark:text-slate-400">
+                          <div key={br} className="flex items-center justify-between text-xs font-bold text-gray-600 dark:text-slate-400">
                             <span className="capitalize">{br}</span>
                             <span>{pct}%</span>
                           </div>
@@ -1788,7 +1792,7 @@ export function DashboardClient({
           </div>
 
           {/* Announcement Banner Settings */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Announcement Banner 📢</h2>
             <p className="text-xs text-gray-500 mb-6">Display a prominent flashing announcement bar at the top of your page.</p>
 
@@ -1804,7 +1808,7 @@ export function DashboardClient({
               </label>
 
               <div>
-                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-1">Banner Text</label>
+                <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Banner Text</label>
                 <input
                   type="text"
                   value={announcementText}
@@ -1815,7 +1819,7 @@ export function DashboardClient({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-1">Banner Link (Optional Redirect URL)</label>
+                <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Banner Link (Optional Redirect URL)</label>
                 <input
                   type="url"
                   value={announcementLink}
@@ -1826,7 +1830,7 @@ export function DashboardClient({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-655 dark:text-slate-400 mb-2">Banner Color</label>
+                <label className="block text-xs font-bold text-gray-700 dark:text-slate-400 mb-2">Banner Color</label>
                 <div className="flex gap-2">
                   {['#FF6B6B', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'].map((color) => (
                     <button
@@ -1860,13 +1864,13 @@ export function DashboardClient({
           </div>
 
           {/* Guestbook preferences & moderation */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Guestbook & Moderation 🎋</h2>
             <p className="text-xs text-gray-500 mb-6">Change your guestbook layout and moderate entries left by visitors.</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-2">Guestbook Style</label>
+                <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-2">Guestbook Style</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-600 dark:text-slate-400">
                     <input
@@ -1894,7 +1898,7 @@ export function DashboardClient({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-650 dark:text-slate-400 mb-1">Guestbook Heading</label>
+                <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Guestbook Heading</label>
                 <input
                   type="text"
                   value={guestbookHeading}
@@ -1915,13 +1919,13 @@ export function DashboardClient({
 
               {/* Moderate Entries list */}
               <div className="pt-4 border-t border-gray-100 dark:border-slate-800">
-                <h3 className="text-xs font-extrabold text-gray-700 dark:text-slate-350 uppercase mb-3">Moderate Wishes ({wishesList.length})</h3>
+                <h3 className="text-xs font-extrabold text-gray-700 dark:text-slate-300 uppercase mb-3">Moderate Wishes ({wishesList.length})</h3>
                 {wishesList.length === 0 ? (
                   <p className="text-[11px] text-gray-400 dark:text-slate-500 py-2">No wishes written yet.</p>
                 ) : (
                   <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
                     {wishesList.map((wish) => (
-                      <div key={wish.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-850">
+                      <div key={wish.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-800">
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-gray-800 dark:text-slate-200 truncate">{wish.text}</p>
                           <p className="text-[10px] text-gray-500 mt-0.5">By {wish.sender || 'Anonymous'} &bull; {new Date(wish.createdAt).toLocaleDateString()}</p>
@@ -1944,7 +1948,7 @@ export function DashboardClient({
 
 
           {/* Account Settings: Change Email */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Account Settings</h2>
             <p className="text-xs text-gray-500 mb-4">Update your registered email address.</p>
             
@@ -1953,7 +1957,7 @@ export function DashboardClient({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 rounded-2xl border border-gray-250 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 placeholder="newemail@example.com"
               />
               <button
@@ -1967,9 +1971,9 @@ export function DashboardClient({
           </div>
 
           {/* Danger Zone: Delete Account */}
-          <div className="rounded-3xl border border-red-250 bg-red-50/10 p-6 shadow-sm dark:border-red-900/20 dark:bg-red-955/5">
+          <div className="rounded-3xl border border-red-200 bg-red-50/10 p-6 shadow-sm dark:border-red-900/20 dark:bg-red-950/5">
             <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
-            <p className="text-xs text-gray-500 dark:text-slate-450 mb-4">
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
               Permanently delete your Mizari account, links, and all uploaded files. This action cannot be undone.
             </p>
             
@@ -1992,7 +1996,7 @@ export function DashboardClient({
                       type="text"
                       readOnly
                       value={deletionLink}
-                      className="w-full rounded-xl border border-gray-250 bg-gray-55 p-2 text-xs font-mono text-gray-600 select-all focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2 text-xs font-mono text-gray-600 select-all focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                     />
                     <a
                       href={deletionLink}

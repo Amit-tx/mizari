@@ -75,7 +75,7 @@ export function TanabataTree({ userId, initialWishes, textColor }: TanabataTreeP
   };
 
   return (
-    <div className="mt-12 rounded-3xl border border-emerald-150 bg-emerald-50/20 p-6 shadow-md backdrop-blur-md dark:border-emerald-900/30 dark:bg-emerald-950/10">
+    <div className="mt-12 rounded-3xl border border-emerald-100 bg-emerald-50/20 p-6 shadow-md backdrop-blur-md dark:border-emerald-900/30 dark:bg-emerald-950/10">
       <div className="text-center">
         <span className="text-3xl">🎋</span>
         <h3 className="mt-2 text-lg font-extrabold text-emerald-800 dark:text-emerald-400">

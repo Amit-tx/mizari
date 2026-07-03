@@ -243,3 +243,22 @@ export const clickLogs = pgTable('click_logs', {
 
 export type ClickLog = typeof clickLogs.$inferSelect;
 export type NewClickLog = typeof clickLogs.$inferInsert;
+
+// Tracks each visitor's single active reaction per profile, keyed by a
+// hashed IP (same hashing approach as clickLogs). This is the source of
+// truth the server checks before adjusting reaction counters — the client
+// can no longer just claim "my old reaction was X" and get counters
+// incremented for free every time localStorage is cleared or a different
+// device/browser is used.
+export const profileReactions = pgTable('profile_reactions', {
+  id: serial('id').primaryKey(),
+  profileId: integer('profile_id').notNull(),
+  visitorHash: varchar('visitor_hash', { length: 64 }).notNull(),
+  reactionType: varchar('reaction_type', { length: 20 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ProfileReaction = typeof profileReactions.$inferSelect;
+export type NewProfileReaction = typeof profileReactions.$inferInsert;
+

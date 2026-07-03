@@ -326,7 +326,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
                         <button
                           type="button"
                           onClick={() => setActivePreviewTheme(theme)}
-                          className="px-3.5 py-2 text-xs font-bold rounded-xl border border-gray-250 dark:border-slate-750 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-3.5 py-2 text-xs font-bold rounded-xl border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 transition-all flex items-center gap-1 cursor-pointer"
                         >
                           Preview 👁️
                         </button>
@@ -353,17 +353,17 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
 
       {activePreviewTheme && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-[32px] max-w-sm w-full p-4 border border-gray-150 dark:border-slate-800 shadow-2xl relative flex flex-col max-h-[90vh]">
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] max-w-sm w-full p-4 border border-gray-100 dark:border-slate-800 shadow-2xl relative flex flex-col max-h-[90vh]">
             <button
               onClick={() => setActivePreviewTheme(null)}
-              className="absolute top-4 right-4 z-50 h-8 w-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/20 transition-all font-bold text-gray-805 dark:text-slate-100"
+              className="absolute top-4 right-4 z-50 h-8 w-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/20 transition-all font-bold text-gray-800 dark:text-slate-100"
             >
               ✕
             </button>
             <h3 className="text-center font-black text-xs text-gray-500 dark:text-slate-400 mb-3 tracking-wide uppercase">
               ✨ Live Theme Preview: {activePreviewTheme.name}
             </h3>
-            <div className="flex-1 overflow-y-auto rounded-2xl border border-gray-100 dark:border-slate-850 relative bg-slate-50 dark:bg-slate-950">
+            <div className="flex-1 overflow-y-auto rounded-2xl border border-gray-100 dark:border-slate-800 relative bg-slate-50 dark:bg-slate-950">
               <ProfilePreview
                 username="demouser"
                 bio="This is a live preview of how your page will look with this theme applied!"

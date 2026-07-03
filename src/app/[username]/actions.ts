@@ -1,9 +1,26 @@
 'use server';
 
 import { db } from '@/db';
-import { wishes, profiles } from '@/db/schema';
-import { eq, sql, desc, asc } from 'drizzle-orm';
+import { wishes, profiles, profileReactions } from '@/db/schema';
+import { eq, sql, desc, asc, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
+import crypto from 'crypto';
+
+const REACTION_COLUMNS: Record<string, 'reactionLike' | 'reactionLove' | 'reactionHaha' | 'reactionWow' | 'reactionSad' | 'reactionFire'> = {
+  like: 'reactionLike',
+  love: 'reactionLove',
+  haha: 'reactionHaha',
+  wow: 'reactionWow',
+  sad: 'reactionSad',
+  fire: 'reactionFire',
+};
+
+async function getVisitorHash(): Promise<string> {
+  const h = await headers();
+  const ip = h.get('x-forwarded-for')?.split(',')[0].trim() || h.get('x-real-ip') || '127.0.0.1';
+  return crypto.createHash('sha256').update(ip).digest('hex');
+}
 
 // Add a wish to a profile's tree with automatic spam prevention & cleanup
 export async function addWish(profileId: number, sender: string, text: string, color: string) {
@@ -41,39 +58,51 @@ export async function addWish(profileId: number, sender: string, text: string, c
   revalidatePath('/[username]', 'page');
 }
 
-// Change specific reaction on a profile (single active reaction model)
+// Change specific reaction on a profile (single active reaction model).
+// The server — not the client — decides what the visitor's current
+// reaction actually is, by looking it up via a hashed-IP record in
+// profile_reactions. This closes the old trust gap where a client could
+// claim any "oldReaction" value and inflate counters for free (e.g. by
+// clearing localStorage, using a different browser, or calling the
+// action directly).
 export async function changeReaction(
   profileId: number,
-  oldReaction: string | null,
-  newReaction: string | null
+  requestedReaction: string | null
 ) {
   const allowedTypes = ['like', 'love', 'haha', 'wow', 'sad', 'fire'];
-  if (oldReaction && !allowedTypes.includes(oldReaction)) throw new Error('Invalid old reaction');
-  if (newReaction && !allowedTypes.includes(newReaction)) throw new Error('Invalid new reaction');
-
-  const updateData: any = {};
-
-  if (oldReaction) {
-    // Decrement old
-    const col = oldReaction === 'like' ? 'reactionLike' :
-                oldReaction === 'love' ? 'reactionLove' :
-                oldReaction === 'haha' ? 'reactionHaha' :
-                oldReaction === 'wow' ? 'reactionWow' :
-                oldReaction === 'sad' ? 'reactionSad' : 'reactionFire';
-    updateData[col] = sql`GREATEST(0, ${profiles[col]} - 1)`;
+  if (requestedReaction && !allowedTypes.includes(requestedReaction)) {
+    throw new Error('Invalid reaction');
   }
 
+  const visitorHash = await getVisitorHash();
+
+  const [existing] = await db
+    .select()
+    .from(profileReactions)
+    .where(and(eq(profileReactions.profileId, profileId), eq(profileReactions.visitorHash, visitorHash)))
+    .limit(1);
+
+  const oldReaction = existing?.reactionType ?? null;
+
+  // Requesting the reaction you already have toggles it off. Requesting
+  // a different one changes it. Either way, a visitor can only ever have
+  // ONE active reaction recorded server-side — never more than one.
+  const newReaction = oldReaction === requestedReaction ? null : requestedReaction;
+
+  if (oldReaction === newReaction) {
+    return { activeReaction: oldReaction };
+  }
+
+  const updateData: any = {};
+  if (oldReaction) {
+    const col = REACTION_COLUMNS[oldReaction];
+    updateData[col] = sql`GREATEST(0, ${profiles[col]} - 1)`;
+  }
   if (newReaction) {
-    // Increment new
-    const col = newReaction === 'like' ? 'reactionLike' :
-                newReaction === 'love' ? 'reactionLove' :
-                newReaction === 'haha' ? 'reactionHaha' :
-                newReaction === 'wow' ? 'reactionWow' :
-                newReaction === 'sad' ? 'reactionSad' : 'reactionFire';
+    const col = REACTION_COLUMNS[newReaction];
     updateData[col] = sql`${profiles[col]} + 1`;
   }
 
-  // Adjust total likes
   let likesDiff = 0;
   if (oldReaction) likesDiff -= 1;
   if (newReaction) likesDiff += 1;
@@ -82,15 +111,35 @@ export async function changeReaction(
   }
 
   if (Object.keys(updateData).length > 0) {
-    await db
-      .update(profiles)
-      .set(updateData)
-      .where(eq(profiles.id, profileId));
+    await db.update(profiles).set(updateData).where(eq(profiles.id, profileId));
+  }
+
+  if (newReaction) {
+    if (existing) {
+      await db
+        .update(profileReactions)
+        .set({ reactionType: newReaction, updatedAt: new Date() })
+        .where(eq(profileReactions.id, existing.id));
+    } else {
+      await db.insert(profileReactions).values({ profileId, visitorHash, reactionType: newReaction });
+    }
+  } else if (existing) {
+    await db.delete(profileReactions).where(eq(profileReactions.id, existing.id));
   }
 
   revalidatePath('/[username]', 'page');
+  return { activeReaction: newReaction };
 }
 
-export async function incrementLikes(profileId: number) {
-  await changeReaction(profileId, null, 'love');
+// Returns the current visitor's already-recorded reaction for a profile,
+// if any — used to hydrate the button's initial state from the server
+// instead of trusting localStorage alone.
+export async function getMyReaction(profileId: number): Promise<string | null> {
+  const visitorHash = await getVisitorHash();
+  const [existing] = await db
+    .select({ reactionType: profileReactions.reactionType })
+    .from(profileReactions)
+    .where(and(eq(profileReactions.profileId, profileId), eq(profileReactions.visitorHash, visitorHash)))
+    .limit(1);
+  return existing?.reactionType ?? null;
 }

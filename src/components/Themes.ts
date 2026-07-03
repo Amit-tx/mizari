@@ -448,7 +448,7 @@ export const JAPANESE_THEMES: ThemeConfig[] = [
   },
   {
     id: 'frieren',
-    name: 'Frieren: Journey',
+    name: 'Wandering Mage',
     emoji: '🪄',
     bgColor: '#1A1220',
     textColor: '#E8D5F5',
@@ -460,7 +460,7 @@ export const JAPANESE_THEMES: ThemeConfig[] = [
   },
   {
     id: 'demon_slayer',
-    name: 'Demon Slayer',
+    name: 'Crimson Blade',
     emoji: '⚔️',
     bgColor: '#0D0014',
     textColor: '#FFE4E6',

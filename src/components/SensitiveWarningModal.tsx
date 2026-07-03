@@ -64,7 +64,7 @@ export function SensitiveWarningModal({
           
           <button
             onClick={onCancel}
-            className="flex-1 rounded-2xl border border-slate-800 bg-slate-900/60 py-3 text-xs font-bold text-slate-350 transition-all hover:bg-slate-900 hover:text-white"
+            className="flex-1 rounded-2xl border border-slate-800 bg-slate-900/60 py-3 text-xs font-bold text-slate-300 transition-all hover:bg-slate-900 hover:text-white"
           >
             No, Go Back
           </button>

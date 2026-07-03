@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <title>Readme — mizari</title>
-  <meta name="description" content="Mizari — Your Link in Bio A modern link-in-bio platform built with Next.js 15, Tailwind CSS v4, Drizzle ORM, and Neon Postgres. Tech Stack Framework : Next.js 1...">
+  <meta name="description" content="mizari">
   <meta property="og:title" content="Readme — mizari">
-  <meta property="og:description" content="Mizari — Your Link in Bio A modern link-in-bio platform built with Next.js 15, Tailwind CSS v4, Drizzle ORM, and Neon Postgres. Tech Stack Framework : Next.js 1...">
+  <meta property="og:description" content="mizari">
   <meta property="og:image" content="https://Amit-tx.github.io/mizari/favicon.ico">
   <meta property="og:url" content="https://Amit-tx.github.io/mizari/blog/readme/">
   <meta name="twitter:card" content="summary_large_image">
@@ -41,83 +41,7 @@
 
 </head>
 <body>
-  <h1>Mizari — Your Link in Bio</h1>
-<p>A modern link-in-bio platform built with Next.js 15, Tailwind CSS v4, Drizzle ORM, and Neon Postgres.</p>
-<h2>Tech Stack</h2>
-<ul>
-<li><strong>Framework</strong>: Next.js 15 (App Router, TypeScript)</li>
-<li><strong>Styling</strong>: Tailwind CSS v4</li>
-<li><strong>Database</strong>: Neon Postgres (serverless)</li>
-<li><strong>ORM</strong>: Drizzle ORM</li>
-<li><strong>Auth</strong>: NextAuth.js v5 (Auth.js) — Credentials + Google OAuth</li>
-<li><strong>Deployment</strong>: Vercel</li>
-</ul>
-<h2>Getting Started</h2>
-<h3>Prerequisites</h3>
-<ul>
-<li>Node.js 18+</li>
-<li>A <a href="https://neon.tech">Neon</a> Postgres database</li>
-</ul>
-<h3>Setup</h3>
-<ol>
-<li><p><strong>Clone and install:</strong></p>
-<pre><code class="language-bash">git clone &lt;your-repo&gt;
-cd mizari
-npm install
-</code></pre>
-</li>
-<li><p><strong>Configure environment variables:</strong>
-Copy <code>.env.local</code> and fill in your values:</p>
-<pre><code>DATABASE_URL=postgresql://...        # From Neon dashboard
-AUTH_SECRET=&lt;random-32-byte-base64&gt;  # Run: openssl rand -base64 32
-AUTH_URL=http://localhost:3000
-AUTH_GOOGLE_ID=&lt;optional&gt;
-AUTH_GOOGLE_SECRET=&lt;optional&gt;
-</code></pre>
-</li>
-<li><p><strong>Push database schema:</strong></p>
-<pre><code class="language-bash">npx drizzle-kit push
-</code></pre>
-</li>
-<li><p><strong>Run the dev server:</strong></p>
-<pre><code class="language-bash">npm run dev
-</code></pre>
-</li>
-<li><p>Open <a href="http://localhost:3000">http://localhost:3000</a></p>
-</li>
-</ol>
-<h2>Project Structure</h2>
-<pre><code>src/
-├── app/
-│   ├── layout.tsx           # Root layout (Header, Footer, Theme, Auth)
-│   ├── page.tsx             # Landing page
-│   ├── [username]/          # Public profile pages
-│   ├── (auth)/              # Login &amp; Signup pages
-│   ├── dashboard/           # Protected dashboard
-│   └── api/
-│       ├── auth/            # NextAuth routes + signup
-│       └── click/           # Click tracking redirect
-├── components/              # Reusable UI components
-├── db/                      # Drizzle schema &amp; connection
-├── auth.ts                  # NextAuth configuration
-└── middleware.ts            # Route protection
-</code></pre>
-<h2>Features</h2>
-<ul>
-<li>🔗 <strong>Custom Links</strong> — Add, edit, delete, and reorder your links</li>
-<li>📊 <strong>Click Analytics</strong> — Track clicks on each link</li>
-<li>🌙 <strong>Dark Mode</strong> — Smooth theme switching with system preference detection</li>
-<li>🔒 <strong>Authentication</strong> — Email/password + Google OAuth</li>
-<li>📱 <strong>Responsive</strong> — Mobile-first design, works on all devices</li>
-<li>📢 <strong>Ad Slots</strong> — Reserved ad placement zones for monetization</li>
-</ul>
-<h2>Deployment</h2>
-<p>Deploy to Vercel:</p>
-<pre><code class="language-bash">npx vercel
-</code></pre>
-<p>Set the same environment variables in your Vercel project settings.</p>
-<h2>License</h2>
-<p>MIT</p>
+  <h1>mizari</h1>
 
 </body>
 </html>

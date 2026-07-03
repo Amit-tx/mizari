@@ -14,6 +14,7 @@ import { RainEffect } from '@/components/RainEffect';
 import { CloudsEffect } from '@/components/CloudsEffect';
 import { ShareButton } from '@/components/ShareButton';
 import { LikeButton } from '@/components/LikeButton';
+import { getMyReaction } from './actions';
 import { Branding } from '@/components/Branding';
 import { TanabataTree } from '@/components/TanabataTree';
 import { ClassicGuestbook } from '@/components/ClassicGuestbook';
@@ -288,6 +289,25 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     textStyle.color = '#1a1a2e';
   }
 
+  // Auto text-legibility scrim: only relevant when the background is an
+  // arbitrary uploaded/marketplace photo (profile.themeBgImage), since
+  // gradient presets are pre-matched with a text color by their creator.
+  // A photo can be light in some areas and dark in others, so instead of
+  // trying to sample pixel colors, we always place a soft backdrop behind
+  // the text — and pick that backdrop's shade (light vs dark) based on
+  // the text color itself, so it always contrasts no matter what's
+  // underneath.
+  const isLightText = (() => {
+    const hex = (textStyle.color as string || '#1a1a2e').replace('#', '');
+    if (hex.length !== 6) return true;
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6;
+  })();
+  const legibilityScrimClass = isLightText ? 'bg-black/35' : 'bg-white/45';
+
   // Custom button styles
   const getButtonClass = () => {
     if (!preset && profile.themeType !== 'custom') {
@@ -411,6 +431,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         initialWow={profile.reactionWow}
         initialSad={profile.reactionSad}
         initialFire={profile.reactionFire}
+        serverActiveReaction={await getMyReaction(profile.id)}
       />
       
       {/* Share Button */}
@@ -453,7 +474,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </div>
 
             {/* User info */}
-            <div className="mt-4 text-center">
+            <div className={`mt-4 text-center ${profile.themeBgImage ? `inline-flex flex-col items-center gap-0 rounded-2xl ${legibilityScrimClass} backdrop-blur-md px-4 py-2.5 mx-auto` : ''}`}>
               <div className="flex flex-wrap items-center justify-center gap-1.5">
                 <h1 className="text-2xl font-bold drop-shadow-lg" style={{...textStyle, textShadow: '0 2px 8px rgba(0,0,0,0.5)'}}>@{profile.username}</h1>
                 

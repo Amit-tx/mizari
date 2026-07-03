@@ -47,7 +47,7 @@ export function LanternEffect() {
         >
           {/* Lantern top/bottom black cap style */}
           <div className="h-1 w-full bg-slate-900/40 rounded-t-sm" />
-          <div className="flex-1 bg-gradient-to-b from-red-500/40 to-orange-450/40" />
+          <div className="flex-1 bg-gradient-to-b from-red-500/40 to-orange-400/40" />
           <div className="h-1 w-full bg-slate-900/40 rounded-b-sm" />
         </div>
       ))}

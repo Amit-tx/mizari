@@ -63,7 +63,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
               className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all border ${
                 activeTab === tab
                   ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] border-transparent text-white shadow-md shadow-[#FF6B6B]/20'
-                  : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-350 hover:bg-gray-50 dark:hover:bg-slate-800'
+                  : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'
               }`}
             >
               {tab}
@@ -109,7 +109,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                 {/* Profile Card Header */}
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
-                  <div className="h-16 w-16 overflow-hidden rounded-full border border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-850">
+                  <div className="h-16 w-16 overflow-hidden rounded-full border border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800">
                     {profile.avatarUrl ? (
                       <img src={profile.avatarUrl} alt={profile.username} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
@@ -127,7 +127,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                       {/* Level Tag */}
                       {levelInfo.level > 1 && (
                         <span 
-                          className="rounded bg-slate-100 dark:bg-slate-850 px-1 py-0.5 text-[8px] font-extrabold"
+                          className="rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.5 text-[8px] font-extrabold"
                           title={levelInfo.category}
                         >
                           LVL {levelInfo.level}
@@ -154,7 +154,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                 </p>
 
                 {/* Footer metrics */}
-                <div className="mt-6 flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-4 text-[10px] font-bold text-gray-450 dark:text-slate-400">
+                <div className="mt-6 flex items-center justify-between border-t border-gray-100 dark:border-slate-800 pt-4 text-[10px] font-bold text-gray-400 dark:text-slate-400">
                   <div className="flex gap-4">
                     <span className="flex items-center gap-1">
                       👁️ {profile.views} views

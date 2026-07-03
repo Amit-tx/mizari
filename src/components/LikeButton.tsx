@@ -13,6 +13,7 @@ interface LikeButtonProps {
   initialWow?: number;
   initialSad?: number;
   initialFire?: number;
+  serverActiveReaction?: string | null;
 }
 
 interface ReactionOption {
@@ -40,6 +41,7 @@ export function LikeButton({
   initialWow = 0,
   initialSad = 0,
   initialFire = 0,
+  serverActiveReaction = null,
 }: LikeButtonProps) {
   // Store reaction counts in state
   const [counts, setCounts] = useState<Record<string, number>>({
@@ -52,19 +54,24 @@ export function LikeButton({
   });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [activeReaction, setActiveReaction] = useState<string | null>(null);
+  const [activeReaction, setActiveReaction] = useState<string | null>(serverActiveReaction);
   const [isPending, startTransition] = useTransition();
   const [floatingEmojis, setFloatingEmojis] = useState<{ id: number; emoji: string; left: number }[]>([]);
 
-  // Load reacted states from localStorage
+  // localStorage is kept only as a fast-paint hint for repeat visitors on
+  // the SAME browser; the server's answer (serverActiveReaction, passed
+  // in as a prop from the page render) always wins as the source of truth.
   useEffect(() => {
     try {
-      const reacted = localStorage.getItem(`mizari_reacted_${profileId}`);
-      setActiveReaction(reacted); // will be string or null
+      if (serverActiveReaction) {
+        localStorage.setItem(`mizari_reacted_${profileId}`, serverActiveReaction);
+      } else {
+        localStorage.removeItem(`mizari_reacted_${profileId}`);
+      }
     } catch (e) {
       console.error(e);
     }
-  }, [profileId]);
+  }, [profileId, serverActiveReaction]);
 
   const handleReact = (type: string, emoji: string) => {
     if (isPending) return;
@@ -73,7 +80,7 @@ export function LikeButton({
     const isTogglingOff = oldReaction === type;
     const newReaction = isTogglingOff ? null : type;
 
-    // 1. Update localStorage
+    // 1. Update localStorage (optimistic hint only — server re-verifies)
     if (newReaction) {
       localStorage.setItem(`mizari_reacted_${profileId}`, newReaction);
     } else {
@@ -106,10 +113,17 @@ export function LikeButton({
       }, 1200);
     }
 
-    // 4. Trigger server action
+    // 4. Trigger server action — server looks up the visitor's real
+    // stored reaction itself and reconciles; it doesn't trust our
+    // "oldReaction" guess. If the server's result differs from our
+    // optimistic guess (e.g. stale localStorage across devices), snap
+    // the UI to match what the server actually recorded.
     startTransition(async () => {
       try {
-        await changeReaction(profileId, oldReaction, newReaction);
+        const result = await changeReaction(profileId, type);
+        if (result.activeReaction !== newReaction) {
+          setActiveReaction(result.activeReaction);
+        }
       } catch (err) {
         console.error('Failed to update reaction:', err);
       }
@@ -150,7 +164,7 @@ export function LikeButton({
                 className={`flex flex-col items-center rounded-full p-2 transition-all active:scale-90 ${
                   hasReacted
                     ? 'bg-indigo-600/30 border border-indigo-400/50 text-indigo-400 font-black'
-                    : 'hover:bg-white/10 text-slate-350 hover:text-white'
+                    : 'hover:bg-white/10 text-slate-300 hover:text-white'
                 }`}
                 title={`${opt.label} (${counts[opt.type]})`}
               >

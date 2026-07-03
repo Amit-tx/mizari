@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import TurnstileWidget from '@/components/TurnstileWidget';
 
 function SignupForm() {
   const router = useRouter();
@@ -17,6 +18,7 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +29,7 @@ function SignupForm() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, referredBy }),
+        body: JSON.stringify({ username, email, password, referredBy, turnstileToken }),
       });
 
       const data = await res.json();
@@ -150,6 +152,7 @@ function SignupForm() {
                 ✨ Referred by: <span className="font-extrabold">@{referredBy}</span> (Bonus XP will be granted!)
               </div>
             )}
+            <TurnstileWidget onVerify={setTurnstileToken} />
             <button
               type="submit"
               disabled={loading}

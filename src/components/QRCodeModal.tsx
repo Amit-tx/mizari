@@ -36,7 +36,7 @@ export function QRCodeModal({ username }: QRCodeModalProps) {
     <>
       <button
         onClick={() => setShow(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-gray-750 dark:text-slate-250 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-slate-200 transition-colors"
       >
         <span className="text-sm">📱</span>
         <span>Get QR Code</span>
@@ -54,7 +54,7 @@ export function QRCodeModal({ username }: QRCodeModalProps) {
                   <img src={qrSrc} alt="QR Code" className="h-48 w-48" />
                 </div>
               ) : (
-                <div className="h-48 w-48 animate-pulse bg-gray-100 dark:bg-slate-850 rounded-2xl" />
+                <div className="h-48 w-48 animate-pulse bg-gray-100 dark:bg-slate-800 rounded-2xl" />
               )}
             </div>
 
@@ -68,7 +68,7 @@ export function QRCodeModal({ username }: QRCodeModalProps) {
               </a>
               <button
                 onClick={() => setShow(false)}
-                className="flex-1 rounded-2xl border border-gray-200 py-2.5 text-xs font-bold text-gray-650 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex-1 rounded-2xl border border-gray-200 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 Close
               </button>

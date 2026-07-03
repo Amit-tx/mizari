@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import TurnstileWidget from '@/components/TurnstileWidget';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,13 +23,14 @@ export default function LoginPage() {
     const result = await signIn('credentials', {
       email,
       password,
+      turnstileToken,
       redirect: false,
     });
 
     setLoading(false);
 
     if (result?.error) {
-      setError('Invalid email or password');
+      setError('Invalid email/password, or too many attempts — please wait a few minutes and try again.');
     } else {
       router.push('/dashboard');
       router.refresh();
@@ -91,6 +94,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+            <TurnstileWidget onVerify={setTurnstileToken} />
             <button
               type="submit"
               disabled={loading}

@@ -124,7 +124,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
   };
 
   return (
-    <div className="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-750 dark:bg-slate-900">
+    <div className="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
       {editing ? (
         <div className="space-y-4">
           <div className="flex gap-4 items-center mb-2">
@@ -176,7 +176,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
             </div>
 
             {/* Scheduling Settings */}
-            <div className="grid gap-3 grid-cols-2 p-3.5 rounded-xl bg-gray-55 dark:bg-slate-950/20 border border-gray-100 dark:border-slate-805">
+            <div className="grid gap-3 grid-cols-2 p-3.5 rounded-xl bg-gray-50 dark:bg-slate-950/20 border border-gray-100 dark:border-slate-800">
               <div>
                 <label className="flex items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
                   Start Schedule (Optional)
@@ -186,7 +186,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                   type="datetime-local"
                   value={scheduledStart}
                   onChange={(e) => setScheduledStart(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-850 dark:text-white"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
@@ -199,7 +199,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                   type="datetime-local"
                   value={scheduledEnd}
                   onChange={(e) => setScheduledEnd(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-850 dark:text-white"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 />
               </div>
             </div>
@@ -275,7 +275,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                       />
                       <label
                         htmlFor={`edit-prod-img-${link.id}`}
-                        className="cursor-pointer rounded-xl border border-gray-250 px-3 py-1.5 text-xs font-bold text-gray-650 dark:border-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50"
+                        className="cursor-pointer rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-bold text-gray-600 dark:border-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50"
                       >
                         {uploading ? 'Uploading...' : 'Or Upload Local File'}
                       </label>

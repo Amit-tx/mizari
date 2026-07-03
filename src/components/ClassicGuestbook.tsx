@@ -110,7 +110,7 @@ export function ClassicGuestbook({ profileId, initialWishes, guestbookHeading, t
             key={wish.id}
             className={`p-4 rounded-2xl border shadow-sm transition-all duration-300 ${getBgClass(wish.color)}`}
           >
-            <p className="text-xs font-semibold leading-relaxed text-slate-850 dark:text-slate-200">
+            <p className="text-xs font-semibold leading-relaxed text-slate-800 dark:text-slate-200">
               &ldquo;{wish.text}&rdquo;
             </p>
             <div className="mt-3 flex items-center justify-between border-t border-slate-200/40 dark:border-slate-700/30 pt-2 text-[10px] font-bold text-slate-500 dark:text-slate-400">
@@ -139,7 +139,7 @@ export function ClassicGuestbook({ profileId, initialWishes, guestbookHeading, t
                 onChange={(e) => setSender(e.target.value)}
                 placeholder="Your Name (optional)"
                 maxLength={30}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs focus:outline-none focus:border-slate-450 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs focus:outline-none focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
               />
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400">Theme:</span>
@@ -169,7 +169,7 @@ export function ClassicGuestbook({ profileId, initialWishes, guestbookHeading, t
               placeholder="Leave a message or sign the wall..."
               maxLength={150}
               rows={2}
-              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs focus:outline-none focus:border-slate-450 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs focus:outline-none focus:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
             />
 
             <div className="flex gap-2">
@@ -183,7 +183,7 @@ export function ClassicGuestbook({ profileId, initialWishes, guestbookHeading, t
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="flex-1 rounded-xl border border-gray-250 py-2 text-xs font-bold text-gray-650 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-350 dark:hover:bg-slate-900"
+                className="flex-1 rounded-xl border border-gray-200 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
               >
                 Cancel
               </button>

@@ -3,6 +3,13 @@
 /* --- Tailwind v4 dark mode via class strategy --- */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Safety net: never allow the whole page to scroll sideways on mobile,
+   even if a child element momentarily overflows its container. */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* --- Theme tokens --- */
 @theme inline {
   --color-background: var(--bg-primary);

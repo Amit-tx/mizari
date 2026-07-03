@@ -68,16 +68,16 @@ const japanRaw: Omit<JapanTheme, "slug" | "cat">[] = [
   { name: "Ink Wash Japan", tags: ["calm"], art: "linear-gradient(160deg,#E9E4D8,#8A8578 55%,#3A3630)", particle: "none", headline: "Everything said in a single brushstroke.", price: "Free" },
 ];
 
-const narutoPhases: AnimeReactivePhase[] = [
+const foxSpiritPhases: AnimeReactivePhase[] = [
   {
     end: 5,
     sky: "linear-gradient(180deg,#0D0D1A 0%,#C83E00 50%,#1A0A00 100%)",
     starsOpacity: 1,
     celestial: "orb",
     celestialColor: ["#8B0000", "rgba(255,0,0,0.6)"],
-    label: "Nine-Tails Night",
-    headline: "The Nine-Tails chakra leaks... feel the power.",
-    body: "Even shadows have chakra. Rest now, shinobi.",
+    label: "Fox Spirit Night",
+    headline: "The fox spirit's energy leaks... feel the power.",
+    body: "Even shadows hold power. Rest now, warrior.",
     text: "#FF6B00",
     accent: "#C83E00",
     particle: { kind: "orb", color: "#FF4500" },
@@ -127,9 +127,9 @@ const narutoPhases: AnimeReactivePhase[] = [
     starsOpacity: 1,
     celestial: "orb",
     celestialColor: ["#8B0000", "rgba(255,0,0,0.6)"],
-    label: "Nine-Tails Night",
-    headline: "The Nine-Tails chakra leaks... feel the power.",
-    body: "Even shadows have chakra. Rest now, shinobi.",
+    label: "Fox Spirit Night",
+    headline: "The fox spirit's energy leaks... feel the power.",
+    body: "Even shadows hold power. Rest now, warrior.",
     text: "#FF6B00",
     accent: "#C83E00",
     particle: { kind: "orb", color: "#FF4500" },
@@ -137,42 +137,42 @@ const narutoPhases: AnimeReactivePhase[] = [
 ];
 
 const animeRaw: Omit<AnimeTheme, "slug" | "cat">[] = [
-  { name: "Naruto Theme", tags: ["shonen"], art: "linear-gradient(155deg,#1B1B1F,#3A2E1B 45%,#E8781F)", price: "₹149", reactivePhases: narutoPhases },
-  { name: "Dragon Ball Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B2E42,#1E5A7A 45%,#E8B62A)", price: "₹149" },
-  { name: "One Piece Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B2E5A,#1E7ABE 45%,#E8C22A)", price: "₹149" },
-  { name: "Demon Slayer Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B0E23,#241E3D 45%,#8B1E1E)", price: "₹179" },
-  { name: "Jujutsu Kaisen Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E3D 45%,#5B2A6E)", price: "₹179" },
-  { name: "Attack on Titan Theme", tags: ["dark"], art: "linear-gradient(155deg,#241B1E,#4A2E1B 45%,#8B3A1E)", price: "₹179" },
-  { name: "My Hero Academia Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#D4222E)", price: "₹149" },
-  { name: "Hunter x Hunter Theme", tags: ["shonen"], art: "linear-gradient(155deg,#1B2E1B,#3A6B2E 45%,#8B9B2E)", price: "₹149" },
-  { name: "Tokyo Ghoul Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#8B1E1E)", price: "₹149" },
-  { name: "Death Note Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#8B1E1E)", price: "₹149" },
-  { name: "Sword Art Online Theme", tags: ["isekai"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#4AC2E8)", price: "₹149" },
-  { name: "Black Clover Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B0B0F,#241E3D 45%,#2E4A8B)", price: "₹149" },
-  { name: "Solo Leveling Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B14,#1E1E3D 45%,#5A2EE8)", price: "₹179" },
-  { name: "Chainsaw Man Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#E8781F)", price: "₹179" },
-  { name: "Spy x Family Theme", tags: ["slice"], art: "linear-gradient(155deg,#2E1B3D,#5B2A6E 45%,#E8A0AF)", price: "₹129" },
-  { name: "Haikyuu Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#E8781F)", price: "₹129" },
-  { name: "Blue Lock Theme", tags: ["shonen"], art: "linear-gradient(155deg,#0B0B0F,#1E1E3D 45%,#2E5AE8)", price: "₹129" },
-  { name: "JoJo Theme", tags: ["shonen"], art: "linear-gradient(155deg,#5B1E8B,#2E4A8B 45%,#E8C22A)", price: "₹149" },
-  { name: "Sailor Moon Theme", tags: ["shojo"], art: "linear-gradient(155deg,#1E1E5B,#5B2A8B 45%,#E8A0C2)", price: "₹129" },
-  { name: "Evangelion Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#8B1E1E)", price: "₹149" },
-  { name: "Cowboy Bebop Theme", tags: ["isekai"], art: "linear-gradient(155deg,#1B2E3D,#4A5A6E 45%,#E8781F)", price: "₹129" },
-  { name: "Code Geass Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#2E1E8B)", price: "₹149" },
-  { name: "Berserk Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#5B1E1E)", price: "₹149" },
-  { name: "Re:Zero Theme", tags: ["isekai"], art: "linear-gradient(155deg,#1E1E3D,#5B2A6E 45%,#E8A0AF)", price: "₹129" },
-  { name: "Overlord Theme", tags: ["isekai", "dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#8B1E1E)", price: "₹149" },
-  { name: "One Punch Man Theme", tags: ["shonen"], art: "linear-gradient(155deg,#1E1E3D,#E8C22A 55%,#E8781F)", price: "₹129" },
-  { name: "Mob Psycho Theme", tags: ["shonen"], art: "linear-gradient(155deg,#1E1E3D,#5B2A8B 45%,#E8A0C2)", price: "₹129" },
-  { name: "Frieren Theme", tags: ["isekai", "calm"], art: "linear-gradient(155deg,#3E5C3E,#8B9B6E 45%,#E8E4C2)", price: "₹149" },
-  { name: "Dark Fantasy Anime Theme", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#3A1B1B)", price: "₹129" },
-  { name: "Mecha Anime Theme", tags: ["shonen"], art: "linear-gradient(155deg,#1B1E24,#4A5A6E 45%,#2EE8C2)", price: "₹149" },
+  { name: "Ninja Way", tags: ["shonen"], art: "linear-gradient(155deg,#1B1B1F,#3A2E1B 45%,#E8781F)", price: "₹149", reactivePhases: foxSpiritPhases },
+  { name: "Power Level", tags: ["shonen"], art: "linear-gradient(155deg,#0B2E42,#1E5A7A 45%,#E8B62A)", price: "₹149" },
+  { name: "Grand Voyage", tags: ["shonen"], art: "linear-gradient(155deg,#0B2E5A,#1E7ABE 45%,#E8C22A)", price: "₹149" },
+  { name: "Crimson Blade", tags: ["shonen"], art: "linear-gradient(155deg,#0B0E23,#241E3D 45%,#8B1E1E)", price: "₹179" },
+  { name: "Cursed Technique", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E3D 45%,#5B2A6E)", price: "₹179" },
+  { name: "Beyond the Walls", tags: ["dark"], art: "linear-gradient(155deg,#241B1E,#4A2E1B 45%,#8B3A1E)", price: "₹179" },
+  { name: "Plus Ultra Hero", tags: ["shonen"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#D4222E)", price: "₹149" },
+  { name: "Hunter's Exam", tags: ["shonen"], art: "linear-gradient(155deg,#1B2E1B,#3A6B2E 45%,#8B9B2E)", price: "₹149" },
+  { name: "Masked City", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#8B1E1E)", price: "₹149" },
+  { name: "Silent Verdict", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#8B1E1E)", price: "₹149" },
+  { name: "Full Dive", tags: ["isekai"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#4AC2E8)", price: "₹149" },
+  { name: "Grimoire Knight", tags: ["shonen"], art: "linear-gradient(155deg,#0B0B0F,#241E3D 45%,#2E4A8B)", price: "₹149" },
+  { name: "Shadow Ascension", tags: ["dark"], art: "linear-gradient(155deg,#0B0B14,#1E1E3D 45%,#5A2EE8)", price: "₹179" },
+  { name: "Devil Hunter", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#E8781F)", price: "₹179" },
+  { name: "Secret Family", tags: ["slice"], art: "linear-gradient(155deg,#2E1B3D,#5B2A6E 45%,#E8A0AF)", price: "₹129" },
+  { name: "Match Point", tags: ["shonen"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#E8781F)", price: "₹129" },
+  { name: "Striker's Cage", tags: ["shonen"], art: "linear-gradient(155deg,#0B0B0F,#1E1E3D 45%,#2E5AE8)", price: "₹129" },
+  { name: "Bizarre Stand", tags: ["shonen"], art: "linear-gradient(155deg,#5B1E8B,#2E4A8B 45%,#E8C22A)", price: "₹149" },
+  { name: "Moonlight Guardian", tags: ["shojo"], art: "linear-gradient(155deg,#1E1E5B,#5B2A8B 45%,#E8A0C2)", price: "₹129" },
+  { name: "Unit Pilot", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#8B1E1E)", price: "₹149" },
+  { name: "Space Bounty", tags: ["isekai"], art: "linear-gradient(155deg,#1B2E3D,#4A5A6E 45%,#E8781F)", price: "₹129" },
+  { name: "Rebel Command", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#3A1010 45%,#2E1E8B)", price: "₹149" },
+  { name: "Black Swordsman", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#5B1E1E)", price: "₹149" },
+  { name: "Second Chance", tags: ["isekai"], art: "linear-gradient(155deg,#1E1E3D,#5B2A6E 45%,#E8A0AF)", price: "₹129" },
+  { name: "Throne of Bones", tags: ["isekai", "dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#8B1E1E)", price: "₹149" },
+  { name: "One Hit Hero", tags: ["shonen"], art: "linear-gradient(155deg,#1E1E3D,#E8C22A 55%,#E8781F)", price: "₹129" },
+  { name: "Psychic Overflow", tags: ["shonen"], art: "linear-gradient(155deg,#1E1E3D,#5B2A8B 45%,#E8A0C2)", price: "₹129" },
+  { name: "Wandering Mage", tags: ["isekai", "calm"], art: "linear-gradient(155deg,#3E5C3E,#8B9B6E 45%,#E8E4C2)", price: "₹149" },
+  { name: "Dark Fantasy Realm", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#3A1B1B)", price: "₹129" },
+  { name: "Mecha Pilot", tags: ["shonen"], art: "linear-gradient(155deg,#1B1E24,#4A5A6E 45%,#2EE8C2)", price: "₹149" },
 ];
 
 export const japanThemes: JapanTheme[] = japanRaw.map((t) => ({ ...t, slug: slugify(t.name), cat: "japan" }));
 
 /* ---- Auto-generate a day/night cycle for every anime theme that ----
-   ---- doesn't already have a hand-crafted one (like Naruto's).    ---- */
+   ---- doesn't already have a hand-crafted one (hand-crafted, reactive ones).    ---- */
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];

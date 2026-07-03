@@ -232,7 +232,13 @@ export async function requestAccountDeletion(userId: number): Promise<{ success:
     console.log(`[LOCAL DEV EMAIL] Deletion link: ${deletionLink}`);
   }
 
-  return { success: true, token };
+  // Security: only hand the raw token back to the browser when no email
+  // provider is configured (local dev fallback). In production the token
+  // must only ever reach the user via their inbox — returning it here too
+  // would let anyone with a hijacked/active session confirm deletion
+  // instantly without ever touching the account's email, defeating the
+  // whole point of the out-of-band confirmation step.
+  return { success: true, token: resendApiKey ? undefined : token };
 }
 
 // Confirm and execute Account Deletion

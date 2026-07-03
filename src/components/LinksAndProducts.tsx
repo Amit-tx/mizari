@@ -126,7 +126,7 @@ export function LinksAndProducts({
                   className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all border ${
                     activeCategory === cat
                       ? 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:text-slate-900 dark:border-white'
-                      : 'bg-white/10 border-white/20 text-slate-700 dark:text-slate-350 hover:bg-white/20 dark:hover:bg-white/15'
+                      : 'bg-white/10 border-white/20 text-slate-700 dark:text-slate-300 hover:bg-white/20 dark:hover:bg-white/15'
                   }`}
                 >
                   {cat}

@@ -33,17 +33,17 @@ export default function DashboardError({
           Error: {error?.message || 'An unexpected error occurred.'}
         </p>
         {error?.digest && (
-          <p className="mt-1 text-xs font-mono text-gray-550 dark:text-slate-400">
+          <p className="mt-1 text-xs font-mono text-gray-500 dark:text-slate-400">
             Digest: {error.digest}
           </p>
         )}
         {error?.stack && (
-          <pre className="mt-4 text-[10px] font-mono text-gray-550 dark:text-slate-400 overflow-auto max-h-48 p-3 bg-gray-100 dark:bg-slate-950 rounded-xl leading-relaxed whitespace-pre-wrap">
+          <pre className="mt-4 text-[10px] font-mono text-gray-500 dark:text-slate-400 overflow-auto max-h-48 p-3 bg-gray-100 dark:bg-slate-950 rounded-xl leading-relaxed whitespace-pre-wrap">
             {error.stack}
           </pre>
         )}
       </div>
-      <p className="max-w-md text-xs text-gray-450 dark:text-slate-500">
+      <p className="max-w-md text-xs text-gray-400 dark:text-slate-500">
         Please share this screen or error code to help identify the issue.
       </p>
       <div className="flex gap-3">

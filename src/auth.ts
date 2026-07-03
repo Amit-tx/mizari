@@ -5,6 +5,8 @@ import { db } from '@/db';
 import { users, profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { authConfig } from './auth.config';
+import { checkRateLimit, getClientIp } from '@/utils/rateLimit';
+import { verifyTurnstileToken } from '@/utils/turnstile';
 
 /**
  * Full auth configuration with Node.js-only dependencies (Drizzle, bcrypt).
@@ -22,12 +24,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        turnstileToken: { label: 'Turnstile Token', type: 'text' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = credentials.email as string;
         const password = credentials.password as string;
+        const ip = getClientIp(request.headers);
+
+        // Max 8 login attempts per IP+email per 15 minutes — slows down
+        // brute-force password guessing without locking out real users
+        // who just fat-fingered their password a couple of times.
+        const { allowed } = checkRateLimit(`login:${ip}:${email.toLowerCase()}`, 8, 15 * 60 * 1000);
+        if (!allowed) {
+          throw new Error('Too many login attempts. Please wait a few minutes and try again.');
+        }
+
+        const captchaOk = await verifyTurnstileToken(credentials.turnstileToken as string, ip);
+        if (!captchaOk) {
+          throw new Error('CAPTCHA verification failed. Please try again.');
+        }
 
         const [user] = await db
           .select()
