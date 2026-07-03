@@ -171,7 +171,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       // Load STORE_THEMES
       const { STORE_THEMES } = await import('@/components/StoreThemes');
-      const eligibleThemes = STORE_THEMES;
+      const eligibleThemes = STORE_THEMES.filter(
+        (t) => t.price === 0 || isOwner || purchasedIds.includes(t.id)
+      );
 
       if (eligibleThemes.length > 0) {
         let nextTheme = eligibleThemes[Math.floor(Math.random() * eligibleThemes.length)];

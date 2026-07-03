@@ -82,7 +82,7 @@ const mappedJapanThemes: StoreTheme[] = japanThemes.map((t) => {
   const price = parsePrice(t.price);
   const tier = price === 0 ? 'free' : price >= 99 ? 'exclusive' : 'premium';
   return {
-    id: t.slug,
+    id: t.slug.replace(/-/g, '_'),
     name: t.name,
     emoji: mapEmoji(t.name),
     tier,
@@ -102,7 +102,7 @@ const mappedAnimeThemes: StoreTheme[] = animeThemes.map((t) => {
   const price = parsePrice(t.price);
   const tier = price === 0 ? 'free' : price >= 99 ? 'exclusive' : 'premium';
   return {
-    id: t.slug,
+    id: t.slug.replace(/-/g, '_'),
     name: t.name,
     emoji: mapEmoji(t.name),
     tier,
