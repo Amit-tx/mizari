@@ -1942,47 +1942,6 @@ export function DashboardClient({
             </div>
           </div>
 
-          {/* Dynamic Light/Dark Theme & Birthdays
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Dynamic & Birthday Themes 🎂</h2>
-            <p className="text-xs text-gray-500 mb-6">Automatically change profile style by time of day (Day/Night) or your Birthday.</p>
-
-            <div className="space-y-4">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={enableDynamicTheme}
-                  onChange={(e) => setEnableDynamicTheme(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
-                />
-                <span>Enable Dynamic Light/Dark Theme (Morning/Night cycle)</span>
-              </label>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-655 dark:text-slate-400 mb-1">Your Birthday (MM-DD format)</label>
-                <input
-                  type="text"
-                  value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
-                  placeholder="e.g. 07-28"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white font-mono"
-                />
-                <p className="text-[10px] text-gray-500 dark:text-slate-450 mt-1">
-                  On this day, visitors will see a festive birthday confetti shower and a customized celebration card!
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSaveDynamicTheme}
-                disabled={saving}
-                className="w-full rounded-xl bg-black dark:bg-white dark:text-black text-white py-2.5 text-xs font-bold transition-all hover:opacity-90"
-              >
-                {saving ? 'Saving...' : 'Save Dynamic & Birthday Settings 🎂'}
-              </button>
-            </div>
-          </div>
-          */}
 
           {/* Account Settings: Change Email */}
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900">

@@ -106,6 +106,9 @@ export async function POST(request: Request) {
         .where(eq(profiles.id, profileId));
     }
 
+    const { revalidatePath } = await import('next/cache');
+    revalidatePath('/', 'layout');
+
     return NextResponse.json({ url: imageUrl });
   } catch (error) {
     console.error('Upload API error:', error);

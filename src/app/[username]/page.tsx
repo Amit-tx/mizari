@@ -242,30 +242,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const rawJapanTheme = japanThemes.find((jt) => jt.slug.replace(/-/g, '_') === profile.themeType);
   const rawAnimeTheme = animeThemes.find((at) => at.slug.replace(/-/g, '_') === profile.themeType);
 
-  // Apply reactive color science overrides dynamically in memory
-  if (rawJapanTheme && preset) {
-    const { getPhase } = await import('@/data/timePhases');
-    const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
-    const currentPhase = getPhase(currentHour);
-    preset.textColor = currentPhase.color;
-    preset.btnText = currentPhase.color;
-    preset.btnBorder = `${currentPhase.color}33`;
-  }
-
-  if (rawAnimeTheme && rawAnimeTheme.reactivePhases && preset) {
-    const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
-    const activePhase = rawAnimeTheme.reactivePhases.find((p) => currentHour < p.end) || rawAnimeTheme.reactivePhases[rawAnimeTheme.reactivePhases.length - 1];
-    if (activePhase) {
-      preset.textColor = activePhase.text;
-      preset.btnText = activePhase.text;
-      preset.btnBorder = `${activePhase.accent}55`;
-    }
-  }
-
-  // Sky-worthy core Store themes also get a local-time-driven sunrise →
-  // day → sunset → night cycle with twinkling stars, reusing the same
-  // engine built for the anime theme catalog. Kept to night/sky-flavored
-  // themes only, so minimal/business themes keep their flat color identity.
+  // The themes are static, they do not dynamically change colors based on time of day.
+  // We keep corePhases, JapanDynamicEngine, and AnimeReactiveSky components for stars/rain animations without color override.
   const SKY_WORTHY_CORE_THEMES = new Set([
     'galaxy_dream', 'cyber_tokyo', 'tsukiyo', 'hoshi', 'sky_kingdom',
     'ocean_sunset', 'railway_sunset', 'shrine_festival', 'frieren',

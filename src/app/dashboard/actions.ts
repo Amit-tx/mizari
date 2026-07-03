@@ -140,6 +140,8 @@ export async function updateThemeSettings(
     .update(profiles)
     .set(updateData)
     .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
+    
+  revalidatePath('/', 'layout');
 }
 
 // Remove Background Image
@@ -166,6 +168,8 @@ export async function removeBgImage(profileId: number, userId: number) {
       .set({ themeBgImage: '', themeType: 'light' })
       .where(eq(profiles.id, profileId));
   }
+  
+  revalidatePath('/', 'layout');
 }
 
 // Request Account Deletion (Generates verification token and sends email)
@@ -517,5 +521,5 @@ export async function updateDynamicThemeSettings(
       birthday: birthday.trim(),
     })
     .where(eq(profiles.id, profileId));
-  revalidatePath('/dashboard', 'page');
+  revalidatePath('/', 'layout');
 }
