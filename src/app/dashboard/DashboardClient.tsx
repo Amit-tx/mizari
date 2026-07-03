@@ -27,6 +27,7 @@ import {
 } from './actions';
 import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
 import { getLevelInfo, LEVEL_MAP } from '@/utils/xp-client';
+import { isAdultContent } from '@/utils/adultFilter';
 import type { Link } from '@/db/schema';
 
 const THEME_TABS = [
@@ -522,6 +523,10 @@ export function DashboardClient({
 
   const handleAddLink = async () => {
     if (!newTitle.trim() || !newUrl.trim()) return;
+    if (isAdultContent(newUrl, newTitle)) {
+      alert('Adult/NSFW links are blocked on Mizari.');
+      return;
+    }
     setSaving(true);
     const link = await addLink(
       activeProfile.id,
@@ -568,6 +573,10 @@ export function DashboardClient({
     category: string = '',
     sensitive: number = 0
   ) => {
+    if (isAdultContent(url, title)) {
+      alert('Adult/NSFW links are blocked on Mizari.');
+      return;
+    }
     await updateLink(id, activeProfile.id, userId, title, url, isProd, prc, disc, img, schStart, schEnd, category, sensitive);
     setLinksList(linksList.map((l) => (
       l.id === id 
@@ -614,6 +623,10 @@ export function DashboardClient({
   };
 
   const handleSaveAnnouncement = async () => {
+    if (isAdultContent(announcementLink, announcementText)) {
+      alert('Adult/NSFW links are blocked on Mizari.');
+      return;
+    }
     setSaving(true);
     try {
       await updateAnnouncementSettings(

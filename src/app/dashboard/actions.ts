@@ -8,6 +8,7 @@ import { del } from '@vercel/blob';
 import crypto from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { getStoreThemeById } from '@/components/StoreThemes';
+import { isAdultContent } from '@/utils/adultFilter';
 
 async function verifyOwnership(userId: number): Promise<boolean> {
   const session = await auth();
@@ -281,6 +282,10 @@ export async function addLink(
 ): Promise<Link | null> {
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
+  if (isAdultContent(url, title)) {
+    throw new Error('Adult/NSFW links are blocked on Mizari.');
+  }
+
   const [newLink] = await db
     .insert(links)
     .values({ 
@@ -319,6 +324,10 @@ export async function updateLink(
   isSensitive: number = 0
 ) {
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  if (isAdultContent(url, title)) {
+    throw new Error('Adult/NSFW links are blocked on Mizari.');
+  }
 
   await db
     .update(links)
@@ -446,6 +455,10 @@ export async function updateAnnouncementSettings(
   color: string
 ) {
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  if (isAdultContent(link, text)) {
+    throw new Error('Adult/NSFW links are blocked on Mizari.');
+  }
 
   await db
     .update(profiles)
