@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { LinkCard } from '@/components/LinkCard';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
@@ -134,6 +136,8 @@ export function DashboardClient({
   // Input fields for standard links & products
   const [newTitle, setNewTitle] = useState('');
   const [isBulkMode, setIsBulkMode] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>('profile');
+  const toggleSection = (id: string) => setActiveSection((prev) => (prev === id ? null : id));
   const [bulkText, setBulkText] = useState('');
   const [bulkAdding, setBulkAdding] = useState(false);
   const [bulkResult, setBulkResult] = useState<{ added: number; skipped: { title: string; reason: string }[]; newLinks?: Link[] } | null>(null);
@@ -531,6 +535,10 @@ export function DashboardClient({
     }
   };
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
+
   const handleAddLink = async () => {
     if (!newTitle.trim() || !newUrl.trim()) return;
     if (isAdultContent(newUrl, newTitle)) {
@@ -868,9 +876,16 @@ export function DashboardClient({
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
       {/* Top Gamified Creator Level Bar */}
-      <div className="mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
+      <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
+        <button
+          onClick={handleLogout}
+          title="Log Out"
+          className="absolute right-4 top-4 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold text-gray-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all"
+        >
+          🚪 <span className="hidden sm:inline">Log Out</span>
+        </button>
         <div className="flex items-center gap-3.5">
           <span className="text-3xl filter drop-shadow-md">🏆</span>
           <div>
@@ -1033,8 +1048,12 @@ export function DashboardClient({
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Profile Details</h2>
+          <CollapsibleSection
+            title="Profile Details"
+            icon="👤"
+            isOpen={activeSection === 'profile'}
+            onToggle={() => toggleSection('profile')}
+          >
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               {/* Avatar Selector */}
               <div className="relative flex flex-col items-center">
@@ -1103,12 +1122,16 @@ export function DashboardClient({
                 </div>
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Preset Japanese & Anime Themes */}
-          <div className="min-w-0 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Preset & Seasonal Themes</h2>
-            <p className="text-xs text-gray-500 mb-6">Select a predefined theme to instant-apply beautiful animated day/night styles.</p>
+          <CollapsibleSection
+            title="Preset & Seasonal Themes"
+            icon="🎨"
+            subtitle="Select a predefined theme to instant-apply beautiful animated day/night styles."
+            isOpen={activeSection === 'preset-themes'}
+            onToggle={() => toggleSection('preset-themes')}
+          >
 
             {/* Theme Auto-Rotator Timer */}
             <div className="mb-6 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1242,11 +1265,15 @@ export function DashboardClient({
                 </button>
               </div>
             )}
-          </div>
+          </CollapsibleSection>
 
           {/* Custom Theme & Background Builder */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-900 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Custom Theme Builder</h2>
+          <CollapsibleSection
+            title="Custom Theme Builder"
+            icon="🖌️"
+            isOpen={activeSection === 'custom-theme'}
+            onToggle={() => toggleSection('custom-theme')}
+          >
             
             <div className="space-y-6">
               {/* Theme Type Selector */}
@@ -1523,10 +1550,15 @@ export function DashboardClient({
           </div>
           */}
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Add Link or Product Card */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <CollapsibleSection
+            title="Add Link or Product Card"
+            icon="➕"
+            isOpen={activeSection === 'add-link'}
+            onToggle={() => toggleSection('add-link')}
+          >
             <div className="flex flex-wrap gap-2 sm:gap-4 border-b border-gray-100 dark:border-slate-900 pb-4 mb-4">
               <button
                 type="button"
@@ -1746,15 +1778,16 @@ export function DashboardClient({
               </button>
             </div>
             )}
-          </div>
+          </CollapsibleSection>
 
           {/* Links list with Drag and Drop */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Your links ({linksList.length})
-            </h2>
-            <p className="text-xs text-gray-500 mb-4">Drag and drop the cards below to reorder them instantly.</p>
-            
+          <CollapsibleSection
+            title={`Your Links (${linksList.length})`}
+            icon="🔗"
+            subtitle="Drag and drop the cards below to reorder them instantly."
+            isOpen={activeSection === 'your-links'}
+            onToggle={() => toggleSection('your-links')}
+          >
             <div className="mt-4 space-y-3">
               {linksList.length === 0 && (
                 <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
@@ -1784,12 +1817,16 @@ export function DashboardClient({
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Visitor Analytics Panel */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Visitor Analytics 📊</h2>
-            <p className="text-xs text-gray-500 mb-6">Real-time traffic analysis, referrer sources, and visitor devices.</p>
+          <CollapsibleSection
+            title="Visitor Analytics"
+            icon="📊"
+            subtitle="Real-time traffic analysis, referrer sources, and visitor devices."
+            isOpen={activeSection === 'analytics'}
+            onToggle={() => toggleSection('analytics')}
+          >
 
             {/* Total count summaries */}
             <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
@@ -1899,12 +1936,16 @@ export function DashboardClient({
                 </div>
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Announcement Banner Settings */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Announcement Banner 📢</h2>
-            <p className="text-xs text-gray-500 mb-6">Display a prominent flashing announcement bar at the top of your page.</p>
+          <CollapsibleSection
+            title="Announcement Banner"
+            icon="📢"
+            subtitle="Display a prominent flashing announcement bar at the top of your page."
+            isOpen={activeSection === 'banner'}
+            onToggle={() => toggleSection('banner')}
+          >
 
             <div className="space-y-4">
               <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-slate-300">
@@ -1971,12 +2012,16 @@ export function DashboardClient({
                 {saving ? 'Saving...' : 'Save Banner Settings 📢'}
               </button>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Guestbook preferences & moderation */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Guestbook & Moderation 🎋</h2>
-            <p className="text-xs text-gray-500 mb-6">Change your guestbook layout and moderate entries left by visitors.</p>
+          <CollapsibleSection
+            title="Guestbook & Moderation"
+            icon="🎋"
+            subtitle="Change your guestbook layout and moderate entries left by visitors."
+            isOpen={activeSection === 'guestbook'}
+            onToggle={() => toggleSection('guestbook')}
+          >
 
             <div className="space-y-4">
               <div>
@@ -2054,13 +2099,17 @@ export function DashboardClient({
                 )}
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
 
           {/* Account Settings: Change Email */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Account Settings</h2>
-            <p className="text-xs text-gray-500 mb-4">Update your registered email address.</p>
+          <CollapsibleSection
+            title="Account Settings"
+            icon="⚙️"
+            subtitle="Update your registered email address."
+            isOpen={activeSection === 'account'}
+            onToggle={() => toggleSection('account')}
+          >
             
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <input
@@ -2078,11 +2127,24 @@ export function DashboardClient({
                 Update Email
               </button>
             </div>
-          </div>
+
+            <div className="mt-5 border-t border-gray-100 dark:border-slate-800 pt-5">
+              <button
+                onClick={handleLogout}
+                className="w-full sm:w-auto rounded-2xl border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm font-semibold text-gray-700 dark:text-slate-200 transition-all hover:bg-gray-50 dark:hover:bg-slate-800"
+              >
+                🚪 Log Out
+              </button>
+            </div>
+          </CollapsibleSection>
 
           {/* Danger Zone: Delete Account */}
-          <div className="rounded-3xl border border-red-200 bg-red-50/10 p-6 shadow-sm dark:border-red-900/20 dark:bg-red-950/5">
-            <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
+          <CollapsibleSection
+            title="Danger Zone"
+            danger
+            isOpen={activeSection === 'danger'}
+            onToggle={() => toggleSection('danger')}
+          >
             <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
               Permanently delete your Mizari account, links, and all uploaded files. This action cannot be undone.
             </p>
@@ -2118,7 +2180,7 @@ export function DashboardClient({
                 </div>
               )}
             </div>
-          </div>
+          </CollapsibleSection>
         </div>
 
         {/* Right column: live preview */}
