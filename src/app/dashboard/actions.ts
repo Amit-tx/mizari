@@ -317,6 +317,147 @@ export async function addLink(
   return newLink || null;
 }
 
+// Add many links at once (bulk paste). Validates and inserts in a single
+// DB call. Returns which entries were skipped and why, so the UI can
+// show the user exactly what happened instead of a silent partial add.
+export async function bulkAddLinks(
+  profileId: number,
+  userId: number,
+  items: { title: string; url: string }[]
+): Promise<{ added: number; skipped: { title: string; reason: string }[]; newLinks: Link[] }> {
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  if (!items || items.length === 0) return { added: 0, skipped: [], newLinks: [] };
+  if (items.length > 50) {
+    throw new Error('You can add up to 50 links in one bulk import.');
+  }
+
+  const existing = await db
+    .select({ order: links.order })
+    .from(links)
+    .where(eq(links.profileId, profileId));
+  let nextOrder = existing.length > 0 ? Math.max(...existing.map((l) => l.order)) + 1 : 0;
+
+  const toInsert: (typeof links.$inferInsert)[] = [];
+  const skipped: { title: string; reason: string }[] = [];
+
+  for (const raw of items) {
+    const title = (raw.title || '').trim();
+    let url = (raw.url || '').trim();
+
+    if (!title && !url) continue; // silently ignore fully blank lines
+    if (!title || !url) {
+      skipped.push({ title: title || url, reason: 'Missing title or URL' });
+      continue;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      url = `https://${url}`;
+    }
+    try {
+      new URL(url);
+    } catch {
+      skipped.push({ title, reason: 'Invalid URL' });
+      continue;
+    }
+    if (isAdultContent(url, title)) {
+      skipped.push({ title, reason: 'Adult/NSFW links are blocked on Mizari' });
+      continue;
+    }
+
+    toInsert.push({
+      profileId,
+      title,
+      url,
+      order: nextOrder++,
+      isProduct: 0,
+      price: '',
+      discount: '',
+      productImage: '',
+      productCategory: '',
+      isSensitive: 0,
+    });
+  }
+
+  let newLinks: Link[] = [];
+  if (toInsert.length > 0) {
+    newLinks = await db.insert(links).values(toInsert).returning();
+  }
+
+  revalidatePath('/dashboard');
+  return { added: toInsert.length, skipped, newLinks };
+}
+
+// Add many product cards at once (bulk paste). Same validation approach
+// as bulkAddLinks, but requires a price for each entry since that's what
+// distinguishes a product card from a plain link.
+export async function bulkAddProducts(
+  profileId: number,
+  userId: number,
+  items: { title: string; url: string; price: string }[]
+): Promise<{ added: number; skipped: { title: string; reason: string }[]; newLinks: Link[] }> {
+  if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
+
+  if (!items || items.length === 0) return { added: 0, skipped: [], newLinks: [] };
+  if (items.length > 50) {
+    throw new Error('You can add up to 50 products in one bulk import.');
+  }
+
+  const existing = await db
+    .select({ order: links.order })
+    .from(links)
+    .where(eq(links.profileId, profileId));
+  let nextOrder = existing.length > 0 ? Math.max(...existing.map((l) => l.order)) + 1 : 0;
+
+  const toInsert: (typeof links.$inferInsert)[] = [];
+  const skipped: { title: string; reason: string }[] = [];
+
+  for (const raw of items) {
+    const title = (raw.title || '').trim();
+    let url = (raw.url || '').trim();
+    const price = (raw.price || '').trim();
+
+    if (!title && !url && !price) continue;
+    if (!title || !url || !price) {
+      skipped.push({ title: title || url || '(untitled)', reason: 'Missing title, URL, or price' });
+      continue;
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      url = `https://${url}`;
+    }
+    try {
+      new URL(url);
+    } catch {
+      skipped.push({ title, reason: 'Invalid URL' });
+      continue;
+    }
+    if (isAdultContent(url, title)) {
+      skipped.push({ title, reason: 'Adult/NSFW links are blocked on Mizari' });
+      continue;
+    }
+
+    toInsert.push({
+      profileId,
+      title,
+      url,
+      order: nextOrder++,
+      isProduct: 1,
+      price,
+      discount: '',
+      productImage: '',
+      productCategory: '',
+      isSensitive: 0,
+    });
+  }
+
+  let newLinks: Link[] = [];
+  if (toInsert.length > 0) {
+    newLinks = await db.insert(links).values(toInsert).returning();
+  }
+
+  revalidatePath('/dashboard');
+  return { added: toInsert.length, skipped, newLinks };
+}
+
 // Update link associated with a profile
 export async function updateLink(
   id: number, 

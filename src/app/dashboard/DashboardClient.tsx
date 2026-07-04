@@ -23,7 +23,9 @@ import {
   updateAnnouncementSettings,
   updateGuestbookSettings,
   deleteGuestbookWish,
-  updateDynamicThemeSettings
+  updateDynamicThemeSettings,
+  bulkAddLinks,
+  bulkAddProducts
 } from './actions';
 import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
 import { getLevelInfo, LEVEL_MAP } from '@/utils/xp-client';
@@ -131,6 +133,10 @@ export function DashboardClient({
   
   // Input fields for standard links & products
   const [newTitle, setNewTitle] = useState('');
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+  const [bulkAdding, setBulkAdding] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ added: number; skipped: { title: string; reason: string }[]; newLinks?: Link[] } | null>(null);
   const [newUrl, setNewUrl] = useState('');
   const [isProduct, setIsProduct] = useState(0); // 0 = standard, 1 = product
   const [price, setPrice] = useState('');
@@ -562,6 +568,46 @@ export function DashboardClient({
       showMessage('Product/Link added!');
     }
     setSaving(false);
+  };
+
+  // Parses lines like "Title | https://url.com" (links) or
+  // "Title | https://url.com | 999" (products, price required as 3rd part).
+  const handleBulkAdd = async () => {
+    const lines = bulkText.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+
+    setBulkAdding(true);
+    setBulkResult(null);
+    try {
+      if (isProduct === 1) {
+        const items = lines.map((line) => {
+          const parts = line.split('|').map((p) => p.trim());
+          return { title: parts[0] || '', url: parts[1] || '', price: parts[2] || '' };
+        });
+        const result = await bulkAddProducts(activeProfile.id, userId, items);
+        setBulkResult(result);
+        if (result.newLinks.length > 0) {
+          setLinksList((prev) => [...prev, ...result.newLinks]);
+          showMessage(`${result.added} product${result.added !== 1 ? 's' : ''} added!`);
+        }
+        if (result.skipped.length === 0) setBulkText('');
+      } else {
+        const items = lines.map((line) => {
+          const parts = line.split('|').map((p) => p.trim());
+          return { title: parts[0] || '', url: parts[1] || '' };
+        });
+        const result = await bulkAddLinks(activeProfile.id, userId, items);
+        setBulkResult(result);
+        if (result.newLinks.length > 0) {
+          setLinksList((prev) => [...prev, ...result.newLinks]);
+          showMessage(`${result.added} link${result.added !== 1 ? 's' : ''} added!`);
+        }
+        if (result.skipped.length === 0) setBulkText('');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Bulk add failed. Please check your list and try again.');
+    }
+    setBulkAdding(false);
   };
 
   const handleUpdateLink = async (
@@ -1037,11 +1083,11 @@ export function DashboardClient({
                     placeholder="Tell the world about yourself..."
                   />
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
                   <button
                     onClick={handleUpdateProfile}
                     disabled={saving}
-                    className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+                    className="self-start rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
                   >
                     Save Bio
                   </button>
@@ -1060,7 +1106,7 @@ export function DashboardClient({
           </div>
 
           {/* Preset Japanese & Anime Themes */}
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="min-w-0 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Preset & Seasonal Themes</h2>
             <p className="text-xs text-gray-500 mb-6">Select a predefined theme to instant-apply beautiful animated day/night styles.</p>
 
@@ -1111,7 +1157,7 @@ export function DashboardClient({
             </div>
 
             {/* Theme Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar scrollbar-thin">
+            <div className="flex w-full min-w-0 gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar scrollbar-thin">
               {THEME_TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -1481,11 +1527,11 @@ export function DashboardClient({
 
           {/* Add Link or Product Card */}
           <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex gap-4 border-b border-gray-100 dark:border-slate-900 pb-4 mb-4">
+            <div className="flex flex-wrap gap-2 sm:gap-4 border-b border-gray-100 dark:border-slate-900 pb-4 mb-4">
               <button
                 type="button"
                 onClick={() => setIsProduct(0)}
-                className={`flex-1 py-2 text-sm font-bold border rounded-2xl transition-all ${
+                className={`flex-1 min-w-[110px] py-2 text-xs sm:text-sm font-bold border rounded-2xl transition-all ${
                   isProduct === 0
                     ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
                     : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
@@ -1496,7 +1542,7 @@ export function DashboardClient({
               <button
                 type="button"
                 onClick={() => setIsProduct(1)}
-                className={`flex-1 py-2 text-sm font-bold border rounded-2xl transition-all ${
+                className={`flex-1 min-w-[110px] py-2 text-xs sm:text-sm font-bold border rounded-2xl transition-all ${
                   isProduct === 1
                     ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
                     : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
@@ -1504,8 +1550,66 @@ export function DashboardClient({
               >
                 🛍️ Add Product Card
               </button>
+              <button
+                type="button"
+                onClick={() => { setIsBulkMode(!isBulkMode); setBulkResult(null); }}
+                className={`flex-1 min-w-[110px] py-2 text-xs sm:text-sm font-bold border rounded-2xl transition-all ${
+                  isBulkMode
+                    ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500'
+                    : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
+                }`}
+              >
+                📋 Bulk Add
+              </button>
             </div>
 
+            {isBulkMode ? (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  {isProduct === 1
+                    ? 'One product per line: Title | URL | Price'
+                    : 'One link per line: Title | URL'}
+                  {' '}— up to 50 at a time.
+                </p>
+                <textarea
+                  value={bulkText}
+                  onChange={(e) => setBulkText(e.target.value)}
+                  rows={6}
+                  placeholder={isProduct === 1
+                    ? 'Anime Figurine | https://amzn.in/d/xyz | 999\nAnother Product | https://example.com | 1499'
+                    : 'My Website | https://example.com\nInstagram | https://instagram.com/me'}
+                  className="block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-mono transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleBulkAdd}
+                  disabled={bulkAdding || !bulkText.trim()}
+                  className="w-full sm:w-auto rounded-2xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:brightness-110 disabled:opacity-60"
+                >
+                  {bulkAdding ? 'Adding...' : `Add All ${isProduct === 1 ? 'Products' : 'Links'}`}
+                </button>
+
+                {bulkResult && (
+                  <div className="rounded-2xl border border-gray-100 dark:border-slate-800 p-3 text-xs space-y-1.5">
+                    <p className="font-bold text-green-600 dark:text-green-400">
+                      ✅ {bulkResult.added} added successfully
+                    </p>
+                    {bulkResult.skipped.length > 0 && (
+                      <div>
+                        <p className="font-bold text-amber-600 dark:text-amber-400">
+                          ⚠️ {bulkResult.skipped.length} skipped:
+                        </p>
+                        <ul className="mt-1 space-y-0.5 text-gray-500 dark:text-slate-400">
+                          {bulkResult.skipped.map((s, i) => (
+                            <li key={i}>— {s.title || '(blank)'}: {s.reason}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
             <div className="space-y-4">
               <div className="flex flex-col gap-4 sm:flex-row">
                 <input
@@ -1641,6 +1745,7 @@ export function DashboardClient({
                 Add {isProduct === 1 ? 'Product Card' : 'Link'}
               </button>
             </div>
+            )}
           </div>
 
           {/* Links list with Drag and Drop */}
