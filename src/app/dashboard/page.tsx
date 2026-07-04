@@ -209,6 +209,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         guestbookHeading: activeProfile.guestbookHeading || 'Guestbook',
         announcementText: activeProfile.announcementText || '',
         announcementLink: activeProfile.announcementLink || '',
+        announcementMessages: activeProfile.announcementMessages || '[]',
         announcementActive: activeProfile.announcementActive,
         announcementColor: activeProfile.announcementColor || '#FF6B6B',
         birthday: activeProfile.birthday || '',
