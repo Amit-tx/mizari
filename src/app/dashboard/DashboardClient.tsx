@@ -2039,7 +2039,8 @@ export function DashboardClient({
       {/* Floating Action Button for Mobile Preview */}
       <button
         onClick={() => setShowMobilePreview(true)}
-        className="fixed bottom-6 right-6 z-40 lg:hidden flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 font-bold text-white shadow-xl shadow-[#FF6B6B]/25 hover:scale-105 active:scale-95 transition-all duration-200"
+        className="fixed right-4 z-40 lg:hidden flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 font-bold text-white shadow-xl shadow-[#FF6B6B]/25 hover:scale-105 active:scale-95 transition-all duration-200"
+        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <span>📱</span>
         <span>Preview</span>

@@ -151,7 +151,10 @@ export function LikeButton({
   const totalLikes = Object.values(counts).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+    <div
+      className="fixed right-3 z-50 flex flex-col items-end sm:right-4"
+      style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+    >
       {/* Floating Particle Container */}
       <div className="relative w-0 h-0 self-center">
         {floatingEmojis.map((item) => (
@@ -169,9 +172,14 @@ export function LikeButton({
         ))}
       </div>
 
-      {/* Expanded Reaction Panel */}
+      {/* Expanded Reaction Panel — wraps onto a second row instead of
+          overflowing off-screen on narrow phones (6 icons don't reliably
+          fit in one row under ~360px). */}
       {isOpen && (
-        <div className="mb-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-slate-900/90 p-2 shadow-2xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95 animate-scale-up mr-2">
+        <div
+          className="mb-3 flex flex-wrap items-center justify-end gap-1 rounded-3xl border border-white/20 bg-slate-900/90 p-2 shadow-2xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95 animate-scale-up mr-2"
+          style={{ maxWidth: 'calc(100vw - 2rem)' }}
+        >
           {REACTION_OPTIONS.map((opt) => {
             const hasReacted = activeReaction === opt.type;
             return (
@@ -179,14 +187,14 @@ export function LikeButton({
                 key={opt.type}
                 onClick={() => handleReact(opt.type, opt.emoji)}
                 disabled={isPending}
-                className={`flex flex-col items-center rounded-full p-2 transition-all active:scale-90 ${
+                className={`flex flex-col items-center rounded-full p-1.5 sm:p-2 transition-all active:scale-90 ${
                   hasReacted
                     ? 'bg-indigo-600/30 border border-indigo-400/50 text-indigo-400 font-black'
                     : 'hover:bg-white/10 text-slate-300 hover:text-white'
                 }`}
                 title={`${opt.label} (${counts[opt.type]})`}
               >
-                <span className="text-xl transition-transform hover:scale-125">{opt.emoji}</span>
+                <span className="text-lg sm:text-xl transition-transform hover:scale-125">{opt.emoji}</span>
                 <span className="mt-0.5 text-[9px] font-bold opacity-80">{counts[opt.type]}</span>
               </button>
             );
@@ -197,7 +205,7 @@ export function LikeButton({
       {/* Main Trigger Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all active:scale-95 ${
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all active:scale-95 ${
           isOpen
             ? 'border-indigo-400 bg-indigo-600 text-white scale-100'
             : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:scale-105 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'

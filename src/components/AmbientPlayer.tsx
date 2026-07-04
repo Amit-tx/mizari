@@ -69,11 +69,12 @@ export function AmbientPlayer() {
   return (
     <button
       onClick={togglePlayback}
-      className={`fixed bottom-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all backdrop-blur-md ${
+      className={`fixed left-3 z-50 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg transition-all backdrop-blur-md sm:left-4 ${
         isPlaying 
           ? 'bg-emerald-500 border-emerald-400 text-white animate-pulse' 
           : 'bg-white/80 border-gray-200 text-gray-700 dark:bg-slate-800/80 dark:border-slate-700 dark:text-slate-200'
       }`}
+      style={{ bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
       title={isPlaying ? 'Mute Wind Chime 🎐' : 'Play Japanese Wind Chime 🎐'}
     >
       <span className="text-lg">{isPlaying ? '🎐' : '🔕'}</span>
