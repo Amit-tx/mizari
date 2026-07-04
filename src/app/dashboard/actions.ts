@@ -596,26 +596,35 @@ export async function ascendProfilePrestige(
   return { success: true, newPrestige: nextPrestige };
 }
 
-// Update announcement settings
+// Update announcement settings — accepts up to 5 rotating messages.
+// Keeps writing the legacy single text/link columns too (using the
+// first message) so nothing that reads the old fields breaks.
 export async function updateAnnouncementSettings(
   profileId: number,
   userId: number,
-  text: string,
-  link: string,
+  messages: { text: string; link: string }[],
   active: number,
   color: string
 ) {
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
-  if (isAdultContent(link, text)) {
-    throw new Error('Adult/NSFW links are blocked on Mizari.');
+  const cleaned = messages
+    .map((m) => ({ text: (m.text || '').trim(), link: (m.link || '').trim() }))
+    .filter((m) => m.text)
+    .slice(0, 5);
+
+  for (const m of cleaned) {
+    if (isAdultContent(m.link, m.text)) {
+      throw new Error('Adult/NSFW links are blocked on Mizari.');
+    }
   }
 
   await db
     .update(profiles)
     .set({
-      announcementText: text.trim(),
-      announcementLink: link.trim(),
+      announcementMessages: JSON.stringify(cleaned),
+      announcementText: cleaned[0]?.text || '',
+      announcementLink: cleaned[0]?.link || '',
       announcementActive: active,
       announcementColor: color,
     })

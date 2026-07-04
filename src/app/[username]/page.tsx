@@ -374,14 +374,27 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       style={bgStyle}
     >
       {/* Announcement Banner */}
-      {profile.announcementActive === 1 && profile.announcementText && (
-        <AnnouncementBanner
-          profileId={profile.id}
-          text={profile.announcementText}
-          link={profile.announcementLink || undefined}
-          bgColor={profile.announcementColor}
-        />
-      )}
+      {profile.announcementActive === 1 && (() => {
+        let bannerMessages: { text: string; link?: string }[] = [];
+        try {
+          bannerMessages = JSON.parse(profile.announcementMessages || '[]');
+        } catch {
+          bannerMessages = [];
+        }
+        // Fall back to the legacy single text/link fields for profiles
+        // that haven't re-saved their banner since this feature shipped.
+        if (bannerMessages.length === 0 && profile.announcementText) {
+          bannerMessages = [{ text: profile.announcementText, link: profile.announcementLink || undefined }];
+        }
+        if (bannerMessages.length === 0) return null;
+        return (
+          <AnnouncementBanner
+            profileId={profile.id}
+            messages={bannerMessages}
+            bgColor={profile.announcementColor}
+          />
+        );
+      })()}
 
       {/* Birthday Confetti animations */}
       {activeBirthdayConfetti && <BirthdayConfetti />}

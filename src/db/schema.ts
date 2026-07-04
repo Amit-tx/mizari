@@ -49,6 +49,11 @@ export const profiles = pgTable(
     prestige: integer('prestige').default(0).notNull(),
     guestbookStyle: varchar('guestbook_style', { length: 30 }).default('tanabata').notNull(),
     guestbookHeading: varchar('guestbook_heading', { length: 100 }).default('Guestbook').notNull(),
+    // JSON-stringified array of up to 5 { text, link } objects. Rotates
+    // automatically on the public profile every few seconds. Kept as a
+    // single text column (rather than 5 separate columns) so the number
+    // of messages can grow later without another migration.
+    announcementMessages: text('announcement_messages').default('[]').notNull(),
     reactionLike: integer('reaction_like').default(0).notNull(),
     reactionLove: integer('reaction_love').default(0).notNull(),
     reactionHaha: integer('reaction_haha').default(0).notNull(),

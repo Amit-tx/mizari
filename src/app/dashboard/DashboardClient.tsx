@@ -81,6 +81,7 @@ interface DashboardClientProps {
     guestbookHeading: string;
     announcementText: string;
     announcementLink: string;
+    announcementMessages: string;
     announcementActive: number;
     announcementColor: string;
     birthday: string;
@@ -160,8 +161,16 @@ export function DashboardClient({
   }, [activeThemeTab, themeSearchQuery]);
 
   // Announcement Banner States
-  const [announcementText, setAnnouncementText] = useState(activeProfile.announcementText || '');
-  const [announcementLink, setAnnouncementLink] = useState(activeProfile.announcementLink || '');
+  const [announcementMessages, setAnnouncementMessages] = useState<{ text: string; link: string }[]>(() => {
+    try {
+      const parsed = JSON.parse(activeProfile.announcementMessages || '[]');
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+    // Fall back to the legacy single text/link fields
+    return activeProfile.announcementText
+      ? [{ text: activeProfile.announcementText, link: activeProfile.announcementLink || '' }]
+      : [{ text: '', link: '' }];
+  });
   const [announcementActive, setAnnouncementActive] = useState(activeProfile.announcementActive === 1);
   const [announcementColor, setAnnouncementColor] = useState(activeProfile.announcementColor || '#FF6B6B');
 
@@ -681,17 +690,18 @@ export function DashboardClient({
   };
 
   const handleSaveAnnouncement = async () => {
-    if (isAdultContent(announcementLink, announcementText)) {
-      alert('Adult/NSFW links are blocked on Mizari.');
-      return;
+    for (const m of announcementMessages) {
+      if (isAdultContent(m.link, m.text)) {
+        alert('Adult/NSFW links are blocked on Mizari.');
+        return;
+      }
     }
     setSaving(true);
     try {
       await updateAnnouncementSettings(
         activeProfile.id,
         userId,
-        announcementText,
-        announcementLink,
+        announcementMessages,
         announcementActive ? 1 : 0,
         announcementColor
       );
@@ -1110,15 +1120,6 @@ export function DashboardClient({
                   >
                     Save Bio
                   </button>
-                  <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-600 dark:text-slate-400">
-                    <input
-                      type="checkbox"
-                      checked={showWishes}
-                      onChange={(e) => handleToggleWishes(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
-                    />
-                    <span>Enable Tanabata Wish Tree 🎋</span>
-                  </label>
                 </div>
               </div>
             </div>
@@ -1197,13 +1198,13 @@ export function DashboardClient({
               ))}
             </div>
 
-            {/* Themes Grid — no inner scroll box on mobile (nested scroll
-                containers are unreliable with touch), the page itself
-                scrolls instead. On larger screens we keep a contained,
-                auto-loading scroll box since mouse-wheel scroll on nested
-                divs works fine there. */}
+            {/* Themes Grid — using flexbox with explicit item widths
+                instead of CSS Grid. Some WebViews/in-app browsers were
+                not applying grid-template-columns reliably, causing
+                items to render at an unpredictable width and overflow
+                the screen. Flex-wrap + calc() widths is more bulletproof. */}
             <div 
-              className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:max-h-[460px] md:max-h-[500px] sm:overflow-y-auto pr-1"
+              className="flex w-full min-w-0 flex-wrap gap-3 sm:max-h-[460px] md:max-h-[500px] sm:overflow-y-auto pr-1"
               style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
               onScroll={(e) => {
                 const target = e.currentTarget;
@@ -1217,7 +1218,10 @@ export function DashboardClient({
                 const isUnlocked = isFree || email.toLowerCase() === 'amit_trillion@proton.me' || purchasedThemeIds.includes(theme.id);
 
                 return (
-                  <div key={theme.id} className="relative group min-w-0 overflow-hidden">
+                  <div
+                    key={theme.id}
+                    className="group relative min-w-0 shrink-0 grow-0 overflow-hidden w-[calc(50%-6px)] sm:w-[calc(25%-9px)]"
+                  >
                     <button
                       type="button"
                       onClick={() => {
@@ -1229,14 +1233,14 @@ export function DashboardClient({
                           }
                         }
                       }}
-                      className={`w-full h-20 flex flex-col items-center justify-center p-2 rounded-2xl border transition-all duration-200 min-w-0 overflow-hidden ${
+                      className={`flex h-20 w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border p-2 transition-all duration-200 ${
                         themeType === theme.id
                           ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
                           : 'border-gray-200 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
                       } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
                       style={{ background: theme.bgGradient || theme.bgColor }}
                     >
-                      <span className="text-xl mb-0.5 relative flex items-center justify-center">
+                      <span className="relative mb-0.5 flex items-center justify-center text-xl">
                         {theme.emoji}
                         {!isUnlocked && (
                           <span className="absolute -top-1 -right-1 text-[10px] bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
@@ -1244,7 +1248,7 @@ export function DashboardClient({
                           </span>
                         )}
                       </span>
-                      <span className="text-[10px] font-extrabold text-center block truncate w-full px-1" style={{ color: theme.textColor }}>
+                      <span className="block w-full truncate px-1 text-center text-[10px] font-extrabold" style={{ color: theme.textColor }}>
                         {theme.name}
                       </span>
                     </button>
@@ -1959,25 +1963,58 @@ export function DashboardClient({
               </label>
 
               <div>
-                <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Banner Text</label>
-                <input
-                  type="text"
-                  value={announcementText}
-                  onChange={(e) => setAnnouncementText(e.target.value)}
-                  placeholder="e.g. 🔥 New Merchandise available now! Get 20% OFF!"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-1">Banner Link (Optional Redirect URL)</label>
-                <input
-                  type="url"
-                  value={announcementLink}
-                  onChange={(e) => setAnnouncementLink(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-gray-600 dark:text-slate-400">
+                    Banner Messages (up to 5 — rotates every 3 seconds if more than one)
+                  </label>
+                  {announcementMessages.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setAnnouncementMessages((prev) => [...prev, { text: '', link: '' }])}
+                      className="text-[11px] font-bold text-[#FF6B6B] hover:underline"
+                    >
+                      + Add message
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {announcementMessages.map((msg, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row gap-2 rounded-xl border border-gray-100 dark:border-slate-800 p-2">
+                      <input
+                        type="text"
+                        value={msg.text}
+                        onChange={(e) => {
+                          const next = [...announcementMessages];
+                          next[idx] = { ...next[idx], text: e.target.value };
+                          setAnnouncementMessages(next);
+                        }}
+                        placeholder={idx === 0 ? 'e.g. 🔥 New Merchandise available now!' : `Message ${idx + 1}`}
+                        className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      />
+                      <input
+                        type="url"
+                        value={msg.link}
+                        onChange={(e) => {
+                          const next = [...announcementMessages];
+                          next[idx] = { ...next[idx], link: e.target.value };
+                          setAnnouncementMessages(next);
+                        }}
+                        placeholder="Optional link"
+                        className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      />
+                      {announcementMessages.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setAnnouncementMessages((prev) => prev.filter((_, i) => i !== idx))}
+                          className="shrink-0 rounded-xl px-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                          title="Remove message"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -2024,6 +2061,16 @@ export function DashboardClient({
           >
 
             <div className="space-y-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={showWishes}
+                  onChange={(e) => handleToggleWishes(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                />
+                <span>Enable Guestbook (visitors can leave messages on your profile) 🎋</span>
+              </label>
+
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-slate-400 mb-2">Guestbook Style</label>
                 <div className="flex gap-4">
