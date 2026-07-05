@@ -889,13 +889,6 @@ export function DashboardClient({
     <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
       {/* Top Gamified Creator Level Bar */}
       <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
-        <button
-          onClick={handleLogout}
-          title="Log Out"
-          className="absolute right-4 top-4 flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold text-gray-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all"
-        >
-          🚪 <span className="hidden sm:inline">Log Out</span>
-        </button>
         <div className="flex items-center gap-3.5">
           <span className="text-3xl filter drop-shadow-md">🏆</span>
           <div>
@@ -936,6 +929,17 @@ export function DashboardClient({
             {ascending ? 'Ascending...' : '🌟 Ascend to Prestige'}
           </button>
         )}
+      </div>
+
+      {/* Logout Button - Separate Row */}
+      <div className="mb-6 flex justify-end">
+        <button
+          onClick={handleLogout}
+          title="Log Out"
+          className="flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-2 text-xs font-bold text-gray-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+        >
+          🚪 <span>Log Out</span>
+        </button>
       </div>
 
       {/* Header & Profile Switcher */}
@@ -1199,12 +1203,9 @@ export function DashboardClient({
             </div>
 
             {/* Themes Grid — using flexbox with explicit item widths
-                instead of CSS Grid. Some WebViews/in-app browsers were
-                not applying grid-template-columns reliably, causing
-                items to render at an unpredictable width and overflow
-                the screen. Flex-wrap + calc() widths is more bulletproof. */}
+                to ensure proper 2-column mobile, 4-column desktop layout. */}
             <div 
-              className="flex w-full min-w-0 flex-wrap gap-3 sm:max-h-[460px] md:max-h-[500px] sm:overflow-y-auto pr-1"
+              className="flex w-full min-w-0 flex-wrap gap-2 sm:gap-3 sm:max-h-[460px] md:max-h-[500px] sm:overflow-y-auto pr-1"
               style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
               onScroll={(e) => {
                 const target = e.currentTarget;
@@ -1220,7 +1221,7 @@ export function DashboardClient({
                 return (
                   <div
                     key={theme.id}
-                    className="group relative min-w-0 shrink-0 grow-0 overflow-hidden w-[calc(50%-6px)] sm:w-[calc(25%-9px)]"
+                    className="group relative min-w-0 shrink-0 grow-0 w-[calc(50%-4px)] sm:w-[calc(25%-7px)] md:w-[calc(25%-7px)]"
                   >
                     <button
                       type="button"
@@ -1233,22 +1234,22 @@ export function DashboardClient({
                           }
                         }
                       }}
-                      className={`flex h-20 w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border p-2 transition-all duration-200 ${
+                      className={`flex h-28 w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border p-2 transition-all duration-200 ${
                         themeType === theme.id
                           ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
                           : 'border-gray-200 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
                       } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
                       style={{ background: theme.bgGradient || theme.bgColor }}
                     >
-                      <span className="relative mb-0.5 flex items-center justify-center text-xl">
+                      <span className="relative mb-1 flex items-center justify-center text-3xl">
                         {theme.emoji}
                         {!isUnlocked && (
-                          <span className="absolute -top-1 -right-1 text-[10px] bg-black/75 rounded-full p-0.5" title="Premium Theme (Locked)">
+                          <span className="absolute -top-2 -right-2 text-xs bg-black/75 rounded-full p-1" title="Premium Theme (Locked)">
                             🔒
                           </span>
                         )}
                       </span>
-                      <span className="block w-full truncate px-1 text-center text-[10px] font-extrabold" style={{ color: theme.textColor }}>
+                      <span className="block w-full truncate px-1 text-center text-xs font-extrabold leading-tight" style={{ color: theme.textColor }}>
                         {theme.name}
                       </span>
                     </button>
@@ -2172,15 +2173,6 @@ export function DashboardClient({
                 className="rounded-2xl bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] px-6 py-2.5 text-xs font-bold transition-all disabled:opacity-60"
               >
                 Update Email
-              </button>
-            </div>
-
-            <div className="mt-5 border-t border-gray-100 dark:border-slate-800 pt-5">
-              <button
-                onClick={handleLogout}
-                className="w-full sm:w-auto rounded-2xl border border-gray-200 dark:border-slate-700 px-6 py-2.5 text-sm font-semibold text-gray-700 dark:text-slate-200 transition-all hover:bg-gray-50 dark:hover:bg-slate-800"
-              >
-                🚪 Log Out
               </button>
             </div>
           </CollapsibleSection>
