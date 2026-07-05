@@ -886,7 +886,112 @@ export function DashboardClient({
   });
 
   return (
-    <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
+      {/* Sticky Top Navigation Bar */}
+      <nav className="sticky top-0 z-40 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+          {/* Left: Logo */}
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-extrabold text-[#FF6B6B]">Mizari</h1>
+          </div>
+
+          {/* Right: Add Link Button + Menu */}
+          <div className="flex items-center gap-2">
+            {/* Add Link Button - Always Visible on desktop */}
+            <button
+              onClick={() => {
+                const addLinkSection = document.querySelector('[data-section="add-link"]');
+                if (addLinkSection) {
+                  addLinkSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  // Also toggle to open the section
+                  setActiveSection('add-link');
+                }
+              }}
+              className="hidden sm:flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95"
+            >
+              ➕ Add Link
+            </button>
+
+            {/* Hamburger Menu */}
+            <button
+              onClick={() => {
+                const menu = document.getElementById('dashboard-menu');
+                if (menu) {
+                  menu.classList.toggle('hidden');
+                }
+              }}
+              className="rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              title="Menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Dropdown Menu */}
+        <div id="dashboard-menu" className="hidden border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 sm:hidden">
+          <div className="px-4 py-2 space-y-1">
+            <button
+              onClick={() => {
+                setActiveSection('profile');
+                document.getElementById('dashboard-menu')?.classList.add('hidden');
+              }}
+              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
+            >
+              👤 Profile Details
+            </button>
+            <button
+              onClick={() => {
+                setActiveSection('preset-themes');
+                document.getElementById('dashboard-menu')?.classList.add('hidden');
+              }}
+              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
+            >
+              🎨 Themes
+            </button>
+            <button
+              onClick={() => {
+                setActiveSection('add-link');
+                document.getElementById('dashboard-menu')?.classList.add('hidden');
+              }}
+              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
+            >
+              ➕ Add Link
+            </button>
+            <button
+              onClick={() => {
+                setActiveSection('your-links');
+                document.getElementById('dashboard-menu')?.classList.add('hidden');
+              }}
+              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
+            >
+              🔗 Your Links
+            </button>
+            <button
+              onClick={() => {
+                setActiveSection('analytics');
+                document.getElementById('dashboard-menu')?.classList.add('hidden');
+              }}
+              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
+            >
+              📊 Analytics
+            </button>
+            <hr className="my-2 dark:border-slate-700" />
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-sm font-medium text-red-600 dark:text-red-400"
+            >
+              🚪 Log Out
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Dashboard Content */}
+      <main className="flex-1">
+      <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
       {/* Top Gamified Creator Level Bar */}
       <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-3.5">
@@ -1062,7 +1167,8 @@ export function DashboardClient({
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          <CollapsibleSection
+          <div data-section="profile">
+        <CollapsibleSection
             title="Profile Details"
             icon="👤"
             isOpen={activeSection === 'profile'}
@@ -1128,9 +1234,11 @@ export function DashboardClient({
               </div>
             </div>
           </CollapsibleSection>
+      </div>
 
           {/* Preset Japanese & Anime Themes */}
-          <CollapsibleSection
+          <div data-section="preset-themes">
+        <CollapsibleSection
             title="Preset & Seasonal Themes"
             icon="🎨"
             subtitle="Select a predefined theme to instant-apply beautiful animated day/night styles."
@@ -1271,9 +1379,11 @@ export function DashboardClient({
               </div>
             )}
           </CollapsibleSection>
+      </div>
 
           {/* Custom Theme & Background Builder */}
-          <CollapsibleSection
+          <div data-section="custom-theme">
+        <CollapsibleSection
             title="Custom Theme Builder"
             icon="🖌️"
             isOpen={activeSection === 'custom-theme'}
@@ -1556,9 +1666,11 @@ export function DashboardClient({
           */}
             </div>
           </CollapsibleSection>
+      </div>
 
           {/* Add Link or Product Card */}
-          <CollapsibleSection
+          <div data-section="add-link">
+        <CollapsibleSection
             title="Add Link or Product Card"
             icon="➕"
             isOpen={activeSection === 'add-link'}
@@ -1784,9 +1896,11 @@ export function DashboardClient({
             </div>
             )}
           </CollapsibleSection>
+      </div>
 
           {/* Links list with Drag and Drop */}
-          <CollapsibleSection
+          <div data-section="your-links">
+        <CollapsibleSection
             title={`Your Links (${linksList.length})`}
             icon="🔗"
             subtitle="Drag and drop the cards below to reorder them instantly."
@@ -1823,9 +1937,11 @@ export function DashboardClient({
               ))}
             </div>
           </CollapsibleSection>
+      </div>
 
           {/* Visitor Analytics Panel */}
-          <CollapsibleSection
+          <div data-section="analytics">
+        <CollapsibleSection
             title="Visitor Analytics"
             icon="📊"
             subtitle="Real-time traffic analysis, referrer sources, and visitor devices."
@@ -1942,9 +2058,11 @@ export function DashboardClient({
               </div>
             </div>
           </CollapsibleSection>
+      </div>
 
           {/* Announcement Banner Settings */}
-          <CollapsibleSection
+          <div data-section="banner">
+        <CollapsibleSection
             title="Announcement Banner"
             icon="📢"
             subtitle="Display a prominent flashing announcement bar at the top of your page."
@@ -2051,9 +2169,11 @@ export function DashboardClient({
               </button>
             </div>
           </CollapsibleSection>
+      </div>
 
           {/* Guestbook preferences & moderation */}
-          <CollapsibleSection
+          <div data-section="guestbook">
+        <CollapsibleSection
             title="Guestbook & Moderation"
             icon="🎋"
             subtitle="Change your guestbook layout and moderate entries left by visitors."
@@ -2148,10 +2268,12 @@ export function DashboardClient({
               </div>
             </div>
           </CollapsibleSection>
+      </div>
 
 
           {/* Account Settings: Change Email */}
-          <CollapsibleSection
+          <div data-section="account">
+        <CollapsibleSection
             title="Account Settings"
             icon="⚙️"
             subtitle="Update your registered email address."
@@ -2176,9 +2298,11 @@ export function DashboardClient({
               </button>
             </div>
           </CollapsibleSection>
+      </div>
 
           {/* Danger Zone: Delete Account */}
-          <CollapsibleSection
+          <div data-section="danger">
+        <CollapsibleSection
             title="Danger Zone"
             danger
             isOpen={activeSection === 'danger'}
@@ -2220,6 +2344,7 @@ export function DashboardClient({
               )}
             </div>
           </CollapsibleSection>
+      </div>
         </div>
 
         {/* Right column: live preview */}
@@ -2285,6 +2410,8 @@ export function DashboardClient({
           </div>
         </div>
       )}
+      </div>
+      </main>
     </div>
   );
 }
