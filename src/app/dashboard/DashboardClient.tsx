@@ -936,7 +936,13 @@ export function DashboardClient({
             <button
               onClick={() => {
                 setActiveSection('profile');
-                document.getElementById('dashboard-menu')?.classList.add('hidden');
+                const menu = document.getElementById('dashboard-menu');
+                if (menu) menu.classList.add('hidden');
+                // Scroll after section is set
+                setTimeout(() => {
+                  const el = document.querySelector('[data-section="profile"]');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
               }}
               className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
             >
@@ -945,7 +951,12 @@ export function DashboardClient({
             <button
               onClick={() => {
                 setActiveSection('preset-themes');
-                document.getElementById('dashboard-menu')?.classList.add('hidden');
+                const menu = document.getElementById('dashboard-menu');
+                if (menu) menu.classList.add('hidden');
+                setTimeout(() => {
+                  const el = document.querySelector('[data-section="preset-themes"]');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
               }}
               className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
             >
@@ -954,7 +965,12 @@ export function DashboardClient({
             <button
               onClick={() => {
                 setActiveSection('add-link');
-                document.getElementById('dashboard-menu')?.classList.add('hidden');
+                const menu = document.getElementById('dashboard-menu');
+                if (menu) menu.classList.add('hidden');
+                setTimeout(() => {
+                  const el = document.querySelector('[data-section="add-link"]');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
               }}
               className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
             >
@@ -963,7 +979,12 @@ export function DashboardClient({
             <button
               onClick={() => {
                 setActiveSection('your-links');
-                document.getElementById('dashboard-menu')?.classList.add('hidden');
+                const menu = document.getElementById('dashboard-menu');
+                if (menu) menu.classList.add('hidden');
+                setTimeout(() => {
+                  const el = document.querySelector('[data-section="your-links"]');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
               }}
               className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
             >
@@ -972,7 +993,12 @@ export function DashboardClient({
             <button
               onClick={() => {
                 setActiveSection('analytics');
-                document.getElementById('dashboard-menu')?.classList.add('hidden');
+                const menu = document.getElementById('dashboard-menu');
+                if (menu) menu.classList.add('hidden');
+                setTimeout(() => {
+                  const el = document.querySelector('[data-section="analytics"]');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
               }}
               className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
             >
