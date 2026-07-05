@@ -690,12 +690,79 @@ export function DashboardClient({
   };
 
   const handleSaveAnnouncement = async () => {
+    // Frontend validation - only catch severe abuses
     for (const m of announcementMessages) {
-      if (isAdultContent(m.link, m.text)) {
-        alert('Adult/NSFW links are blocked on Mizari.');
+      // 1. Check message length
+      if (m.text.length > 200) {
+        alert('Announcement message must be 200 characters or less');
         return;
       }
+
+      // 2. Check for adult content (strict - real abuse)
+      if (isAdultContent(m.link, m.text)) {
+        alert('Adult/NSFW links are not allowed on Mizari.');
+        return;
+      }
+
+      // 3. Check for excessive URLs (>1 = likely spam)
+      const urlMatches = m.text.match(/(https?:\/\/|www\.)[^\s]+/gi) || [];
+      if (urlMatches.length > 1) {
+        alert('Only one URL is allowed per announcement');
+        return;
+      }
+
+      // 4. Check for extreme repetition (5+ times = clearly spam)
+      const words = m.text.split(/\s+/);
+      const wordCounts: { [key: string]: number } = {};
+      for (const word of words) {
+        const lower = word.toLowerCase().replace(/[^\w]/g, '');
+        if (lower.length > 2) {
+          wordCounts[lower] = (wordCounts[lower] || 0) + 1;
+        }
+      }
+      const maxRepeat = Math.max(...Object.values(wordCounts), 0);
+      if (maxRepeat >= 5) {
+        alert('Announcement looks like spam - please use fewer repetitions');
+        return;
+      }
+
+      // 5. Check for excessive emojis (>10 = likely spam)
+      const emojiPattern = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+      const emojiCount = (m.text.match(emojiPattern) || []).length;
+      if (emojiCount > 10) {
+        alert('Too many emojis - keep announcement simple and readable');
+        return;
+      }
+
+      // 6. Check for link shorteners (click fraud tool)
+      if (m.link) {
+        const linkLower = m.link.toLowerCase();
+        if (linkLower.includes('bit.ly') || linkLower.includes('tinyurl') || linkLower.includes('ow.ly') || 
+            linkLower.includes('adf.ly') || linkLower.includes('short.link') || linkLower.includes('rebrandly')) {
+          alert('Link shorteners are not allowed - use direct links only');
+          return;
+        }
+      }
+
+      // 7. Severe CAPS abuse (>85% = clearly yelling, not legitimate acronyms like "USA")
+      if (m.text.length > 10) {
+        const upperCount = (m.text.match(/[A-Z]/g) || []).length;
+        if (upperCount > m.text.length * 0.85) {
+          alert('Please use normal capitalization');
+          return;
+        }
+      }
+
+      // 8. Extreme special character abuse (>25% = likely obfuscation like fr33 m0ney)
+      if (m.text.length > 20) {
+        const specialCount = (m.text.match(/[!@#$%^&*~0-9]/g) || []).length;
+        if (specialCount > m.text.length * 0.25) {
+          alert('Too many numbers/special characters - keep it natural');
+          return;
+        }
+      }
     }
+
     setSaving(true);
     try {
       await updateAnnouncementSettings(
@@ -708,7 +775,8 @@ export function DashboardClient({
       showMessage('Announcement settings saved!');
     } catch(e) {
       console.error(e);
-      alert('Failed to save announcement settings');
+      const errorMsg = (e as any)?.message || 'Failed to save announcement settings';
+      alert(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -920,7 +988,7 @@ export function DashboardClient({
                   menu.classList.toggle('hidden');
                 }
               }}
-              className="rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="sm:hidden rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
               title="Menu"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1383,7 +1451,7 @@ export function DashboardClient({
                           </span>
                         )}
                       </span>
-                      <span className="block w-full truncate px-1 text-center text-xs font-extrabold leading-tight" style={{ color: theme.textColor }}>
+                      <span className="block w-full px-1 text-center text-xs font-extrabold leading-tight line-clamp-2" style={{ color: theme.textColor }}>
                         {theme.name}
                       </span>
                     </button>
@@ -2123,19 +2191,30 @@ export function DashboardClient({
                   )}
                 </div>
                 <div className="space-y-2">
-                  {announcementMessages.map((msg, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row gap-2 rounded-xl border border-gray-100 dark:border-slate-800 p-2">
-                      <input
-                        type="text"
-                        value={msg.text}
-                        onChange={(e) => {
-                          const next = [...announcementMessages];
-                          next[idx] = { ...next[idx], text: e.target.value };
-                          setAnnouncementMessages(next);
-                        }}
-                        placeholder={idx === 0 ? 'e.g. 🔥 New Merchandise available now!' : `Message ${idx + 1}`}
-                        className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
-                      />
+                  {announcementMessages.map((msg, idx) => {
+                    const msgLen = msg.text.length;
+                    const isOverLimit = msgLen > 200;
+                    
+                    return (
+                    <div key={idx} className="flex flex-col sm:flex-row gap-2 rounded-xl border border-gray-100 dark:border-slate-800 p-3">
+                      <div className="flex-1 min-w-0">
+                        <input
+                          type="text"
+                          value={msg.text}
+                          onChange={(e) => {
+                            const next = [...announcementMessages];
+                            next[idx] = { ...next[idx], text: e.target.value };
+                            setAnnouncementMessages(next);
+                          }}
+                          placeholder={idx === 0 ? 'e.g. 🔥 New Merchandise available now! or 🎉 Big sale this weekend' : `Message ${idx + 1}`}
+                          className={`w-full rounded-xl border ${isOverLimit ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : 'border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-800'} px-3.5 py-2 text-xs focus:outline-none dark:text-white`}
+                        />
+                        <div className="flex items-center justify-between gap-2 mt-1.5">
+                          <span className={`text-[10px] font-medium ${isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-slate-400'}`}>
+                            {msgLen}/200 characters
+                          </span>
+                        </div>
+                      </div>
                       <input
                         type="url"
                         value={msg.link}
@@ -2144,7 +2223,7 @@ export function DashboardClient({
                           next[idx] = { ...next[idx], link: e.target.value };
                           setAnnouncementMessages(next);
                         }}
-                        placeholder="Optional link"
+                        placeholder="Optional link (no shorteners)"
                         className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                       />
                       {announcementMessages.length > 1 && (
@@ -2158,7 +2237,8 @@ export function DashboardClient({
                         </button>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

@@ -119,7 +119,7 @@ const mappedAnimeThemes: StoreTheme[] = animeThemes.map((t) => {
 });
 
 const PRESET_THEMES: StoreTheme[] = [
-  // ── FREE THEMES (10) ──────────────────────────────────────
+  // ── FREE THEMES (11) ──────────────────────────────────────
   { id: 'light',      name: 'Clean Light',     emoji: '☀️',  tier: 'free', price: 0, description: 'Simple and clean light mode', categories: ['Minimal', 'Business'], tags: ['minimal', 'clean'], bgColor: '#fafafa', textColor: '#1a1a2e', btnBg: '#f3f4f6' },
   { id: 'dark',       name: 'Midnight Dark',   emoji: '🌑',  tier: 'free', price: 0, description: 'Sleek dark mode for night owls', categories: ['Minimal', 'Business'], tags: ['dark', 'minimal'], bgColor: '#0f172a', textColor: '#e2e8f0', btnBg: '#1e293b' },
   { id: 'sakura',     name: 'Sakura',          emoji: '🌸',  tier: 'free', price: 0, description: 'Cherry blossom pink with falling petals', categories: ['Anime', 'Creator'], tags: ['anime', 'pink', 'spring'], bgColor: '#FFF0F5', textColor: '#8C3A4F', btnBg: '#FFD6E0', effect: 'sakura', bgGradient: 'linear-gradient(135deg, #FFF0F5 0%, #FFE4E1 100%)' },
@@ -130,6 +130,7 @@ const PRESET_THEMES: StoreTheme[] = [
   { id: 'momiji',     name: 'Momiji Autumn',   emoji: '🍁',  tier: 'free', price: 0, description: 'Warm autumn red tones', categories: ['Anime', 'Creator'], tags: ['autumn', 'red', 'warm'], bgColor: '#FDF2F2', textColor: '#9B1C1C', btnBg: '#FDE8E8', effect: 'autumn', bgGradient: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)' },
   { id: 'ame',        name: 'Ame Rain',        emoji: '🌧',  tier: 'free', price: 0, description: 'Rainy day lo-fi vibes', categories: ['Minimal', 'Creator'], tags: ['rain', 'lo-fi', 'grey'], bgColor: '#ECF1F6', textColor: '#2F4F4F', btnBg: '#D5E1ED', effect: 'rain' },
   { id: 'zen',        name: 'Zen Stone',       emoji: '🪨',  tier: 'free', price: 0, description: 'Minimalist stone grey', categories: ['Minimal', 'Business'], tags: ['minimal', 'grey', 'zen'], bgColor: '#F5F5F4', textColor: '#44403C', btnBg: '#E7E5E4' },
+  { id: 'yakutsk',    name: 'Yakutsk Frost',   emoji: '❄️',  tier: 'free', price: 0, description: 'Siberian ice palace with aurora borealis', categories: ['Minimal', 'Creator'], tags: ['ice', 'siberia', 'aurora', 'frozen'], bgColor: '#E8F6F9', textColor: '#0A5F7F', btnBg: '#B8EBF5', effect: 'aurora', bgGradient: 'linear-gradient(135deg, #E8F6F9 0%, #9FE2E9 50%, #4FBAE8 100%)' },
 
   // ── PREMIUM THEMES ₹49 ────────────────────────────────────
   { id: 'galaxy_dream',     name: 'Galaxy Dream',      emoji: '✨',  tier: 'premium', price: 49, description: 'Deep space purple with shooting stars', categories: ['Anime', 'Creator', 'Luxury'], tags: ['space', 'dark', 'purple', 'anime'], bgColor: '#0B0014', textColor: '#DDD6FE', btnBg: '#1E0A3C', effect: 'shooting_stars', bgGradient: 'linear-gradient(135deg, #0B0014 0%, #1E0A3C 50%, #2D1B69 100%)' },

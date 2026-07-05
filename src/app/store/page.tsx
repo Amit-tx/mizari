@@ -1,75 +1,31 @@
-import { auth } from '@/auth';
-import { db } from '@/db';
-import { themePurchases } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import StoreClient from './StoreClient';
-import { redirect } from 'next/navigation';
-
 export const metadata = {
-  title: 'Mizari Theme Store — Premium Anime Themes',
-  description: 'Customize your Mizari link-in-bio page with premium animated themes. Buy once, use on any profile.',
+  title: 'Themes',
+  description: 'All themes are available free in your dashboard.',
 };
 
-export default async function StorePage() {
-  const session = await auth();
-  const userId = session?.user?.id ? parseInt(session.user.id) : null;
-
-  const { themePurchases, marketplaceThemes } = await import('@/db/schema');
-  
-  // Wrapped in try/catch: these tables may not exist yet if migration 0002
-  // hasn't been run. Store still renders with built-in themes only.
-  let purchasedThemeIds: string[] = [];
-  let mThemes: any[] = [];
-
-  try {
-    if (userId) {
-      const purchases = await db
-        .select()
-        .from(themePurchases)
-        .where(eq(themePurchases.userId, userId));
-
-      purchasedThemeIds = purchases
-        .filter((p) => p.status === 'paid')
-        .map((p) => p.themeId);
-    }
-
-    mThemes = await db
-      .select()
-      .from(marketplaceThemes)
-      .where(eq(marketplaceThemes.status, 'active'));
-  } catch (err) {
-    console.warn('[StorePage] marketplace tables missing — run migration 0002:', err);
-  }
-
-  const communityThemes = mThemes.map((ct) => {
-    // Determine tags/categories based on styling config
-    const cats: ('Anime' | 'Minimal' | 'Luxury' | 'Gaming' | 'Creator' | 'Business')[] = ['Creator'];
-    if (ct.price >= 99) cats.push('Luxury');
-    if (ct.backdropStyle.includes('solid')) cats.push('Minimal');
-    else cats.push('Anime');
-
-    return {
-      id: String(ct.id),
-      name: ct.name,
-      emoji: '🎨',
-      tier: (ct.price >= 99 ? 'exclusive' : 'premium') as 'premium' | 'exclusive',
-      price: ct.price,
-      description: `Created by a Mizari Creator. Features custom colors and backdrop elements.`,
-      categories: cats,
-      tags: ['creator', 'community'],
-      bgColor: ct.bgColor,
-      textColor: ct.textColor,
-      btnBg: ct.bgColor,
-      bgGradient: ct.bgImage ? `url(${ct.bgImage})` : undefined,
-    };
-  });
-
+export default function StorePage() {
   return (
-    <StoreClient 
-      userId={userId} 
-      purchasedThemeIds={purchasedThemeIds} 
-      userEmail={session?.user?.email || ''} 
-      communityThemes={communityThemes}
-    />
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950 px-4">
+      <div className="text-center max-w-md">
+        <h1 className="text-4xl font-black text-[#FF6B6B] mb-2">🎨 All Themes Free</h1>
+        <p className="text-gray-600 dark:text-slate-400 mb-6">
+          All 11 beautiful themes are now available free in your dashboard. No store needed!
+        </p>
+        <div className="bg-gradient-to-r from-[#FF6B6B]/10 to-[#EE5A24]/10 rounded-2xl p-6 mb-6">
+          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+            ✨ Dashboard Themes:
+          </p>
+          <p className="text-xs text-gray-600 dark:text-slate-400 mt-2">
+            Clean Light, Midnight Dark, Sakura, Tsukiyo Moon, Mizukaze Wave, Aozora Sky, Kurohana, Momiji Autumn, Ame Rain, Zen Stone, Yakutsk Frost
+          </p>
+        </div>
+        <a
+          href="/dashboard"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95"
+        >
+          🎨 Go to Dashboard
+        </a>
+      </div>
+    </div>
   );
 }
