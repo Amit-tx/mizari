@@ -10,6 +10,21 @@ html, body {
   max-width: 100%;
 }
 
+/* ROOT-CAUSE FIX for the "content cut off on the right on mobile" bug:
+   by default, a flex or grid ITEM has min-width:auto, which means an
+   unshrinkable descendant (like a horizontally-scrollable tab row or a
+   long unbroken string) can force that item — and everything above it —
+   wider than the screen, even though the descendant itself scrolls fine
+   in isolation. This resets that default everywhere, once, so no nested
+   row can ever blow out a page's width again. Safe: it only removes an
+   auto-shrink floor, it doesn't force anything smaller than its content
+   actually needs. */
+.flex > *,
+.inline-flex > *,
+.grid > * {
+  min-width: 0;
+}
+
 /* --- Theme tokens --- */
 @theme inline {
   --color-background: var(--bg-primary);
