@@ -550,6 +550,17 @@ export function DashboardClient({
 
   const handleAddLink = async () => {
     if (!newTitle.trim() || !newUrl.trim()) return;
+    
+    // Validate schedule dates
+    if (scheduledStart && scheduledEnd) {
+      const startTime = new Date(scheduledStart).getTime();
+      const endTime = new Date(scheduledEnd).getTime();
+      if (endTime <= startTime) {
+        alert('End date must be after start date');
+        return;
+      }
+    }
+    
     if (isAdultContent(newUrl, newTitle)) {
       alert('Adult/NSFW links are blocked on Mizari.');
       return;
@@ -1393,7 +1404,7 @@ export function DashboardClient({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveThemeTab(tab.id)}
-                  className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all whitespace-nowrap ${
+                  className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all whitespace-nowrap min-w-max ${
                     activeThemeTab === tab.id
                       ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
                       : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800'
@@ -1953,29 +1964,32 @@ export function DashboardClient({
               )}
 
               {/* Scheduling settings */}
-              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-800">
+              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30">
+                <div className="sm:col-span-2 text-xs text-blue-700 dark:text-blue-300 mb-2">
+                  ℹ️ Links will be hidden before start date and after end date. Dates use your local timezone.
+                </div>
                 <div>
                   <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                    Start Schedule (Optional)
-                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Set the exact date & time when this link should automatically become visible on your profile page.">ℹ️</span>
+                    Show After (Optional)
+                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Link becomes visible on this date & time">ℹ️</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={scheduledStart}
                     onChange={(e) => setScheduledStart(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                    End Schedule (Optional)
-                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Set the exact date & time when this link should automatically disappear from your profile page.">ℹ️</span>
+                    Hide After (Optional)
+                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Link disappears on this date & time">ℹ️</span>
                   </label>
                   <input
                     type="datetime-local"
                     value={scheduledEnd}
                     onChange={(e) => setScheduledEnd(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
               </div>
