@@ -1398,13 +1398,13 @@ export function DashboardClient({
             </div>
 
             {/* Theme Tabs */}
-            <div className="flex w-full min-w-0 gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar scrollbar-thin">
+            <div className="flex w-full min-w-0 gap-1.5 sm:gap-2 mb-6 border-b border-gray-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar scrollbar-thin pr-2">
               {THEME_TABS.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveThemeTab(tab.id)}
-                  className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all whitespace-nowrap min-w-max ${
+                  className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shrink-0 ${
                     activeThemeTab === tab.id
                       ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
                       : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800'
