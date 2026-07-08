@@ -427,7 +427,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       {/* New Anime Effects */}
       {(profile.themeType === 'moonlight_forest' || profile.themeType === 'shrine_festival' || profile.themeType === 'bamboo_zen') && <FirefliesEffect />}
       {(profile.themeType === 'galaxy_dream' || profile.themeType === 'tsukiyo' || profile.themeType === 'frieren' || profile.themeType === 'demon_slayer') && <ShootingStarsEffect />}
-      {(profile.themeType === 'ame' || profile.themeType === 'cyber_tokyo') && <RainEffect />}
+      {(profile.themeType === 'ame' || profile.themeType === 'kyoto-rain' || profile.themeType === 'cyber_tokyo') && <RainEffect />}
       {(profile.themeType === 'sky_kingdom' || profile.themeType === 'ocean_sunset' || profile.themeType === 'aozora' || profile.themeType === 'railway_sunset') && <CloudsEffect />}
 
       {/* Floating Ambient Sound Player */}
