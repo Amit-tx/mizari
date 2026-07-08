@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 const features = [
   {
@@ -33,7 +35,13 @@ const features = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  // If user is logged in, redirect to dashboard
+  const session = await auth();
+  if (session?.user) {
+    redirect('/dashboard');
+  }
+
   return (
     <>
       {/* Hero */}
