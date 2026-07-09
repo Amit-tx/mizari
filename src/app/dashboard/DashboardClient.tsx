@@ -6,6 +6,7 @@ import { signOut } from 'next-auth/react';
 import { LinkCard } from '@/components/LinkCard';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { ProfilePreview } from '@/components/ProfilePreview';
+import { DashboardOverview } from './DashboardOverview';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';
@@ -1097,6 +1098,18 @@ export function DashboardClient({
       {/* Dashboard Content */}
       <main className="flex-1">
       <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
+      
+      {/* Dashboard Overview Cards */}
+      <DashboardOverview
+        username={activeProfile.username}
+        profileBio={activeProfile.bio}
+        avatarUrl={avatarUrl}
+        linksCount={linksList.length}
+        totalClicks={activeProfile.likes || 0}
+        weeklyViews={profileClickLogs.filter((log) => log.targetType === 'view').length}
+        weeklyClickRate={linksList.length > 0 ? ((profileClickLogs.filter((log) => log.targetType === 'click').length / Math.max(profileClickLogs.filter((log) => log.targetType === 'view').length, 1)) * 100) : 0}
+      />
+
       {/* Top Gamified Creator Level Bar */}
       <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-3.5">
