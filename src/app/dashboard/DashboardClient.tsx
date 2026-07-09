@@ -967,137 +967,23 @@ export function DashboardClient({
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
-      {/* Sticky Top Navigation Bar */}
-      <nav className="sticky top-0 z-40 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          {/* Left: Logo */}
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-extrabold text-[#FF6B6B]">Mizari</h1>
-          </div>
-
-          {/* Right: Add Link Button + Menu */}
-          <div className="flex items-center gap-2">
-            {/* Add Link Button - Always Visible on desktop */}
-            <button
-              onClick={() => {
-                const addLinkSection = document.querySelector('[data-section="add-link"]');
-                if (addLinkSection) {
-                  addLinkSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  // Also toggle to open the section
-                  setActiveSection('add-link');
-                }
-              }}
-              className="hidden sm:flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95"
-            >
-              ➕ Add Link
-            </button>
-
-            {/* Hamburger Menu */}
-            <button
-              onClick={() => {
-                const menu = document.getElementById('dashboard-menu');
-                if (menu) {
-                  menu.classList.toggle('hidden');
-                }
-              }}
-              className="sm:hidden rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
-              title="Menu"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Dropdown Menu */}
-        <div id="dashboard-menu" className="hidden border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 sm:hidden">
-          <div className="px-4 py-2 space-y-1">
-            <button
-              onClick={() => {
-                setActiveSection('profile');
-                const menu = document.getElementById('dashboard-menu');
-                if (menu) menu.classList.add('hidden');
-                // Scroll after section is set
-                setTimeout(() => {
-                  const el = document.querySelector('[data-section="profile"]');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
-            >
-              👤 Profile Details
-            </button>
-            <button
-              onClick={() => {
-                setActiveSection('preset-themes');
-                const menu = document.getElementById('dashboard-menu');
-                if (menu) menu.classList.add('hidden');
-                setTimeout(() => {
-                  const el = document.querySelector('[data-section="preset-themes"]');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
-            >
-              🎨 Themes
-            </button>
-            <button
-              onClick={() => {
-                setActiveSection('add-link');
-                const menu = document.getElementById('dashboard-menu');
-                if (menu) menu.classList.add('hidden');
-                setTimeout(() => {
-                  const el = document.querySelector('[data-section="add-link"]');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
-            >
-              ➕ Add Link
-            </button>
-            <button
-              onClick={() => {
-                setActiveSection('your-links');
-                const menu = document.getElementById('dashboard-menu');
-                if (menu) menu.classList.add('hidden');
-                setTimeout(() => {
-                  const el = document.querySelector('[data-section="your-links"]');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
-            >
-              🔗 Your Links
-            </button>
-            <button
-              onClick={() => {
-                setActiveSection('analytics');
-                const menu = document.getElementById('dashboard-menu');
-                if (menu) menu.classList.add('hidden');
-                setTimeout(() => {
-                  const el = document.querySelector('[data-section="analytics"]');
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-              }}
-              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200"
-            >
-              📊 Analytics
-            </button>
-            <hr className="my-2 dark:border-slate-700" />
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-sm font-medium text-red-600 dark:text-red-400"
-            >
-              🚪 Log Out
-            </button>
-          </div>
+      {/* Top Bar - MINIMAL: just logo + logout, nothing else */}
+      <nav className="sticky top-0 z-40 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-black text-[#FF6B6B]">Mizari</h1>
+          <button
+            onClick={handleLogout}
+            title="Log Out"
+            className="text-xl hover:scale-110 transition-transform"
+          >
+            🚪
+          </button>
         </div>
       </nav>
 
       {/* Dashboard Content */}
       <main className="flex-1">
-      <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-8">
       
       {/* Dashboard Overview Cards */}
       <DashboardOverview
@@ -1152,17 +1038,6 @@ export function DashboardClient({
             {ascending ? 'Ascending...' : '🌟 Ascend to Prestige'}
           </button>
         )}
-      </div>
-
-      {/* Logout Button - Separate Row */}
-      <div className="mb-6 flex justify-end">
-        <button
-          onClick={handleLogout}
-          title="Log Out"
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-slate-700 px-4 py-2 text-xs font-bold text-gray-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
-        >
-          🚪 <span>Log Out</span>
-        </button>
       </div>
 
       {/* Header & Profile Switcher */}
@@ -2545,6 +2420,44 @@ export function DashboardClient({
       )}
       </div>
       </main>
+
+      {/* Bottom Navigation Bar - fixed, app-style. This is the ONLY
+          navigation on the dashboard: tap an icon, that section opens
+          and the page scrolls to it. Nothing else lives outside this
+          screen for a logged-in user. */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="mx-auto max-w-md flex items-stretch justify-around">
+          {[
+            { id: 'profile', icon: '👤', label: 'Profile' },
+            { id: 'preset-themes', icon: '🎨', label: 'Themes' },
+            { id: 'add-link', icon: '➕', label: 'Add' },
+            { id: 'your-links', icon: '🔗', label: 'Links' },
+            { id: 'analytics', icon: '📊', label: 'Stats' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveSection(item.id);
+                setTimeout(() => {
+                  const el = document.querySelector(`[data-section="${item.id}"]`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+              }}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${
+                activeSection === item.id
+                  ? 'text-[#FF6B6B]'
+                  : 'text-gray-500 dark:text-slate-400'
+              }`}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span className="text-[10px] font-bold">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
