@@ -139,6 +139,11 @@ export function DashboardClient({
   const [newTitle, setNewTitle] = useState('');
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>('profile');
+  // Separate from activeSection: this drives WHICH bottom-nav tab is
+  // showing. activeSection is reused for the accordion-open state of
+  // individual cards inside a tab, so it must not double as the tab
+  // switch or collapsing a card would also hide the whole tab.
+  const [activeTab, setActiveTab] = useState<string>('profile');
   const toggleSection = (id: string) => setActiveSection((prev) => (prev === id ? null : id));
   const [bulkText, setBulkText] = useState('');
   const [bulkAdding, setBulkAdding] = useState(false);
@@ -985,6 +990,8 @@ export function DashboardClient({
       <main className="flex-1">
       <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-8">
       
+      {activeTab === 'profile' && (
+      <>
       {/* Dashboard Overview Cards */}
       <DashboardOverview
         username={activeProfile.username}
@@ -1153,6 +1160,8 @@ export function DashboardClient({
           </div>
         </div>
       )}
+      </>
+      )}
 
       {/* Main Responsive Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
@@ -1160,6 +1169,7 @@ export function DashboardClient({
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
+          {activeTab === 'profile' && (
           <div data-section="profile">
         <CollapsibleSection
             title="Profile Details"
@@ -1228,8 +1238,10 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      )}
 
           {/* Preset Japanese & Anime Themes */}
+          {(activeTab === 'preset-themes') && (
           <div data-section="preset-themes">
         <CollapsibleSection
             title="Preset & Seasonal Themes"
@@ -1660,8 +1672,10 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      )}
 
           {/* Add Link or Product Card */}
+          {activeTab === 'add-link' && (
           <div data-section="add-link">
         <CollapsibleSection
             title="Add Link or Product Card"
@@ -1893,8 +1907,10 @@ export function DashboardClient({
             )}
           </CollapsibleSection>
       </div>
+      )}
 
           {/* Links list with Drag and Drop */}
+          {activeTab === 'your-links' && (
           <div data-section="your-links">
         <CollapsibleSection
             title={`Your Links (${linksList.length})`}
@@ -1934,8 +1950,10 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      )}
 
           {/* Visitor Analytics Panel */}
+          {activeTab === 'analytics' && (
           <div data-section="analytics">
         <CollapsibleSection
             title="Visitor Analytics"
@@ -2055,8 +2073,10 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      )}
 
           {/* Announcement Banner Settings */}
+          {activeTab === 'profile' && (
           <div data-section="banner">
         <CollapsibleSection
             title="Announcement Banner"
@@ -2353,6 +2373,7 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      )}
         </div>
 
         {/* Right column: live preview */}
@@ -2422,9 +2443,9 @@ export function DashboardClient({
       </main>
 
       {/* Bottom Navigation Bar - fixed, app-style. This is the ONLY
-          navigation on the dashboard: tap an icon, that section opens
-          and the page scrolls to it. Nothing else lives outside this
-          screen for a logged-in user. */}
+          navigation on the dashboard. Tap an icon and ONLY that
+          section's content renders — everything else is completely
+          hidden, not just scrolled past. */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
@@ -2440,14 +2461,11 @@ export function DashboardClient({
             <button
               key={item.id}
               onClick={() => {
-                setActiveSection(item.id);
-                setTimeout(() => {
-                  const el = document.querySelector(`[data-section="${item.id}"]`);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
+                setActiveTab(item.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${
-                activeSection === item.id
+                activeTab === item.id
                   ? 'text-[#FF6B6B]'
                   : 'text-gray-500 dark:text-slate-400'
               }`}
