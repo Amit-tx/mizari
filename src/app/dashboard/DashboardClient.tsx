@@ -992,17 +992,6 @@ export function DashboardClient({
       
       {activeTab === 'profile' && (
       <>
-      {/* Dashboard Overview Cards */}
-      <DashboardOverview
-        username={activeProfile.username}
-        profileBio={activeProfile.bio}
-        avatarUrl={avatarUrl}
-        linksCount={linksList.length}
-        totalClicks={activeProfile.likes || 0}
-        weeklyViews={profileClickLogs.filter((log) => log.targetType === 'view').length}
-        weeklyClickRate={linksList.length > 0 ? ((profileClickLogs.filter((log) => log.targetType === 'click').length / Math.max(profileClickLogs.filter((log) => log.targetType === 'view').length, 1)) * 100) : 0}
-      />
-
       {/* Top Gamified Creator Level Bar */}
       <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-3.5">
@@ -1162,6 +1151,17 @@ export function DashboardClient({
       )}
       </>
       )}
+
+      {/* Dashboard Overview Cards */}
+      <DashboardOverview
+        username={activeProfile.username}
+        profileBio={activeProfile.bio}
+        avatarUrl={avatarUrl}
+        linksCount={linksList.length}
+        totalClicks={activeProfile.likes || 0}
+        weeklyViews={profileClickLogs.filter((log) => log.targetType === 'view').length}
+        weeklyClickRate={linksList.length > 0 ? ((profileClickLogs.filter((log) => log.targetType === 'click').length / Math.max(profileClickLogs.filter((log) => log.targetType === 'view').length, 1)) * 100) : 0}
+      />
 
       {/* Main Responsive Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
@@ -1678,48 +1678,25 @@ export function DashboardClient({
 
           {/* Add Link or Product Card */}
           {activeTab === 'add-link' && (
+          <>
           <div data-section="add-link">
         <CollapsibleSection
-            title="Add Link or Product Card"
-            icon="➕"
+            title="Add Standard Link"
+            icon="🔗"
             isOpen={activeSection === 'add-link'}
-            onToggle={() => toggleSection('add-link')}
+            onToggle={() => { setIsProduct(0); toggleSection('add-link'); }}
           >
-            <div className="flex flex-wrap gap-2 sm:gap-4 border-b border-gray-100 dark:border-slate-900 pb-4 mb-4">
-              <button
-                type="button"
-                onClick={() => setIsProduct(0)}
-                className={`flex-1 min-w-[110px] py-2 text-xs sm:text-sm font-bold border rounded-2xl transition-all ${
-                  isProduct === 0
-                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                    : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
-                }`}
-              >
-                🔗 Add Standard Link
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsProduct(1)}
-                className={`flex-1 min-w-[110px] py-2 text-xs sm:text-sm font-bold border rounded-2xl transition-all ${
-                  isProduct === 1
-                    ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                    : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
-                }`}
-              >
-                🛍️ Add Product Card
-              </button>
-              <button
-                type="button"
-                onClick={() => { setIsBulkMode(!isBulkMode); setBulkResult(null); }}
-                className={`flex-1 min-w-[110px] py-2 text-xs sm:text-sm font-bold border rounded-2xl transition-all ${
-                  isBulkMode
-                    ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500'
-                    : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
-                }`}
-              >
-                📋 Bulk Add
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => { setIsBulkMode(!isBulkMode); setBulkResult(null); }}
+              className={`mb-4 flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                isBulkMode
+                  ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500'
+                  : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
+              }`}
+            >
+              📋 {isBulkMode ? 'Switch to Single Add' : 'Bulk Add Multiple'}
+            </button>
 
             {isBulkMode ? (
               <div className="space-y-3">
@@ -1909,6 +1886,216 @@ export function DashboardClient({
             )}
           </CollapsibleSection>
       </div>
+
+          {/* Add Product Card */}
+          <div data-section="add-product">
+        <CollapsibleSection
+            title="Add Product Card"
+            icon="🛍️"
+            isOpen={activeSection === 'add-product'}
+            onToggle={() => { setIsProduct(1); toggleSection('add-product'); }}
+          >
+            <button
+              type="button"
+              onClick={() => { setIsBulkMode(!isBulkMode); setBulkResult(null); }}
+              className={`mb-4 flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                isBulkMode
+                  ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500'
+                  : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
+              }`}
+            >
+              📋 {isBulkMode ? 'Switch to Single Add' : 'Bulk Add Multiple'}
+            </button>
+
+            {isBulkMode ? (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  {isProduct === 1
+                    ? 'One product per line: Title | URL | Price'
+                    : 'One link per line: Title | URL'}
+                  {' '}— up to 50 at a time.
+                </p>
+                <textarea
+                  value={bulkText}
+                  onChange={(e) => setBulkText(e.target.value)}
+                  rows={6}
+                  placeholder={isProduct === 1
+                    ? 'Anime Figurine | https://amzn.in/d/xyz | 999\nAnother Product | https://example.com | 1499'
+                    : 'My Website | https://example.com\nInstagram | https://instagram.com/me'}
+                  className="block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-mono transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleBulkAdd}
+                  disabled={bulkAdding || !bulkText.trim()}
+                  className="w-full sm:w-auto rounded-2xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:brightness-110 disabled:opacity-60"
+                >
+                  {bulkAdding ? 'Adding...' : `Add All ${isProduct === 1 ? 'Products' : 'Links'}`}
+                </button>
+
+                {bulkResult && (
+                  <div className="rounded-2xl border border-gray-100 dark:border-slate-800 p-3 text-xs space-y-1.5">
+                    <p className="font-bold text-green-600 dark:text-green-400">
+                      ✅ {bulkResult.added} added successfully
+                    </p>
+                    {bulkResult.skipped.length > 0 && (
+                      <div>
+                        <p className="font-bold text-amber-600 dark:text-amber-400">
+                          ⚠️ {bulkResult.skipped.length} skipped:
+                        </p>
+                        <ul className="mt-1 space-y-0.5 text-gray-500 dark:text-slate-400">
+                          {bulkResult.skipped.map((s, i) => (
+                            <li key={i}>— {s.title || '(blank)'}: {s.reason}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  placeholder={isProduct === 1 ? 'Product Name (e.g. Anime Figurine)' : 'Link Title (e.g. My Website)'}
+                />
+                <input
+                  type="url"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  placeholder="https://..."
+                />
+              </div>
+
+              {isProduct === 1 && (
+                <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-800 animate-fade-in">
+                  <div>
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Price (e.g. $29.99)
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Show the price of the product next to the link. Perfect for selling courses, merchandise, or ebooks!">ℹ️</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="e.g. $49"
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Discount Tag (e.g. 10% OFF)
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Show a discount percentage or tag (e.g., '20% OFF', 'SALE') to attract more clicks and sales.">ℹ️</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={discount}
+                      onChange={(e) => setDiscount(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="e.g. 20% OFF"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Product Category (e.g. Clothing, Tech)
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Group your product under a category label (e.g., 'Ebooks', 'Software') to help visitors filter your products.">ℹ️</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={productCategory}
+                      onChange={(e) => setProductCategory(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      placeholder="e.g. Tech Accessories"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
+                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                      Product Image
+                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Upload or paste an image URL of your product. This will display a beautiful preview image on the link card.">ℹ️</span>
+                    </label>
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="url"
+                        value={productImage}
+                        onChange={(e) => setProductImage(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        placeholder="Paste Image URL here (e.g. Amazon image URL)..."
+                      />
+                      <div className="flex items-center gap-4">
+                        {productImage && (
+                          <img src={productImage} alt="Product" className="h-14 w-14 rounded-xl object-cover border" />
+                        )}
+                        <input
+                          type="file"
+                          ref={prodImgInputRef}
+                          onChange={(e) => handleImageUpload(e, 'product')}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          disabled={uploadingProd}
+                          onClick={() => prodImgInputRef.current?.click()}
+                          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                        >
+                          {uploadingProd ? 'Uploading...' : 'Or Upload Local File'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Scheduling settings */}
+              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30">
+                <div className="sm:col-span-2 text-xs text-blue-700 dark:text-blue-300 mb-2">
+                  ℹ️ Links will be hidden before start date and after end date. Dates use your local timezone.
+                </div>
+                <div>
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                    Show After (Optional)
+                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Link becomes visible on this date & time">ℹ️</span>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledStart}
+                    onChange={(e) => setScheduledStart(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                    Hide After (Optional)
+                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Link disappears on this date & time">ℹ️</span>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledEnd}
+                    onChange={(e) => setScheduledEnd(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleAddLink}
+                disabled={saving || !newTitle.trim() || !newUrl.trim() || (isProduct === 1 && uploadingProd)}
+                className="w-full rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-3 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+              >
+                Add {isProduct === 1 ? 'Product Card' : 'Link'}
+              </button>
+            </div>
+            )}
+          </CollapsibleSection>
+      </div>
+      </>
       )}
 
           {/* Links list with Drag and Drop */}
@@ -2078,7 +2265,7 @@ export function DashboardClient({
       )}
 
           {/* Announcement Banner Settings */}
-          {activeTab === 'profile' && (
+          {activeTab === 'more' && (
           <>
           <div data-section="banner">
         <CollapsibleSection
@@ -2400,11 +2587,25 @@ export function DashboardClient({
         </div>
       </div>
 
+      {/* Floating Quick-Add Button - visible on every tab, jumps straight to Add */}
+      <button
+        onClick={() => {
+          setActiveTab('add-link');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        title="Add Link"
+        className="fixed left-4 z-40 flex items-center gap-2 rounded-full bg-white dark:bg-slate-900 border-2 border-[#FF6B6B] px-5 py-3 font-bold text-[#FF6B6B] shadow-xl hover:scale-105 active:scale-95 transition-all duration-200"
+        style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
+        <span>➕</span>
+        <span className="hidden sm:inline">Add Link</span>
+      </button>
+
       {/* Floating Action Button for Mobile Preview */}
       <button
         onClick={() => setShowMobilePreview(true)}
         className="fixed right-4 z-40 lg:hidden flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 font-bold text-white shadow-xl shadow-[#FF6B6B]/25 hover:scale-105 active:scale-95 transition-all duration-200"
-        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+        style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <span>📱</span>
         <span>Preview</span>
@@ -2461,6 +2662,7 @@ export function DashboardClient({
             { id: 'add-link', icon: '➕', label: 'Add' },
             { id: 'your-links', icon: '🔗', label: 'Links' },
             { id: 'analytics', icon: '📊', label: 'Stats' },
+            { id: 'more', icon: '⚙️', label: 'More' },
           ].map((item) => (
             <button
               key={item.id}
