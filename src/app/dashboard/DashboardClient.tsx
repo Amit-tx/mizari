@@ -1242,6 +1242,7 @@ export function DashboardClient({
 
           {/* Preset Japanese & Anime Themes */}
           {(activeTab === 'preset-themes') && (
+          <>
           <div data-section="preset-themes">
         <CollapsibleSection
             title="Preset & Seasonal Themes"
@@ -1672,6 +1673,7 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      </>
       )}
 
           {/* Add Link or Product Card */}
@@ -2077,6 +2079,7 @@ export function DashboardClient({
 
           {/* Announcement Banner Settings */}
           {activeTab === 'profile' && (
+          <>
           <div data-section="banner">
         <CollapsibleSection
             title="Announcement Banner"
@@ -2373,6 +2376,7 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      </>
       )}
         </div>
 
