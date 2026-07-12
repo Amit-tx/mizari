@@ -2591,6 +2591,7 @@ export function DashboardClient({
       <button
         onClick={() => {
           setActiveTab('add-link');
+          setActiveSection('add-link');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         title="Add Link"
@@ -2668,6 +2669,10 @@ export function DashboardClient({
               key={item.id}
               onClick={() => {
                 setActiveTab(item.id);
+                if (item.id === 'add-link') {
+                  setIsProduct(0);
+                }
+                setActiveSection(item.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${
