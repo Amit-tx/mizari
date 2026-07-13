@@ -83,6 +83,58 @@ export async function updateProfile(profileId: number, userId: number, bio: stri
     .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 }
 
+// Save Bio Page Extras: tagline, dual CTA buttons, Info Card, Contact block
+export async function updateProfileExtras(
+  profileId: number,
+  userId: number,
+  data: {
+    tagline: string;
+    ctaPrimaryText: string;
+    ctaPrimaryLink: string;
+    ctaSecondaryText: string;
+    ctaSecondaryLink: string;
+    infoCardEnabled: boolean;
+    infoCardTitle: string;
+    infoCardItems: { label: string; value: string }[];
+    contactEnabled: boolean;
+    contactPhone: string;
+    contactEmail: string;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
+  if (!(await verifyProfileOwnership(profileId, userId))) return { success: false, error: 'Unauthorized' };
+
+  // Cap Info Card to 4 items and trim empty rows
+  const cleanItems = data.infoCardItems
+    .filter((item) => item.label.trim() || item.value.trim())
+    .slice(0, 4)
+    .map((item) => ({ label: item.label.trim().slice(0, 40), value: item.value.trim().slice(0, 100) }));
+
+  // Basic email sanity check (don't hard-fail, just skip if invalid)
+  const emailValid = !data.contactEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contactEmail);
+  if (!emailValid) return { success: false, error: 'Invalid contact email address.' };
+
+  await db
+    .update(profiles)
+    .set({
+      tagline: data.tagline.trim().slice(0, 150),
+      ctaPrimaryText: data.ctaPrimaryText.trim().slice(0, 60),
+      ctaPrimaryLink: data.ctaPrimaryLink.trim(),
+      ctaSecondaryText: data.ctaSecondaryText.trim().slice(0, 60),
+      ctaSecondaryLink: data.ctaSecondaryLink.trim(),
+      infoCardEnabled: data.infoCardEnabled ? 1 : 0,
+      infoCardTitle: data.infoCardTitle.trim().slice(0, 60) || 'Profile',
+      infoCardItems: JSON.stringify(cleanItems),
+      contactEnabled: data.contactEnabled ? 1 : 0,
+      contactPhone: data.contactPhone.trim().slice(0, 30),
+      contactEmail: data.contactEmail.trim().slice(0, 255),
+    })
+    .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
+
+  revalidatePath('/dashboard', 'page');
+  return { success: true };
+}
+
 // Save Theme Settings
 export async function updateThemeSettings(
   profileId: number,

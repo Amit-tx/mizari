@@ -66,6 +66,23 @@ export const profiles = pgTable(
     announcementColor: varchar('announcement_color', { length: 30 }).default('#FF6B6B').notNull(),
     birthday: varchar('birthday', { length: 10 }).default('').notNull(),
     enableDynamicTheme: integer('enable_dynamic_theme').default(0).notNull(),
+    // Short italic tagline shown under the bio (e.g. "Knowledge That Makes Life Easier.")
+    tagline: text('tagline').default('').notNull(),
+    // Dual call-to-action buttons (primary = filled, secondary = outline)
+    ctaPrimaryText: varchar('cta_primary_text', { length: 60 }).default('').notNull(),
+    ctaPrimaryLink: text('cta_primary_link').default('').notNull(),
+    ctaSecondaryText: varchar('cta_secondary_text', { length: 60 }).default('').notNull(),
+    ctaSecondaryLink: text('cta_secondary_link').default('').notNull(),
+    // Info Card: flexible label/value pairs so any profession can use it
+    // (Creator: Role/Focus/Mission, Doctor: Specialization/Experience/Clinic, etc.)
+    infoCardEnabled: integer('info_card_enabled').default(0).notNull(),
+    infoCardTitle: varchar('info_card_title', { length: 60 }).default('Profile').notNull(),
+    // JSON-stringified array of up to 4 { label, value } objects.
+    infoCardItems: text('info_card_items').default('[]').notNull(),
+    // Dark "Let's get in touch" contact block (phone / email)
+    contactEnabled: integer('contact_enabled').default(0).notNull(),
+    contactPhone: varchar('contact_phone', { length: 30 }).default('').notNull(),
+    contactEmail: varchar('contact_email', { length: 255 }).default('').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   }
 );

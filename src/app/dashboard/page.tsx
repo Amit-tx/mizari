@@ -214,6 +214,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         announcementColor: activeProfile.announcementColor || '#FF6B6B',
         birthday: activeProfile.birthday || '',
         enableDynamicTheme: activeProfile.enableDynamicTheme,
+        tagline: activeProfile.tagline || '',
+        ctaPrimaryText: activeProfile.ctaPrimaryText || '',
+        ctaPrimaryLink: activeProfile.ctaPrimaryLink || '',
+        ctaSecondaryText: activeProfile.ctaSecondaryText || '',
+        ctaSecondaryLink: activeProfile.ctaSecondaryLink || '',
+        infoCardEnabled: activeProfile.infoCardEnabled,
+        infoCardTitle: activeProfile.infoCardTitle || 'Profile',
+        infoCardItems: activeProfile.infoCardItems || '[]',
+        contactEnabled: activeProfile.contactEnabled,
+        contactPhone: activeProfile.contactPhone || '',
+        contactEmail: activeProfile.contactEmail || '',
       }}
       userEmail={user.email}
       initialLinks={profileLinks as any}

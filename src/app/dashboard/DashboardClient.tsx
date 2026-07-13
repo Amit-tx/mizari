@@ -12,6 +12,7 @@ import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';
 import { 
   updateProfile, 
+  updateProfileExtras,
   updateThemeSettings, 
   removeBgImage, 
   addLink, 
@@ -87,6 +88,17 @@ interface DashboardClientProps {
     announcementColor: string;
     birthday: string;
     enableDynamicTheme: number;
+    tagline: string;
+    ctaPrimaryText: string;
+    ctaPrimaryLink: string;
+    ctaSecondaryText: string;
+    ctaSecondaryLink: string;
+    infoCardEnabled: number;
+    infoCardTitle: string;
+    infoCardItems: string;
+    contactEnabled: number;
+    contactPhone: string;
+    contactEmail: string;
   };
   userEmail: string;
   initialLinks: Link[];
@@ -111,6 +123,27 @@ export function DashboardClient({
 
   const [bio, setBio] = useState(activeProfile.bio);
   const [avatarUrl, setAvatarUrl] = useState(activeProfile.avatarUrl);
+
+  // Bio Page Extras: tagline, dual CTA buttons, Info Card, Contact block
+  const [tagline, setTagline] = useState(activeProfile.tagline || '');
+  const [ctaPrimaryText, setCtaPrimaryText] = useState(activeProfile.ctaPrimaryText || '');
+  const [ctaPrimaryLink, setCtaPrimaryLink] = useState(activeProfile.ctaPrimaryLink || '');
+  const [ctaSecondaryText, setCtaSecondaryText] = useState(activeProfile.ctaSecondaryText || '');
+  const [ctaSecondaryLink, setCtaSecondaryLink] = useState(activeProfile.ctaSecondaryLink || '');
+  const [infoCardEnabled, setInfoCardEnabled] = useState(activeProfile.infoCardEnabled === 1);
+  const [infoCardTitle, setInfoCardTitle] = useState(activeProfile.infoCardTitle || 'Profile');
+  const [infoCardItems, setInfoCardItems] = useState<{ label: string; value: string }[]>(() => {
+    try {
+      const parsed = JSON.parse(activeProfile.infoCardItems || '[]');
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : [{ label: '', value: '' }];
+    } catch {
+      return [{ label: '', value: '' }];
+    }
+  });
+  const [contactEnabled, setContactEnabled] = useState(activeProfile.contactEnabled === 1);
+  const [contactPhone, setContactPhone] = useState(activeProfile.contactPhone || '');
+  const [contactEmail, setContactEmail] = useState(activeProfile.contactEmail || '');
+  const [savingExtras, setSavingExtras] = useState(false);
   const [email, setEmail] = useState(userEmail);
   const [showWishes, setShowWishes] = useState(activeProfile.showWishes === 1);
   const [xp, setXp] = useState(activeProfile.xp || 0);
@@ -383,6 +416,45 @@ export function DashboardClient({
     await updateProfile(activeProfile.id, userId, bio);
     setSaving(false);
     showMessage('Profile updated!');
+  };
+
+  // Save Bio Page Extras: tagline, dual CTA buttons, Info Card, Contact block
+  const handleUpdateProfileExtras = async () => {
+    setSavingExtras(true);
+    try {
+      const result = await updateProfileExtras(activeProfile.id, userId, {
+        tagline,
+        ctaPrimaryText,
+        ctaPrimaryLink,
+        ctaSecondaryText,
+        ctaSecondaryLink,
+        infoCardEnabled,
+        infoCardTitle,
+        infoCardItems,
+        contactEnabled,
+        contactPhone,
+        contactEmail,
+      });
+      if (result.success) {
+        showMessage('Bio page extras updated!');
+      } else {
+        alert(result.error || 'Failed to update.');
+      }
+    } finally {
+      setSavingExtras(false);
+    }
+  };
+
+  const updateInfoCardItem = (index: number, field: 'label' | 'value', value: string) => {
+    setInfoCardItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addInfoCardItem = () => {
+    setInfoCardItems((prev) => (prev.length >= 4 ? prev : [...prev, { label: '', value: '' }]));
+  };
+
+  const removeInfoCardItem = (index: number) => {
+    setInfoCardItems((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
   };
 
   // Toggle Tanabata Wish Tree
@@ -1170,6 +1242,7 @@ export function DashboardClient({
           
           {/* Profile & Avatar Editor */}
           {activeTab === 'profile' && (
+          <>
           <div data-section="profile">
         <CollapsibleSection
             title="Profile Details"
@@ -1238,6 +1311,185 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+
+      <div data-section="profile-extras">
+        <CollapsibleSection
+            title="Bio Page Extras"
+            icon="✨"
+            subtitle="Tagline, action buttons, an Info Card, and a Contact block — like a mini personal website."
+            isOpen={activeSection === 'profile-extras'}
+            onToggle={() => toggleSection('profile-extras')}
+          >
+            <div className="space-y-6">
+              {/* Tagline */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Tagline</label>
+                <input
+                  type="text"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  maxLength={150}
+                  placeholder="e.g. Knowledge That Makes Life Easier."
+                  className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">A short italic line shown under your bio, e.g. a slogan or motto.</p>
+              </div>
+
+              {/* Dual CTA Buttons */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Action Buttons</label>
+                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500 mb-3">Two buttons shown at the top of your page (e.g. &quot;Connect with me&quot; + &quot;Read my story&quot;). Leave blank to hide.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2 rounded-2xl border border-gray-200 p-3 dark:border-slate-800">
+                    <span className="text-xs font-bold text-gray-500 dark:text-slate-400">Primary (filled)</span>
+                    <input
+                      type="text"
+                      value={ctaPrimaryText}
+                      onChange={(e) => setCtaPrimaryText(e.target.value)}
+                      maxLength={60}
+                      placeholder="Button text"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                    <input
+                      type="text"
+                      value={ctaPrimaryLink}
+                      onChange={(e) => setCtaPrimaryLink(e.target.value)}
+                      placeholder="Link (https://... or mailto:/tel:)"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                  <div className="space-y-2 rounded-2xl border border-gray-200 p-3 dark:border-slate-800">
+                    <span className="text-xs font-bold text-gray-500 dark:text-slate-400">Secondary (outline)</span>
+                    <input
+                      type="text"
+                      value={ctaSecondaryText}
+                      onChange={(e) => setCtaSecondaryText(e.target.value)}
+                      maxLength={60}
+                      placeholder="Button text"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                    <input
+                      type="text"
+                      value={ctaSecondaryLink}
+                      onChange={(e) => setCtaSecondaryLink(e.target.value)}
+                      placeholder="Link (https://... or mailto:/tel:)"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Card */}
+              <div>
+                <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={infoCardEnabled}
+                    onChange={(e) => setInfoCardEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                  />
+                  <span>Show Info Card</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500 mb-3">
+                  A small card with your own labels — works for any profession (Creator: Role/Focus/Mission, Doctor: Specialization/Experience/Clinic, etc).
+                </p>
+                {infoCardEnabled && (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={infoCardTitle}
+                      onChange={(e) => setInfoCardTitle(e.target.value)}
+                      maxLength={60}
+                      placeholder="Card title (e.g. Profile)"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                    {infoCardItems.map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={item.label}
+                          onChange={(e) => updateInfoCardItem(index, 'label', e.target.value)}
+                          maxLength={40}
+                          placeholder="Label (e.g. Role)"
+                          className="w-1/3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                        />
+                        <input
+                          type="text"
+                          value={item.value}
+                          onChange={(e) => updateInfoCardItem(index, 'value', e.target.value)}
+                          maxLength={100}
+                          placeholder="Value (e.g. Content Creator)"
+                          className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeInfoCardItem(index)}
+                          disabled={infoCardItems.length <= 1}
+                          className="rounded-lg px-2 py-2 text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:opacity-30 dark:hover:bg-red-950/30"
+                          title="Remove row"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    {infoCardItems.length < 4 && (
+                      <button
+                        type="button"
+                        onClick={addInfoCardItem}
+                        className="text-xs font-bold text-[#FF6B6B] hover:underline"
+                      >
+                        + Add row
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Contact Block */}
+              <div>
+                <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={contactEnabled}
+                    onChange={(e) => setContactEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                  />
+                  <span>Show &quot;Let&apos;s get in touch&quot; block</span>
+                </label>
+                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500 mb-3">A dark contact card at the bottom of your page with click-to-call / click-to-email.</p>
+                {contactEnabled && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      maxLength={30}
+                      placeholder="Phone number"
+                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                    <input
+                      type="email"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      maxLength={255}
+                      placeholder="Email address"
+                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={handleUpdateProfileExtras}
+                disabled={savingExtras}
+                className="self-start rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+              >
+                {savingExtras ? 'Saving...' : 'Save Bio Page Extras'}
+              </button>
+            </div>
+          </CollapsibleSection>
+      </div>
+          </>
       )}
 
           {/* Preset Japanese & Anime Themes */}

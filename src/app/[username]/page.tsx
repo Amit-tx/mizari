@@ -518,8 +518,36 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   </span>
                 )}
               </div>
+              {profile.tagline && (
+                <p className="mt-2 text-sm italic font-medium leading-relaxed drop-shadow-md" style={{...textStyle, textShadow: '0 1px 6px rgba(0,0,0,0.5)'}}>{profile.tagline}</p>
+              )}
               {profile.bio && (
                 <p className="mt-2 text-sm leading-relaxed drop-shadow-md" style={{...textStyle, textShadow: '0 1px 6px rgba(0,0,0,0.5)'}}>{profile.bio}</p>
+              )}
+              {(profile.ctaPrimaryText || profile.ctaSecondaryText) && (
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                  {profile.ctaPrimaryText && (
+                    <a
+                      href={profile.ctaPrimaryLink || '#'}
+                      target={profile.ctaPrimaryLink?.startsWith('http') ? '_blank' : undefined}
+                      rel="noopener noreferrer"
+                      className="rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110"
+                    >
+                      {profile.ctaPrimaryText} →
+                    </a>
+                  )}
+                  {profile.ctaSecondaryText && (
+                    <a
+                      href={profile.ctaSecondaryLink || '#'}
+                      target={profile.ctaSecondaryLink?.startsWith('http') ? '_blank' : undefined}
+                      rel="noopener noreferrer"
+                      className="rounded-xl border-2 bg-black/5 px-5 py-2.5 text-sm font-semibold backdrop-blur-sm transition-all hover:bg-black/10"
+                      style={{...textStyle, borderColor: (textStyle.color as string) || '#1a1a2e'}}
+                    >
+                      {profile.ctaSecondaryText}
+                    </a>
+                  )}
+                </div>
               )}
             </div>
 
@@ -535,6 +563,34 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             />
           </div>
         </div>
+
+        {/* Info Card: flexible label/value pairs, works for any profession */}
+        {profile.infoCardEnabled === 1 && (() => {
+          let items: { label: string; value: string }[] = [];
+          try {
+            items = JSON.parse(profile.infoCardItems || '[]');
+          } catch {
+            items = [];
+          }
+          if (items.length === 0) return null;
+          return (
+            <div className={`overflow-hidden rounded-3xl border p-6 shadow-xl transition-all duration-300 ${
+              profile.themeType === 'dark'
+                ? 'bg-slate-900 border-slate-800 text-slate-100'
+                : 'bg-white border-gray-100 text-[#1a1a2e]'
+            }`}>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B6B]">{profile.infoCardTitle || 'Profile'}</span>
+              <div className="mt-4 space-y-3">
+                {items.map((item, i) => (
+                  <div key={i}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">{item.label}</p>
+                    <p className="text-sm font-medium">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Guestbook Section */}
         {profile.showWishes === 1 && (
@@ -552,6 +608,32 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               textColor={preset?.textColor || profile.themeTextColor}
             />
           )
+        )}
+
+        {/* Contact Block: dark card with click-to-call / click-to-email */}
+        {profile.contactEnabled === 1 && (profile.contactPhone || profile.contactEmail) && (
+          <div className="overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
+            <h3 className="text-xl font-bold">Let&apos;s get in touch</h3>
+            <p className="mt-1.5 text-sm text-slate-300">Have a question or just want to say hello? Reach out directly.</p>
+            <div className="mt-5 divide-y divide-slate-700">
+              {profile.contactPhone && (
+                <div className="pb-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Phone</p>
+                  <a href={`tel:${profile.contactPhone}`} className="text-base font-semibold transition-colors hover:text-[#FF6B6B]">
+                    {profile.contactPhone}
+                  </a>
+                </div>
+              )}
+              {profile.contactEmail && (
+                <div className="pt-4 first:pt-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</p>
+                  <a href={`mailto:${profile.contactEmail}`} className="break-all text-base font-semibold transition-colors hover:text-[#FF6B6B]">
+                    {profile.contactEmail}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Branding */}
