@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 interface CollapsibleSectionProps {
   title: string;
@@ -10,6 +10,11 @@ interface CollapsibleSectionProps {
   isOpen: boolean;
   onToggle: () => void;
   danger?: boolean;
+  // When false, renders as a plain static card — no chevron, header isn't
+  // clickable, and content is always visible. Use this for tabs that only
+  // have one section (Add, Your Links, Analytics) where a collapse/expand
+  // step just adds an extra click with nothing else to make room for.
+  collapsible?: boolean;
   children: ReactNode;
 }
 
@@ -18,6 +23,9 @@ interface CollapsibleSectionProps {
 // closes whichever other section was previously open — so only the one
 // the person is actively working on stays expanded. Keeps the dashboard
 // from being one giant everything-visible-at-once scroll.
+//
+// Set `collapsible={false}` for single-section tabs — the card still looks
+// the same, but there's no header click required to see its content.
 export function CollapsibleSection({
   title,
   icon,
@@ -25,8 +33,11 @@ export function CollapsibleSection({
   isOpen,
   onToggle,
   danger = false,
+  collapsible = true,
   children,
 }: CollapsibleSectionProps) {
+  const contentVisible = collapsible ? isOpen : true;
+
   return (
     <div
       className={`rounded-3xl border bg-white shadow-sm transition-all dark:bg-slate-900 ${
@@ -35,13 +46,30 @@ export function CollapsibleSection({
           : 'border-gray-100 dark:border-slate-800'
       }`}
     >
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 p-6 text-left"
-        aria-expanded={isOpen}
-      >
-        <div className="min-w-0">
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-center justify-between gap-3 p-6 text-left"
+          aria-expanded={isOpen}
+        >
+          <div className="min-w-0">
+            <h2 className={`text-xl font-bold ${danger ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+              {icon && <span className="mr-1.5">{icon}</span>}
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{subtitle}</p>
+            )}
+          </div>
+          <span
+            className={`shrink-0 text-lg text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          >
+            ⌄
+          </span>
+        </button>
+      ) : (
+        <div className="p-6 pb-4">
           <h2 className={`text-xl font-bold ${danger ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
             {icon && <span className="mr-1.5">{icon}</span>}
             {title}
@@ -50,15 +78,10 @@ export function CollapsibleSection({
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{subtitle}</p>
           )}
         </div>
-        <span
-          className={`shrink-0 text-lg text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        >
-          ⌄
-        </span>
-      </button>
+      )}
 
-      {isOpen && (
-        <div className="min-w-0 overflow-hidden px-6 pb-6">
+      {contentVisible && (
+        <div className={`min-w-0 overflow-hidden px-6 pb-6 ${collapsible ? '' : 'pt-0'}`}>
           {children}
         </div>
       )}
