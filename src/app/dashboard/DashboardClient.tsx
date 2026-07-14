@@ -172,12 +172,12 @@ export function DashboardClient({
   // Input fields for standard links & products
   const [newTitle, setNewTitle] = useState('');
   const [isBulkMode, setIsBulkMode] = useState(false);
-  const [activeSection, setActiveSection] = useState<string | null>('profile');
+  const [activeSection, setActiveSection] = useState<string | null>('your-links');
   // Separate from activeSection: this drives WHICH bottom-nav tab is
   // showing. activeSection is reused for the accordion-open state of
   // individual cards inside a tab, so it must not double as the tab
   // switch or collapsing a card would also hide the whole tab.
-  const [activeTab, setActiveTab] = useState<string>('profile');
+  const [activeTab, setActiveTab] = useState<string>('links');
   const toggleSection = (id: string) => setActiveSection((prev) => (prev === id ? null : id));
   const [bulkText, setBulkText] = useState('');
   const [bulkAdding, setBulkAdding] = useState(false);
@@ -451,14 +451,11 @@ export function DashboardClient({
   };
 
   // Maps a bottom-nav tab id to the data-section it should scroll to and open.
-  // "more" doesn't have its own section — it opens the first sub-section (banner).
   const tabToSection: Record<string, string> = {
-    profile: 'profile',
-    'preset-themes': 'preset-themes',
-    'add-link': 'add-link',
-    'your-links': 'your-links',
+    links: 'your-links',
+    appearance: 'profile',
     analytics: 'analytics',
-    more: 'banner',
+    settings: 'banner',
   };
 
   // Scrolls to the actual accordion section instead of just the page top.
@@ -467,12 +464,15 @@ export function DashboardClient({
   const scrollToSection = (sectionId: string) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const el = document.querySelector(`[data-section="${sectionId}"]`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+        // If targeting add-link specifically, scroll to it. Otherwise scroll to top.
+        if (sectionId === 'add-link') {
+          const el = document.querySelector(`[data-section="add-link"]`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
         }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
   };
@@ -1097,8 +1097,6 @@ export function DashboardClient({
       <main className="flex-1">
       <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-8">
       
-      {activeTab === 'profile' && (
-      <>
       {/* Getting Started: shown only until the person adds their first link.
           Replaces the gamification bar (which is meaningless at 0 activity)
           with a direct, obvious "do this next" action. */}
@@ -1110,7 +1108,7 @@ export function DashboardClient({
             <button
               type="button"
               onClick={() => {
-                setActiveTab('add-link');
+                setActiveTab('links');
                 setIsProduct(0);
                 setActiveSection('add-link');
                 scrollToSection('add-link');
@@ -1122,7 +1120,7 @@ export function DashboardClient({
             <button
               type="button"
               onClick={() => {
-                setActiveTab('preset-themes');
+                setActiveTab('appearance');
                 setActiveSection('preset-themes');
                 scrollToSection('preset-themes');
               }}
@@ -1294,19 +1292,7 @@ export function DashboardClient({
           </div>
         </div>
       )}
-      </>
-      )}
 
-      {/* Dashboard Overview Cards */}
-      <DashboardOverview
-        username={activeProfile.username}
-        profileBio={activeProfile.bio}
-        avatarUrl={avatarUrl}
-        linksCount={linksList.length}
-        totalClicks={activeProfile.likes || 0}
-        weeklyViews={profileClickLogs.filter((log) => log.targetType === 'view').length}
-        weeklyClickRate={linksList.length > 0 ? ((profileClickLogs.filter((log) => log.targetType === 'click').length / Math.max(profileClickLogs.filter((log) => log.targetType === 'view').length, 1)) * 100) : 0}
-      />
 
       {/* Main Responsive Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
@@ -1314,7 +1300,7 @@ export function DashboardClient({
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          {activeTab === 'profile' && (
+          {activeTab === 'appearance' && (
           <>
           <div data-section="profile">
         <CollapsibleSection
@@ -1562,12 +1548,7 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
-          </>
-      )}
 
-          {/* Preset Japanese & Anime Themes */}
-          {(activeTab === 'preset-themes') && (
-          <>
           <div data-section="preset-themes">
         <CollapsibleSection
             title="Preset & Seasonal Themes"
@@ -2002,7 +1983,8 @@ export function DashboardClient({
       )}
 
           {/* Add Link or Product Card */}
-          {activeTab === 'add-link' && (
+          {activeTab === 'links' && (
+          <>
           <div data-section="add-link">
         <CollapsibleSection
             title={isProduct === 1 ? 'Add Product Card' : 'Add Standard Link'}
@@ -2237,10 +2219,7 @@ export function DashboardClient({
             )}
           </CollapsibleSection>
       </div>
-      )}
 
-          {/* Links list with Drag and Drop */}
-          {activeTab === 'your-links' && (
           <div data-section="your-links">
         <CollapsibleSection
             title={`Your Links (${linksList.length})`}
@@ -2281,11 +2260,22 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      </>
       )}
 
           {/* Visitor Analytics Panel */}
           {activeTab === 'analytics' && (
-          <div data-section="analytics">
+          <div className="space-y-6">
+            <DashboardOverview
+              username={activeProfile.username}
+              profileBio={activeProfile.bio}
+              avatarUrl={avatarUrl}
+              linksCount={linksList.length}
+              totalClicks={activeProfile.likes || 0}
+              weeklyViews={profileClickLogs.filter((log) => log.targetType === 'view').length}
+              weeklyClickRate={linksList.length > 0 ? ((profileClickLogs.filter((log) => log.targetType === 'click').length / Math.max(profileClickLogs.filter((log) => log.targetType === 'view').length, 1)) * 100) : 0}
+            />
+            <div data-section="analytics">
         <CollapsibleSection
             title="Visitor Analytics"
             icon="📊"
@@ -2405,10 +2395,11 @@ export function DashboardClient({
             </div>
           </CollapsibleSection>
       </div>
+      </div>
       )}
 
           {/* Announcement Banner Settings */}
-          {activeTab === 'more' && (
+          {activeTab === 'settings' && (
           <>
           <p className="mb-1 px-1 text-xs font-extrabold uppercase tracking-wider text-gray-400 dark:text-slate-500">🎨 Page Add-ons</p>
           <div data-section="banner">
@@ -2737,7 +2728,7 @@ export function DashboardClient({
       {/* Floating Quick-Add Button - visible on every tab, jumps straight to Add */}
       <button
         onClick={() => {
-          setActiveTab('add-link');
+          setActiveTab('links');
           setIsProduct(0);
           setActiveSection('add-link');
           scrollToSection('add-link');
@@ -2806,20 +2797,15 @@ export function DashboardClient({
       >
         <div className="mx-auto max-w-md flex items-stretch justify-around">
           {[
-            { id: 'profile', icon: '👤', label: 'Profile' },
-            { id: 'preset-themes', icon: '🎨', label: 'Themes' },
-            { id: 'add-link', icon: '➕', label: 'Add' },
-            { id: 'your-links', icon: '🔗', label: 'Links' },
+            { id: 'links', icon: '🔗', label: 'Links' },
+            { id: 'appearance', icon: '🎨', label: 'Appearance' },
             { id: 'analytics', icon: '📊', label: 'Stats' },
-            { id: 'more', icon: '⚙️', label: 'More' },
+            { id: 'settings', icon: '⚙️', label: 'Settings' },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => {
                 setActiveTab(item.id);
-                if (item.id === 'add-link') {
-                  setIsProduct(0);
-                }
                 const targetSection = tabToSection[item.id] ?? item.id;
                 setActiveSection(targetSection);
                 scrollToSection(targetSection);
