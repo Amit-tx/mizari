@@ -37,6 +37,7 @@ import { isAdultContent } from '@/utils/adultFilter';
 import type { Link } from '@/db/schema';
 
 const THEME_TABS = [
+  { id: 'popular', label: 'Popular', emoji: '⭐' },
   { id: 'japan', label: 'Japan presets', emoji: '🇯🇵' },
   { id: 'anime', label: 'Anime themes', emoji: '🍥' },
   { id: 'romantic', label: 'Romantic', emoji: '❤️' },
@@ -164,7 +165,7 @@ export function DashboardClient({
   const [themeBackdrop, setThemeBackdrop] = useState<string>(activeProfile.themeBackdrop || 'glass-light');
   const [themeRotateInterval, setThemeRotateInterval] = useState<string>(activeProfile.themeRotateInterval || 'none');
   const [themeSearchQuery, setThemeSearchQuery] = useState('');
-  const [activeThemeTab, setActiveThemeTab] = useState<string>('japan');
+  const [activeThemeTab, setActiveThemeTab] = useState<string>('popular');
   
   const [linksList, setLinksList] = useState(initialLinks);
   
@@ -1000,6 +1001,13 @@ export function DashboardClient({
     const tags = t.tags ? t.tags.map(tag => tag.toLowerCase()) : [];
     const categories = t.categories ? t.categories.map(c => c.toLowerCase()) : [];
 
+    if (activeThemeTab === 'popular') {
+      // Hand-picked: free, visually neutral, works for any profession —
+      // not Japan/anime-branded, so it's a sensible first thing every
+      // new user (creator, doctor, business, etc.) sees.
+      return ['light', 'dark', 'zen', 'kurohana', 'mizukaze', 'aozora', 'ame', 'yakutsk'].includes(id);
+    }
+
     if (activeThemeTab === 'japan') {
       return japanThemes.some((jt) => jt.slug === t.id) || ['sakura', 'momiji', 'zen', 'ame', 'mizukaze', 'aozora'].includes(t.id);
     }
@@ -1091,7 +1099,44 @@ export function DashboardClient({
       
       {activeTab === 'profile' && (
       <>
-      {/* Top Gamified Creator Level Bar */}
+      {/* Getting Started: shown only until the person adds their first link.
+          Replaces the gamification bar (which is meaningless at 0 activity)
+          with a direct, obvious "do this next" action. */}
+      {linksList.length === 0 && (
+        <div className="relative mb-8 overflow-hidden rounded-3xl border-2 border-dashed border-[#FF6B6B]/30 bg-gradient-to-br from-[#FF6B6B]/5 to-[#EE5A24]/5 p-6 dark:border-[#FF6B6B]/20 dark:from-[#FF6B6B]/10 dark:to-[#EE5A24]/10">
+          <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">👋 Let&apos;s set up your page</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">Two quick steps and your page is ready to share.</p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('add-link');
+                setIsProduct(0);
+                setActiveSection('add-link');
+                scrollToSection('add-link');
+              }}
+              className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 text-sm font-bold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110"
+            >
+              1️⃣ Add your first link
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('preset-themes');
+                setActiveSection('preset-themes');
+                scrollToSection('preset-themes');
+              }}
+              className="flex-1 rounded-2xl border-2 border-gray-200 px-5 py-3 text-sm font-bold text-gray-700 transition-all hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              2️⃣ Pick a look (optional)
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Top Gamified Creator Level Bar — hidden until there's at least
+          one link, since XP/rank means nothing on a brand-new, empty page. */}
+      {linksList.length > 0 && (
       <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
         <div className="flex items-center gap-3.5">
           <span className="text-3xl filter drop-shadow-md">🏆</span>
@@ -1134,6 +1179,7 @@ export function DashboardClient({
           </button>
         )}
       </div>
+      )}
 
       {/* Header & Profile Switcher */}
       <div className="mb-8 flex flex-col justify-between gap-4 border-b border-gray-100 dark:border-slate-800 pb-6 sm:flex-row sm:items-center">
@@ -2364,6 +2410,7 @@ export function DashboardClient({
           {/* Announcement Banner Settings */}
           {activeTab === 'more' && (
           <>
+          <p className="mb-1 px-1 text-xs font-extrabold uppercase tracking-wider text-gray-400 dark:text-slate-500">🎨 Page Add-ons</p>
           <div data-section="banner">
         <CollapsibleSection
             title="Announcement Banner"
@@ -2587,6 +2634,9 @@ export function DashboardClient({
 
 
           {/* Account Settings: Change Email */}
+          <div className="mb-1 mt-8 border-t border-gray-100 pt-6 dark:border-slate-800">
+            <p className="px-1 text-xs font-extrabold uppercase tracking-wider text-gray-400 dark:text-slate-500">⚙️ Account Settings</p>
+          </div>
           <div data-section="account">
         <CollapsibleSection
             title="Account Settings"
