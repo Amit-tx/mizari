@@ -66,6 +66,11 @@ const japanRaw: Omit<JapanTheme, "slug" | "cat">[] = [
   { name: "Edo Street", tags: ["warm"], art: "linear-gradient(160deg,#B7873F,#7A5A2E 55%,#3A2A16)", particle: "petal", headline: "Lanterns, wooden signs, footsteps on stone.", price: "₹99" },
   { name: "Aurora Fuji", tags: ["dark"], art: "linear-gradient(160deg,#0B0E23,#1E5A4A 50%,#3A2140)", particle: "firefly", headline: "Northern light over a southern mountain.", price: "₹149" },
   { name: "Ink Wash Japan", tags: ["calm"], art: "linear-gradient(160deg,#E9E4D8,#8A8578 55%,#3A3630)", particle: "none", headline: "Everything said in a single brushstroke.", price: "Free" },
+  { name: "Osaka Nights", tags: ["energetic"], art: "linear-gradient(150deg,#1A1030,#5B1E6E 45%,#E0407A 85%,#F2A33C)", particle: "firefly", headline: "Dotonbori glow, street food steam, neon on the canal.", price: "₹149" },
+  { name: "Osaka Castle", tags: ["warm"], art: "linear-gradient(160deg,#E3C77A,#B4552A 55%,#3A2410)", particle: "petal", headline: "Stone walls and gold trim against a bright sky.", price: "₹99" },
+  { name: "Nara Deer Park", tags: ["calm"], art: "linear-gradient(160deg,#D8E0B4,#8FA05C 50%,#3E5C3E)", particle: "petal", headline: "Soft grass, quiet deer, temple bells far off.", price: "Free" },
+  { name: "Sapporo Snow", tags: ["calm"], art: "linear-gradient(180deg,#EAF2F8,#C3D8E8 50%,#5E7A93)", particle: "firefly", headline: "Powder snow and warm light behind frosted glass.", price: "₹99" },
+  { name: "Okinawa Blue", tags: ["energetic"], art: "linear-gradient(160deg,#8FE3D8,#2C8E9E 50%,#0B3E4A)", particle: "none", headline: "Turquoise water, white sand, island wind.", price: "₹129" },
 ];
 
 const foxSpiritPhases: AnimeReactivePhase[] = [
@@ -167,6 +172,12 @@ const animeRaw: Omit<AnimeTheme, "slug" | "cat">[] = [
   { name: "Wandering Mage", tags: ["isekai", "calm"], art: "linear-gradient(155deg,#3E5C3E,#8B9B6E 45%,#E8E4C2)", price: "₹149" },
   { name: "Dark Fantasy Realm", tags: ["dark"], art: "linear-gradient(155deg,#0B0B0F,#241E1E 45%,#3A1B1B)", price: "₹129" },
   { name: "Mecha Pilot", tags: ["shonen"], art: "linear-gradient(155deg,#1B1E24,#4A5A6E 45%,#2EE8C2)", price: "₹149" },
+  { name: "Volleyball Spike", tags: ["shonen"], art: "linear-gradient(155deg,#0B1E3D,#1E4A8B 45%,#E8A02A)", price: "₹129" },
+  { name: "Idol Center Stage", tags: ["shojo"], art: "linear-gradient(155deg,#2E1B3D,#8B2A6E 45%,#E86AC2)", price: "₹129" },
+  { name: "Ghost Wire", tags: ["dark"], art: "linear-gradient(155deg,#0B0B14,#1E2E3D 45%,#2AE8D4)", price: "₹149" },
+  { name: "Alchemy Circle", tags: ["shonen"], art: "linear-gradient(155deg,#1B1B1F,#3A2E1B 45%,#E8C22A)", price: "₹149" },
+  { name: "Slime King", tags: ["isekai"], art: "linear-gradient(155deg,#1B2E3D,#2A6E8B 45%,#6EE8C2)", price: "₹129" },
+  { name: "Guitar Rockstar", tags: ["slice"], art: "linear-gradient(155deg,#241B1E,#8B2A2E 45%,#E8781F)", price: "₹129" },
 ];
 
 export const japanThemes: JapanTheme[] = japanRaw.map((t) => ({ ...t, slug: slugify(t.name), cat: "japan" }));

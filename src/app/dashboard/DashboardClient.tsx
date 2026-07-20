@@ -2182,19 +2182,19 @@ export function DashboardClient({
       {activeTab === 'store' && (
       <>
       {linksList.filter(l => l.isProduct === 1).length === 0 && (
-        <div className="relative mb-6 overflow-hidden rounded-3xl border border-dashed border-[#FF6B6B]/30 bg-gradient-to-br from-[#FF6B6B]/5 to-[#EE5A24]/5 p-6 dark:border-[#FF6B6B]/20 dark:from-[#FF6B6B]/10 dark:to-[#EE5A24]/10 animate-fade-in text-center">
+        <div className="mb-6 rounded-2xl border border-gray-100 dark:border-slate-800 p-6 text-center">
           <span className="text-4xl">🛍️</span>
-          <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mt-2">Setup your Mini Store</h2>
-          <p className="mt-1 text-xs text-gray-600 dark:text-slate-400">Add physical products, digital items, or affiliate links to show them in a beautiful card grid on your page.</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mt-2">Setup your Mini Store</h2>
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Add physical products, digital items, or affiliate links to show them in a beautiful card grid on your page.</p>
           <button
             type="button"
             onClick={() => {
               setShowAddForm(true);
               setIsProduct(1);
             }}
-            className="mt-4 rounded-2xl bg-[#FF6B6B] px-5 py-2.5 text-xs font-bold text-white transition-all hover:brightness-110"
+            className="mt-4 rounded-full bg-[#FF6B6B] px-5 py-2.5 text-xs font-bold text-white transition-all hover:brightness-105"
           >
-            ➕ Add Your First Product
+            Add Your First Product
           </button>
         </div>
       )}
@@ -2208,10 +2208,10 @@ export function DashboardClient({
                 setShowAddForm(true);
                 setIsProduct(1);
               }}
-              className="w-full py-4 px-6 rounded-2xl border border-dashed border-[#FF6B6B]/40 bg-gradient-to-br from-[#FF6B6B]/5 to-[#EE5A24]/5 hover:from-[#FF6B6B]/10 hover:to-[#EE5A24]/10 transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-sm"
+              className="w-full py-3.5 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span className="text-xl group-hover:scale-110 transition-transform">➕</span>
-              <span className="font-extrabold text-sm text-[#FF6B6B]">Add New Product</span>
+              <span className="text-lg text-gray-400">+</span>
+              <span className="font-bold text-sm text-gray-600 dark:text-slate-300">Add New Product</span>
             </button>
           )
         ) : (
