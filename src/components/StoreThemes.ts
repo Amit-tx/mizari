@@ -20,6 +20,51 @@ export interface StoreTheme {
   btnStyle?: string;
 }
 
+// Pulls the actual hex stops out of a theme's own `art` gradient string so
+// every auto-generated theme can derive its bg/text/button colors from its
+// OWN palette instead of sharing one flat hardcoded set with 25-30 others.
+function extractHexStops(art?: string): string[] {
+  if (!art) return [];
+  return art.match(/#[0-9a-fA-F]{3,6}/g) || [];
+}
+
+function relativeLuminance(hex: string): number {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const r = parseInt(h.substring(0, 2), 16) / 255;
+  const g = parseInt(h.substring(2, 4), 16) / 255;
+  const b = parseInt(h.substring(4, 6), 16) / 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Given a theme's gradient, returns a { bgColor, textColor, btnBg } set that
+// is actually tied to that theme's own colors — base tone for the card
+// background, a readable text color picked by contrast against the darkest
+// stop, and a button tint pulled from the theme's own accent color.
+function deriveColorsFromArt(art: string | undefined, fallbackBg: string, fallbackText: string) {
+  const stops = extractHexStops(art);
+  if (stops.length === 0) {
+    return { bgColor: fallbackBg, textColor: fallbackText, btnBg: 'rgba(255,255,255,0.1)' };
+  }
+  const base = stops[0];
+  const accent = stops[stops.length - 1];
+  const baseIsDark = relativeLuminance(base) < 0.4;
+  return {
+    bgColor: base,
+    textColor: baseIsDark ? hexToRgba('#FFFFFF', 0.92) : hexToRgba('#1A1A2E', 0.92),
+    btnBg: hexToRgba(accent, 0.16),
+  };
+}
+
 function mapEmoji(name: string): string {
   const n = name.toLowerCase();
   if (n.includes('sakura')) return '🌸';
@@ -81,6 +126,7 @@ function parsePrice(priceStr: string): number {
 const mappedJapanThemes: StoreTheme[] = japanThemes.map((t) => {
   const price = parsePrice(t.price);
   const tier = price === 0 ? 'free' : price >= 99 ? 'exclusive' : 'premium';
+  const derived = deriveColorsFromArt(t.art, '#FFF0F5', '#8C3A4F');
   return {
     id: t.slug.replace(/-/g, '_'),
     name: t.name,
@@ -92,15 +138,16 @@ const mappedJapanThemes: StoreTheme[] = japanThemes.map((t) => {
     tags: t.tags as string[],
     effect: t.particle === 'petal' ? 'sakura' : t.particle === 'firefly' ? 'fireflies' : undefined,
     bgGradient: t.art,
-    bgColor: t.particle === 'firefly' ? '#0A0E1A' : '#FFF0F5',
-    textColor: t.particle === 'firefly' ? '#B8D4F0' : '#8C3A4F',
-    btnBg: 'rgba(255,255,255,0.1)',
+    bgColor: derived.bgColor,
+    textColor: derived.textColor,
+    btnBg: derived.btnBg,
   };
 });
 
 const mappedAnimeThemes: StoreTheme[] = animeThemes.map((t) => {
   const price = parsePrice(t.price);
   const tier = price === 0 ? 'free' : price >= 99 ? 'exclusive' : 'premium';
+  const derived = deriveColorsFromArt(t.art, '#0B0E23', '#EDE7F6');
   return {
     id: t.slug.replace(/-/g, '_'),
     name: t.name,
@@ -111,9 +158,9 @@ const mappedAnimeThemes: StoreTheme[] = animeThemes.map((t) => {
     categories: ['Anime', 'Creator', 'Gaming'] as any,
     tags: t.tags as string[],
     bgGradient: t.art,
-    bgColor: '#0B0E23',
-    textColor: '#EDE7F6',
-    btnBg: 'rgba(255,255,255,0.1)',
+    bgColor: derived.bgColor,
+    textColor: derived.textColor,
+    btnBg: derived.btnBg,
     reactivePhases: t.reactivePhases,
   };
 });

@@ -172,13 +172,16 @@ export function DashboardClient({
   // Input fields for standard links & products
   const [newTitle, setNewTitle] = useState('');
   const [isBulkMode, setIsBulkMode] = useState(false);
-  const [activeSection, setActiveSection] = useState<string | null>('your-links');
+  const [activeSection, setActiveSection] = useState<string | null>('profile');
   // Separate from activeSection: this drives WHICH bottom-nav tab is
   // showing. activeSection is reused for the accordion-open state of
   // individual cards inside a tab, so it must not double as the tab
   // switch or collapsing a card would also hide the whole tab.
-  const [activeTab, setActiveTab] = useState<string>('links');
+  const [activeTab, setActiveTab] = useState<string>('profile');
   const toggleSection = (id: string) => setActiveSection((prev) => (prev === id ? null : id));
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showScheduleSettings, setShowScheduleSettings] = useState(false);
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
   const [bulkText, setBulkText] = useState('');
   const [bulkAdding, setBulkAdding] = useState(false);
   const [bulkResult, setBulkResult] = useState<{ added: number; skipped: { title: string; reason: string }[]; newLinks?: Link[] } | null>(null);
@@ -435,6 +438,7 @@ export function DashboardClient({
         contactEnabled,
         contactPhone,
         contactEmail,
+        birthday,
       });
       if (result.success) {
         showMessage('Bio page extras updated!');
@@ -452,8 +456,10 @@ export function DashboardClient({
 
   // Maps a bottom-nav tab id to the data-section it should scroll to and open.
   const tabToSection: Record<string, string> = {
+    profile: 'profile',
     links: 'your-links',
-    appearance: 'profile',
+    store: 'your-products',
+    themes: 'preset-themes',
     analytics: 'analytics',
     settings: 'banner',
   };
@@ -1097,142 +1103,6 @@ export function DashboardClient({
       <main className="flex-1">
       <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-8">
       
-      {/* Getting Started: shown only until the person adds their first link.
-          Replaces the gamification bar (which is meaningless at 0 activity)
-          with a direct, obvious "do this next" action. */}
-      {linksList.length === 0 && (
-        <div className="relative mb-8 overflow-hidden rounded-3xl border-2 border-dashed border-[#FF6B6B]/30 bg-gradient-to-br from-[#FF6B6B]/5 to-[#EE5A24]/5 p-6 dark:border-[#FF6B6B]/20 dark:from-[#FF6B6B]/10 dark:to-[#EE5A24]/10">
-          <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">👋 Let&apos;s set up your page</h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">Two quick steps and your page is ready to share.</p>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('links');
-                setIsProduct(0);
-                setActiveSection('add-link');
-                scrollToSection('add-link');
-              }}
-              className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 text-sm font-bold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110"
-            >
-              1️⃣ Add your first link
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('appearance');
-                setActiveSection('preset-themes');
-                scrollToSection('preset-themes');
-              }}
-              className="flex-1 rounded-2xl border-2 border-gray-200 px-5 py-3 text-sm font-bold text-gray-700 transition-all hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-            >
-              2️⃣ Pick a look (optional)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Top Gamified Creator Level Bar — hidden until there's at least
-          one link, since XP/rank means nothing on a brand-new, empty page. */}
-      {linksList.length > 0 && (
-      <div className="relative mb-8 p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm">
-        <div className="flex items-center gap-3.5">
-          <span className="text-3xl filter drop-shadow-md">🏆</span>
-          <div>
-            <h4 className="font-extrabold text-xs tracking-wider uppercase text-gray-400 dark:text-slate-400">Creator Rank</h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="rounded-xl bg-purple-600 dark:bg-purple-500 px-2 py-0.5 text-[10px] font-extrabold text-white shadow-sm shadow-purple-500/20">
-                {levelInfo.isPrestige ? `PRESTIGE ${levelInfo.prestigeLevel}` : `LVL ${levelInfo.level}`}
-              </span>
-              <span className="text-sm font-black text-gray-800 dark:text-slate-100 flex items-center gap-1">
-                {levelInfo.name}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex-1 max-w-md flex flex-col gap-1.5">
-          <div className="flex justify-between text-[10px] font-bold text-gray-500 dark:text-slate-400">
-            <span>{xp.toLocaleString()} XP</span>
-            {levelInfo.level === 30 && !levelInfo.isPrestige ? (
-              <span className="text-emerald-500 animate-pulse font-extrabold">🌟 MAX LEVEL - READY TO ASCEND!</span>
-            ) : (
-              <span>Next Rank: {nextThreshold.toLocaleString()} XP</span>
-            )}
-          </div>
-          <div className="h-2.5 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden border border-gray-200/25 dark:border-slate-700/20">
-            <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-700 rounded-full" style={{ width: `${progressPercent}%` }} />
-          </div>
-        </div>
-
-        {/* Prestige Ascension Action Button */}
-        {levelInfo.level === 30 && !levelInfo.isPrestige && (
-          <button
-            type="button"
-            onClick={handlePrestigeAscend}
-            disabled={ascending}
-            className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#FF6B6B]/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
-          >
-            {ascending ? 'Ascending...' : '🌟 Ascend to Prestige'}
-          </button>
-        )}
-      </div>
-      )}
-
-      {/* Header & Profile Switcher */}
-      <div className="mb-8 flex flex-col justify-between gap-4 border-b border-gray-100 dark:border-slate-800 pb-6 sm:flex-row sm:items-center">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
-            {/* Profile Dropdown Switcher */}
-            <div className="relative inline-block">
-              <select
-                value={activeProfile.id}
-                onChange={(e) => handleProfileSwitch(parseInt(e.target.value))}
-                className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white cursor-pointer"
-              >
-                {userProfiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    @{p.username} ({p.profileType})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={() => setShowNewProfileModal(true)}
-              className="rounded-full bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] p-1.5 text-xs font-bold"
-              title="Create New Profile"
-            >
-              ➕
-            </button>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2.5 text-sm text-gray-500 dark:text-slate-400">
-            <span>Manage your Mizari profile at</span>
-            <a
-              href={`/${activeProfile.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-[#FF6B6B] hover:underline"
-            >
-              mizari.cc/{activeProfile.username}
-            </a>
-            
-            <button
-              onClick={handleShareProfile}
-              className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-slate-300 transition-colors"
-            >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.622-2.312m0 7.14l-4.622-2.312M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9zm-13.5 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm10.5-4.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-              </svg>
-              <span>{copied ? 'Copied!' : 'Share'}</span>
-            </button>
-
-            <QRCodeModal username={activeProfile.username} />
-          </div>
-        </div>
-      </div>
-
       {message && (
         <div className="mb-6 rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-fade-in">
           {message}
@@ -1276,7 +1146,7 @@ export function DashboardClient({
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110"
+                  className="flex-1 rounded-2xl bg-[#FF6B6B] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110"
                 >
                   {saving ? 'Creating...' : 'Create Profile'}
                 </button>
@@ -1300,8 +1170,63 @@ export function DashboardClient({
         <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
-          {activeTab === 'appearance' && (
+          {activeTab === 'profile' && (
           <>
+          {/* Profile Switcher Row */}
+          <div className="flex items-center justify-between p-4 mb-4 rounded-3xl bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">👤</span>
+              <div className="relative inline-block">
+                <select
+                  value={activeProfile.id}
+                  onChange={(e) => handleProfileSwitch(parseInt(e.target.value))}
+                  className="rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-700 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white cursor-pointer"
+                >
+                  {userProfiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      @{p.username}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={() => setShowNewProfileModal(true)}
+                className="rounded-full bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] p-1.5 text-xs font-bold"
+                title="Create New Profile"
+              >
+                ➕
+              </button>
+            </div>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Profile</span>
+          </div>
+
+          {/* Profile URL & Share Card */}
+          <div className="p-4 rounded-3xl bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+            <div>
+              <p className="text-[10px] font-extrabold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Your Mizari Link</p>
+              <a
+                href={`/${activeProfile.username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-0.5 block text-sm font-extrabold text-[#FF6B6B] hover:underline"
+              >
+                mizari.cc/{activeProfile.username}
+              </a>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleShareProfile}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-300 transition-colors shadow-sm"
+              >
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.622-2.312m0 7.14l-4.622-2.312M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9zm-13.5 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm10.5-4.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                </svg>
+                <span>{copied ? 'Copied!' : 'Share'}</span>
+              </button>
+              <QRCodeModal username={activeProfile.username} />
+            </div>
+          </div>
+
           <div data-section="profile">
         <CollapsibleSection
             title="Profile Details"
@@ -1361,7 +1286,7 @@ export function DashboardClient({
                   <button
                     onClick={handleUpdateProfile}
                     disabled={saving}
-                    className="self-start rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+                    className="self-start rounded-2xl bg-[#FF6B6B] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
                   >
                     Save Bio
                   </button>
@@ -1491,7 +1416,7 @@ export function DashboardClient({
                         </button>
                       </div>
                     ))}
-                    {infoCardItems.length < 4 && (
+                    {infoCardItems.length < 8 && (
                       <button
                         type="button"
                         onClick={addInfoCardItem}
@@ -1538,17 +1463,35 @@ export function DashboardClient({
                 )}
               </div>
 
+              {/* Birthday */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">Birthday 🎂</label>
+                <input
+                  type="text"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  maxLength={5}
+                  placeholder="MM-DD (e.g. 07-18 for July 18th)"
+                  className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                />
+                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">Add your birth month and day (MM-DD) to trigger automatic birthday themes and page effects.</p>
+              </div>
+
               <button
                 onClick={handleUpdateProfileExtras}
                 disabled={savingExtras}
-                className="self-start rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+                className="self-start rounded-2xl bg-[#FF6B6B] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
               >
                 {savingExtras ? 'Saving...' : 'Save Bio Page Extras'}
               </button>
             </div>
           </CollapsibleSection>
       </div>
+      </>
+      )}
 
+      {activeTab === 'themes' && (
+      <>
           <div data-section="preset-themes">
         <CollapsibleSection
             title="Preset & Seasonal Themes"
@@ -1684,7 +1627,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={() => setVisibleThemesCount((prev) => prev + 12)}
-                  className="px-6 py-2.5 text-xs font-extrabold text-white bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] rounded-full hover:shadow-md transition-all cursor-pointer shadow-lg shadow-[#FF6B6B]/15"
+                  className="px-6 py-2.5 text-xs font-extrabold text-white bg-[#FF6B6B] rounded-full hover:shadow-md transition-all cursor-pointer"
                 >
                   Load More Themes 🔄
                 </button>
@@ -1694,15 +1637,28 @@ export function DashboardClient({
       </div>
 
           {/* Custom Theme & Background Builder */}
-          <div data-section="custom-theme">
-        <CollapsibleSection
-            title="Custom Theme Builder"
-            icon="🖌️"
-            isOpen={activeSection === 'custom-theme'}
-            onToggle={() => toggleSection('custom-theme')}
-          >
-            
-            <div className="space-y-6">
+          <div data-section="custom-theme" className="mb-6">
+            {!showCustomBuilder ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCustomBuilder(true);
+                  setActiveSection('custom-theme');
+                }}
+                className="w-full py-3 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-gray-500 hover:text-gray-700 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/55 transition-all flex items-center justify-center gap-2 cursor-pointer font-bold text-xs shadow-sm"
+              >
+                <span>🖌️</span>
+                <span>Customize Colors & Background (Advanced)</span>
+              </button>
+            ) : (
+              <CollapsibleSection
+                title="Custom Theme Builder"
+                icon="🖌️"
+                isOpen={true}
+                onToggle={() => setShowCustomBuilder(false)}
+                collapsible={true}
+              >
+                <div className="space-y-6">
               {/* Theme Type Selector */}
               <div className="flex gap-2">
                 {(['light', 'dark', 'custom'] as const).map((type) => (
@@ -1771,7 +1727,7 @@ export function DashboardClient({
                           <img src={themeBgImage} alt="Bg Preview" className="h-full w-full object-cover" />
                         </div>
                       ) : (
-                        <div className="flex h-16 w-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 text-xs text-gray-400">
+                        <div className="flex h-16 w-28 items-center justify-center rounded-xl border border-dashed border-gray-200 text-xs text-gray-400">
                           No Image
                         </div>
                       )}
@@ -1861,7 +1817,7 @@ export function DashboardClient({
               <button
                 onClick={() => handleSaveTheme()}
                 disabled={saving}
-                className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
+                className="rounded-2xl bg-[#FF6B6B] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
               >
                 Save Custom Theme
               </button>
@@ -1978,6 +1934,7 @@ export function DashboardClient({
           */}
             </div>
           </CollapsibleSection>
+        )}
       </div>
       </>
       )}
@@ -1985,48 +1942,64 @@ export function DashboardClient({
           {/* Add Link or Product Card */}
           {activeTab === 'links' && (
           <>
-          <div data-section="add-link">
-        <CollapsibleSection
-            title={isProduct === 1 ? 'Add Product Card' : 'Add Standard Link'}
-            icon={isProduct === 1 ? '🛍️' : '🔗'}
-            isOpen={true}
-            onToggle={() => {}}
-            collapsible={false}
-          >
-            {/* Link vs Product segmented toggle — one form, no more guessing which card to open */}
-            <div className="mb-4 inline-flex rounded-2xl border border-gray-200 bg-gray-50 p-1 dark:border-slate-800 dark:bg-slate-800/50">
-              <button
-                type="button"
-                onClick={() => setIsProduct(0)}
-                className={`rounded-xl px-4 py-1.5 text-xs font-bold transition-all ${
-                  isProduct === 0
-                    ? 'bg-white text-[#FF6B6B] shadow-sm dark:bg-slate-900'
-                    : 'text-gray-500 dark:text-slate-400'
-                }`}
-              >
-                🔗 Link
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsProduct(1)}
-                className={`rounded-xl px-4 py-1.5 text-xs font-bold transition-all ${
-                  isProduct === 1
-                    ? 'bg-white text-[#FF6B6B] shadow-sm dark:bg-slate-900'
-                    : 'text-gray-500 dark:text-slate-400'
-                }`}
-              >
-                🛍️ Product
-              </button>
+          {linksList.filter(l => !l.isProduct || l.isProduct === 0).length === 0 && (
+            <div className="mb-6 rounded-2xl border border-gray-100 dark:border-slate-800 p-5">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Let&apos;s set up your page</h2>
+              <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Two quick steps and your page is ready to share.</p>
+              <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(true);
+                    setIsProduct(0);
+                    setActiveSection('add-link');
+                    scrollToSection('add-link');
+                  }}
+                  className="flex-1 rounded-full bg-[#FF6B6B] px-5 py-2.5 text-sm font-bold text-white transition-all hover:brightness-105"
+                >
+                  Add your first link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('themes');
+                    setActiveSection('preset-themes');
+                    scrollToSection('preset-themes');
+                  }}
+                  className="flex-1 rounded-full border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Pick a look (optional)
+                </button>
+              </div>
             </div>
-
+          )}
+          <div data-section="add-link" className="mb-6">
+            {!showAddForm ? (
+              linksList.filter(l => !l.isProduct || l.isProduct === 0).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(true);
+                    setIsProduct(0);
+                  }}
+                  className="w-full py-3.5 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="text-lg text-gray-400">+</span>
+                  <span className="font-bold text-sm text-gray-600 dark:text-slate-300">Add New Link</span>
+                </button>
+              )
+            ) : (
+              <CollapsibleSection
+                title="Add Standard Link"
+                icon="🔗"
+                isOpen={true}
+                onToggle={() => {}}
+                collapsible={false}
+              >
             <button
               type="button"
               onClick={() => { setIsBulkMode(!isBulkMode); setBulkResult(null); }}
-              className={`mb-4 flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
-                isBulkMode
-                  ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500'
-                  : 'border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400'
-              }`}
+              className="mb-4 flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-slate-800 px-3 py-1.5 text-xs font-bold text-gray-500 dark:text-slate-400 transition-all"
             >
               📋 {isBulkMode ? 'Switch to Single Add' : 'Bulk Add Multiple'}
             </button>
@@ -2034,18 +2007,13 @@ export function DashboardClient({
             {isBulkMode ? (
               <div className="space-y-3">
                 <p className="text-xs text-gray-500 dark:text-slate-400">
-                  {isProduct === 1
-                    ? 'One product per line: Title | URL | Price'
-                    : 'One link per line: Title | URL'}
-                  {' '}— up to 50 at a time.
+                  One link per line: Title | URL — up to 50 at a time.
                 </p>
                 <textarea
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
                   rows={6}
-                  placeholder={isProduct === 1
-                    ? 'Anime Figurine | https://amzn.in/d/xyz | 999\nAnother Product | https://example.com | 1499'
-                    : 'My Website | https://example.com\nInstagram | https://instagram.com/me'}
+                  placeholder="My Website | https://example.com&#10;Instagram | https://instagram.com/me"
                   className="block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-mono transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 />
                 <button
@@ -2054,7 +2022,7 @@ export function DashboardClient({
                   disabled={bulkAdding || !bulkText.trim()}
                   className="w-full sm:w-auto rounded-2xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:brightness-110 disabled:opacity-60"
                 >
-                  {bulkAdding ? 'Adding...' : `Add All ${isProduct === 1 ? 'Products' : 'Links'}`}
+                  {bulkAdding ? 'Adding...' : 'Add All Links'}
                 </button>
 
                 {bulkResult && (
@@ -2085,7 +2053,7 @@ export function DashboardClient({
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
-                  placeholder={isProduct === 1 ? 'Product Name (e.g. Anime Figurine)' : 'Link Title (e.g. My Website)'}
+                  placeholder="Link Title (e.g. My Website)"
                 />
                 <input
                   type="url"
@@ -2096,133 +2064,77 @@ export function DashboardClient({
                 />
               </div>
 
-              {isProduct === 1 && (
-                <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-800 animate-fade-in">
-                  <div>
-                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                      Price (e.g. $29.99)
-                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Show the price of the product next to the link. Perfect for selling courses, merchandise, or ebooks!">ℹ️</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                      placeholder="e.g. $49"
-                    />
-                  </div>
-                  <div>
-                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                      Discount Tag (e.g. 10% OFF)
-                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Show a discount percentage or tag (e.g., '20% OFF', 'SALE') to attract more clicks and sales.">ℹ️</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={discount}
-                      onChange={(e) => setDiscount(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                      placeholder="e.g. 20% OFF"
-                    />
-                  </div>
+              {/* Scheduling toggle */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleSettings(!showScheduleSettings)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-slate-400 transition-colors"
+                >
+                  <span>📅</span>
+                  <span>{showScheduleSettings ? 'Hide Schedule Options' : 'Schedule Link (Optional)'}</span>
+                </button>
 
-                  <div className="sm:col-span-2">
-                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                      Product Category (e.g. Clothing, Tech)
-                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Group your product under a category label (e.g., 'Ebooks', 'Software') to help visitors filter your products.">ℹ️</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={productCategory}
-                      onChange={(e) => setProductCategory(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                      placeholder="e.g. Tech Accessories"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2 border-t border-gray-200/60 dark:border-slate-800 pt-3 space-y-2">
-                    <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                      Product Image
-                      <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Upload or paste an image URL of your product. This will display a beautiful preview image on the link card.">ℹ️</span>
-                    </label>
-                    <div className="flex flex-col gap-2">
+                {showScheduleSettings && (
+                  <div className="grid gap-4 sm:grid-cols-2 p-4 mt-3 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 animate-fade-in">
+                    <div className="sm:col-span-2 text-xs text-blue-700 dark:text-blue-300 mb-1">
+                      ℹ️ Links will be hidden before start date and after end date. Dates use your local timezone.
+                    </div>
+                    <div>
+                      <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                        Show After (Optional)
+                      </label>
                       <input
-                        type="url"
-                        value={productImage}
-                        onChange={(e) => setProductImage(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3.5 py-1.5 text-xs focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                        placeholder="Paste Image URL here (e.g. Amazon image URL)..."
+                        type="datetime-local"
+                        value={scheduledStart}
+                        onChange={(e) => setScheduledStart(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
                       />
-                      <div className="flex items-center gap-4">
-                        {productImage && (
-                          <img src={productImage} alt="Product" className="h-14 w-14 rounded-xl object-cover border" />
-                        )}
-                        <input
-                          type="file"
-                          ref={prodImgInputRef}
-                          onChange={(e) => handleImageUpload(e, 'product')}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                        <button
-                          type="button"
-                          disabled={uploadingProd}
-                          onClick={() => prodImgInputRef.current?.click()}
-                          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
-                        >
-                          {uploadingProd ? 'Uploading...' : 'Or Upload Local File'}
-                        </button>
-                      </div>
+                    </div>
+                    <div>
+                      <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
+                        Hide After (Optional)
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={scheduledEnd}
+                        onChange={(e) => setScheduledEnd(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
+                      />
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* Scheduling settings */}
-              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30">
-                <div className="sm:col-span-2 text-xs text-blue-700 dark:text-blue-300 mb-2">
-                  ℹ️ Links will be hidden before start date and after end date. Dates use your local timezone.
-                </div>
-                <div>
-                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                    Show After (Optional)
-                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Link becomes visible on this date & time">ℹ️</span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={scheduledStart}
-                    onChange={(e) => setScheduledStart(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">
-                    Hide After (Optional)
-                    <span className="inline-flex items-center justify-center ml-1.5 text-[10px] text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors" title="Link disappears on this date & time">ℹ️</span>
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={scheduledEnd}
-                    onChange={(e) => setScheduledEnd(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
-                  />
-                </div>
+                )}
               </div>
 
-              <button
-                onClick={handleAddLink}
-                disabled={saving || !newTitle.trim() || !newUrl.trim() || (isProduct === 1 && uploadingProd)}
-                className="w-full rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-3 text-sm font-semibold text-white shadow-md shadow-[#FF6B6B]/20 transition-all hover:brightness-110 disabled:opacity-60"
-              >
-                Add {isProduct === 1 ? 'Product Card' : 'Link'}
-              </button>
+              <div className="flex flex-col gap-2 mt-4">
+                <button
+                  onClick={async () => {
+                    setIsProduct(0);
+                    await handleAddLink();
+                    setShowAddForm(false);
+                  }}
+                  disabled={saving || !newTitle.trim() || !newUrl.trim()}
+                  className="w-full rounded-2xl bg-[#FF6B6B] py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                >
+                  Add Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
             )}
           </CollapsibleSection>
+        )}
       </div>
 
-          <div data-section="your-links">
+      <div data-section="your-links">
         <CollapsibleSection
-            title={`Your Links (${linksList.length})`}
+            title={`Your Links (${linksList.filter(l => !l.isProduct || l.isProduct === 0).length})`}
             icon="🔗"
             subtitle="Drag and drop the cards below to reorder them instantly."
             isOpen={true}
@@ -2230,12 +2142,233 @@ export function DashboardClient({
             collapsible={false}
           >
             <div className="mt-4 space-y-3">
-              {linksList.length === 0 && (
+              {linksList.filter(l => !l.isProduct || l.isProduct === 0).length === 0 && (
                 <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
                   No links yet. Add your first link above!
                 </p>
               )}
-              {linksList.map((link, index) => (
+              {linksList.map((link, index) => {
+                if (link.isProduct === 1) return null;
+                return (
+                  <div
+                    key={link.id}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                    className={`cursor-grab active:cursor-grabbing transition-transform duration-150 ${
+                      draggedIdx === index ? 'opacity-40 scale-95 border-dashed border-2 border-purple-500' : ''
+                    }`}
+                  >
+                    <LinkCard
+                      link={link}
+                      onUpdate={handleUpdateLink}
+                      onDelete={handleDeleteLink}
+                      onMoveUp={handleMoveUp}
+                      onMoveDown={handleMoveDown}
+                      isFirst={index === 0}
+                      isLast={index === linksList.length - 1}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsibleSection>
+      </div>
+      </>
+      )}
+
+      {/* Mini Store Tab */}
+      {activeTab === 'store' && (
+      <>
+      {linksList.filter(l => l.isProduct === 1).length === 0 && (
+        <div className="relative mb-6 overflow-hidden rounded-3xl border border-dashed border-[#FF6B6B]/30 bg-gradient-to-br from-[#FF6B6B]/5 to-[#EE5A24]/5 p-6 dark:border-[#FF6B6B]/20 dark:from-[#FF6B6B]/10 dark:to-[#EE5A24]/10 animate-fade-in text-center">
+          <span className="text-4xl">🛍️</span>
+          <h2 className="text-lg font-extrabold text-gray-900 dark:text-white mt-2">Setup your Mini Store</h2>
+          <p className="mt-1 text-xs text-gray-600 dark:text-slate-400">Add physical products, digital items, or affiliate links to show them in a beautiful card grid on your page.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddForm(true);
+              setIsProduct(1);
+            }}
+            className="mt-4 rounded-2xl bg-[#FF6B6B] px-5 py-2.5 text-xs font-bold text-white transition-all hover:brightness-110"
+          >
+            ➕ Add Your First Product
+          </button>
+        </div>
+      )}
+
+      <div data-section="add-product" className="mb-6">
+        {!showAddForm ? (
+          linksList.filter(l => l.isProduct === 1).length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddForm(true);
+                setIsProduct(1);
+              }}
+              className="w-full py-4 px-6 rounded-2xl border border-dashed border-[#FF6B6B]/40 bg-gradient-to-br from-[#FF6B6B]/5 to-[#EE5A24]/5 hover:from-[#FF6B6B]/10 hover:to-[#EE5A24]/10 transition-all flex items-center justify-center gap-2 cursor-pointer group shadow-sm"
+            >
+              <span className="text-xl group-hover:scale-110 transition-transform">➕</span>
+              <span className="font-extrabold text-sm text-[#FF6B6B]">Add New Product</span>
+            </button>
+          )
+        ) : (
+          <CollapsibleSection
+            title="Add Product Card"
+            icon="🛍️"
+            isOpen={true}
+            onToggle={() => {}}
+            collapsible={false}
+          >
+            <div className="space-y-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  placeholder="Product Name (e.g. Anime Figurine)"
+                />
+                <input
+                  type="url"
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  placeholder="Product Link (https://...)"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-800 animate-fade-in">
+                <div>
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">Price (e.g. ₹999)</label>
+                  <input
+                    type="text"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    placeholder="₹999"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">Discount Tag (e.g. 10% OFF)</label>
+                  <input
+                    type="text"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    placeholder="10% OFF"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">Category (e.g. Clothing)</label>
+                  <input
+                    type="text"
+                    value={productCategory}
+                    onChange={(e) => setProductCategory(e.target.value)}
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    placeholder="Category"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">Product Image</label>
+                  <div className="mt-1.5 flex items-center gap-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, 'product')}
+                      className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FF6B6B]/10 file:text-[#FF6B6B] hover:file:bg-[#FF6B6B]/20"
+                    />
+                    {uploadingProd && <span className="text-xs text-gray-400">Uploading...</span>}
+                  </div>
+                  {productImage && (
+                    <img src={productImage} alt="Preview" className="mt-3 h-20 w-20 rounded-xl object-cover border border-gray-100" />
+                  )}
+                </div>
+              </div>
+
+              {/* Scheduling toggle */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleSettings(!showScheduleSettings)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-slate-400 transition-colors"
+                >
+                  <span>📅</span>
+                  <span>{showScheduleSettings ? 'Hide Schedule Options' : 'Schedule Product (Optional)'}</span>
+                </button>
+
+                {showScheduleSettings && (
+                  <div className="grid gap-4 sm:grid-cols-2 p-4 mt-3 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 animate-fade-in">
+                    <div className="sm:col-span-2 text-xs text-blue-700 dark:text-blue-300 mb-1">
+                      ℹ️ Product will be hidden before start date and after end date.
+                    </div>
+                    <div>
+                      <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">Show After</label>
+                      <input
+                        type="datetime-local"
+                        value={scheduledStart}
+                        onChange={(e) => setScheduledStart(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="flex items-center text-xs font-bold text-gray-600 dark:text-slate-400">Hide After</label>
+                      <input
+                        type="datetime-local"
+                        value={scheduledEnd}
+                        onChange={(e) => setScheduledEnd(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-blue-300 bg-white px-3 py-1.5 text-xs focus:outline-none dark:border-blue-700 dark:bg-slate-800 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 mt-4">
+                <button
+                  onClick={async () => {
+                    setIsProduct(1);
+                    await handleAddLink();
+                    setShowAddForm(false);
+                  }}
+                  disabled={saving || !newTitle.trim() || !newUrl.trim() || uploadingProd}
+                  className="w-full rounded-2xl bg-[#FF6B6B] py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                >
+                  Add Product Card 🛍️
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 py-2.5 text-xs font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </CollapsibleSection>
+        )}
+      </div>
+
+      <div data-section="your-products">
+        <CollapsibleSection
+          title={`Your Store Products (${linksList.filter(l => l.isProduct === 1).length})`}
+          icon="🛍️"
+          subtitle="Drag and drop your products below to reorder them on your profile store."
+          isOpen={true}
+          onToggle={() => {}}
+          collapsible={false}
+        >
+          <div className="mt-4 space-y-3">
+            {linksList.filter(l => l.isProduct === 1).length === 0 && (
+              <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
+                No products in your store yet. Add one above!
+              </p>
+            )}
+            {linksList.map((link, index) => {
+              if (link.isProduct !== 1) return null;
+              return (
                 <div
                   key={link.id}
                   draggable
@@ -2256,9 +2389,10 @@ export function DashboardClient({
                     isLast={index === linksList.length - 1}
                   />
                 </div>
-              ))}
-            </div>
-          </CollapsibleSection>
+              );
+            })}
+          </div>
+        </CollapsibleSection>
       </div>
       </>
       )}
@@ -2266,6 +2400,50 @@ export function DashboardClient({
           {/* Visitor Analytics Panel */}
           {activeTab === 'analytics' && (
           <div className="space-y-6">
+            {linksList.length > 0 && (
+            <div className="relative p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm animate-fade-in">
+              <div className="flex items-center gap-3.5">
+                <span className="text-3xl filter drop-shadow-md">🏆</span>
+                <div>
+                  <h4 className="font-extrabold text-xs tracking-wider uppercase text-gray-400 dark:text-slate-400">Creator Rank</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="rounded-xl bg-purple-600 dark:bg-purple-500 px-2 py-0.5 text-[10px] font-extrabold text-white shadow-sm shadow-purple-500/20">
+                      {levelInfo.isPrestige ? `PRESTIGE ${levelInfo.prestigeLevel}` : `LVL ${levelInfo.level}`}
+                    </span>
+                    <span className="text-sm font-black text-gray-800 dark:text-slate-100 flex items-center gap-1">
+                      {levelInfo.name}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex-1 max-w-md flex flex-col gap-1.5">
+                <div className="flex justify-between text-[10px] font-bold text-gray-500 dark:text-slate-400">
+                  <span>{xp.toLocaleString()} XP</span>
+                  {levelInfo.level === 30 && !levelInfo.isPrestige ? (
+                    <span className="text-emerald-500 animate-pulse font-extrabold">🌟 MAX LEVEL - READY TO ASCEND!</span>
+                  ) : (
+                    <span>Next Rank: {nextThreshold.toLocaleString()} XP</span>
+                  )}
+                </div>
+                <div className="h-2.5 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden border border-gray-200/25 dark:border-slate-700/20">
+                  <div className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-700 rounded-full" style={{ width: `${progressPercent}%` }} />
+                </div>
+              </div>
+
+              {/* Prestige Ascension Action Button */}
+              {levelInfo.level === 30 && !levelInfo.isPrestige && (
+                <button
+                  type="button"
+                  onClick={handlePrestigeAscend}
+                  disabled={ascending}
+                  className="rounded-2xl bg-[#FF6B6B] px-5 py-2 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {ascending ? 'Ascending...' : '🌟 Ascend to Prestige'}
+                </button>
+              )}
+            </div>
+            )}
             <DashboardOverview
               username={activeProfile.username}
               profileBio={activeProfile.bio}
@@ -2725,26 +2903,11 @@ export function DashboardClient({
         </div>
       </div>
 
-      {/* Floating Quick-Add Button - visible on every tab, jumps straight to Add */}
-      <button
-        onClick={() => {
-          setActiveTab('links');
-          setIsProduct(0);
-          setActiveSection('add-link');
-          scrollToSection('add-link');
-        }}
-        title="Add Link"
-        className="fixed left-4 z-40 flex items-center gap-2 rounded-full bg-white dark:bg-slate-900 border-2 border-[#FF6B6B] px-5 py-3 font-bold text-[#FF6B6B] shadow-xl hover:scale-105 active:scale-95 transition-all duration-200"
-        style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
-      >
-        <span>➕</span>
-        <span className="hidden sm:inline">Add Link</span>
-      </button>
 
       {/* Floating Action Button for Mobile Preview */}
       <button
         onClick={() => setShowMobilePreview(true)}
-        className="fixed right-4 z-40 lg:hidden flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-5 py-3 font-bold text-white shadow-xl shadow-[#FF6B6B]/25 hover:scale-105 active:scale-95 transition-all duration-200"
+        className="fixed right-4 z-40 lg:hidden flex items-center gap-2 rounded-full bg-[#FF6B6B] px-5 py-3 font-bold text-white hover:scale-105 active:scale-95 transition-all duration-200"
         style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <span>📱</span>
@@ -2797,8 +2960,10 @@ export function DashboardClient({
       >
         <div className="mx-auto max-w-md flex items-stretch justify-around">
           {[
+            { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'links', icon: '🔗', label: 'Links' },
-            { id: 'appearance', icon: '🎨', label: 'Appearance' },
+            { id: 'store', icon: '🛍️', label: 'Store' },
+            { id: 'themes', icon: '🎨', label: 'Themes' },
             { id: 'analytics', icon: '📊', label: 'Stats' },
             { id: 'settings', icon: '⚙️', label: 'Settings' },
           ].map((item) => (

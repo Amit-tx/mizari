@@ -36,6 +36,75 @@ interface DashboardPageProps {
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  // If no DATABASE_URL, load in Mock Demo Mode instantly without auth checks!
+  if (!process.env.DATABASE_URL) {
+    return (
+      <DashboardClient
+        userId={1}
+        userProfiles={[
+          { id: 1, username: 'demo_user', profileType: 'personal' }
+        ]}
+        activeProfile={{
+          id: 1,
+          username: 'demo_user',
+          profileType: 'personal',
+          bio: 'This is a demo bio. Edit me in the Appearance tab!',
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
+          themeType: 'sakura',
+          themeBgColor: '#FFE5EC',
+          themeTextColor: '#4A0E17',
+          themeBgImage: '',
+          themeButtonStyle: 'rounded-full',
+          themeBackdrop: 'glass-light',
+          themeRotateInterval: 'none',
+          likes: 245,
+          showWishes: 1,
+          xp: 250000,
+          prestige: 0,
+          guestbookStyle: 'tanabata',
+          guestbookHeading: '🎋 Leave a Wish',
+          announcementText: '🎉 Welcome to the live demo of Mizari! Try adding links or changing appearance.',
+          announcementLink: '',
+          announcementMessages: '[]',
+          announcementActive: 1,
+          announcementColor: '#FF6B6B',
+          birthday: '',
+          enableDynamicTheme: 0,
+          tagline: 'Make your link-in-bio beautiful and interactive.',
+          ctaPrimaryText: 'Visit My Website',
+          ctaPrimaryLink: 'https://example.com',
+          ctaSecondaryText: 'Email Me',
+          ctaSecondaryLink: 'mailto:demo@example.com',
+          infoCardEnabled: 1,
+          infoCardTitle: 'About Me',
+          infoCardItems: JSON.stringify([
+            { label: 'Role', value: 'Software Designer' },
+            { label: 'Location', value: 'Mumbai, India' }
+          ]),
+          contactEnabled: 1,
+          contactPhone: '+91 9999999999',
+          contactEmail: 'demo@example.com',
+        }}
+        userEmail="demo_user@example.com"
+        initialLinks={[
+          { id: 1, profileId: 1, title: '📸 Instagram', url: 'https://instagram.com', icon: null, order: 0, clicks: 142, isProduct: 0, price: '', discount: '', productImage: '', scheduledStart: null, scheduledEnd: null, productCategory: '', isSensitive: 0 },
+          { id: 2, profileId: 1, title: '🛍️ Shop My Merch', url: 'https://example.com/shop', icon: null, order: 1, clicks: 98, isProduct: 1, price: '₹999', discount: '10% OFF', productImage: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=256', scheduledStart: null, scheduledEnd: null, productCategory: 'Clothing', isSensitive: 0 },
+          { id: 3, profileId: 1, title: '💻 GitHub Portfolio', url: 'https://github.com', icon: null, order: 2, clicks: 215, isProduct: 0, price: '', discount: '', productImage: '', scheduledStart: null, scheduledEnd: null, productCategory: '', isSensitive: 0 }
+        ]}
+        totalClicks={455}
+        purchasedThemeIds={[]}
+        profileWishes={[
+          { id: 1, sender: 'Aarav', text: 'Love the new portfolio design!', color: '#FFD6E0', createdAt: new Date().toISOString() },
+          { id: 2, sender: 'Ishita', text: 'Super clean and easy to navigate 🌸', color: '#E8AEB7', createdAt: new Date().toISOString() }
+        ]}
+        profileClickLogs={[
+          { id: 1, visitorIp: '127.0.0.1', targetId: 1, targetType: 'view', referrer: 'direct', device: 'mobile', browser: 'chrome', country: 'IN', createdAt: new Date().toISOString() },
+          { id: 2, visitorIp: '127.0.0.1', targetId: 1, targetType: 'click', referrer: 'instagram.com', device: 'mobile', browser: 'safari', country: 'IN', createdAt: new Date().toISOString() }
+        ]}
+      />
+    );
+  }
+
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
 

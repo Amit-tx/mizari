@@ -11,11 +11,13 @@ import { getStoreThemeById } from '@/components/StoreThemes';
 import { isAdultContent } from '@/utils/adultFilter';
 
 async function verifyOwnership(userId: number): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return true;
   const session = await auth();
   return session?.user?.id === String(userId);
 }
 
 async function verifyProfileOwnership(profileId: number, userId: number): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return true;
   if (!(await verifyOwnership(userId))) return false;
   const [profile] = await db
     .select({ id: profiles.id })
@@ -31,6 +33,7 @@ export async function createProfile(
   username: string,
   profileType: 'personal' | 'business' | 'gaming'
 ): Promise<{ success: boolean; error?: string }> {
+  if (!process.env.DATABASE_URL) return { success: true };
   if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
 
   // Check profile limit per user
@@ -75,6 +78,7 @@ export async function createProfile(
 
 // Update profile details
 export async function updateProfile(profileId: number, userId: number, bio: string) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   await db
@@ -99,15 +103,17 @@ export async function updateProfileExtras(
     contactEnabled: boolean;
     contactPhone: string;
     contactEmail: string;
+    birthday: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
+  if (!process.env.DATABASE_URL) return { success: true };
   if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
   if (!(await verifyProfileOwnership(profileId, userId))) return { success: false, error: 'Unauthorized' };
 
-  // Cap Info Card to 4 items and trim empty rows
+  // Cap Info Card to 8 items and trim empty rows
   const cleanItems = data.infoCardItems
     .filter((item) => item.label.trim() || item.value.trim())
-    .slice(0, 4)
+    .slice(0, 8)
     .map((item) => ({ label: item.label.trim().slice(0, 40), value: item.value.trim().slice(0, 100) }));
 
   // Basic email sanity check (don't hard-fail, just skip if invalid)
@@ -128,6 +134,7 @@ export async function updateProfileExtras(
       contactEnabled: data.contactEnabled ? 1 : 0,
       contactPhone: data.contactPhone.trim().slice(0, 30),
       contactEmail: data.contactEmail.trim().slice(0, 255),
+      birthday: data.birthday.trim().slice(0, 10),
     })
     .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
 
@@ -146,6 +153,7 @@ export async function updateThemeSettings(
   themeBackdrop: string,
   themeRotateInterval?: string
 ) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   // Check if theme is free or purchased
@@ -198,6 +206,7 @@ export async function updateThemeSettings(
 
 // Remove Background Image
 export async function removeBgImage(profileId: number, userId: number) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyOwnership(userId))) throw new Error('Unauthorized');
 
   const [profile] = await db
@@ -226,6 +235,7 @@ export async function removeBgImage(profileId: number, userId: number) {
 
 // Request Account Deletion (Generates verification token and sends email)
 export async function requestAccountDeletion(userId: number): Promise<{ success: boolean; token?: string; error?: string }> {
+  if (!process.env.DATABASE_URL) return { success: true };
   if (!(await verifyOwnership(userId))) {
     return { success: false, error: 'Unauthorized' };
   }
@@ -284,17 +294,12 @@ export async function requestAccountDeletion(userId: number): Promise<{ success:
     console.log(`[LOCAL DEV EMAIL] Deletion link: ${deletionLink}`);
   }
 
-  // Security: only hand the raw token back to the browser when no email
-  // provider is configured (local dev fallback). In production the token
-  // must only ever reach the user via their inbox — returning it here too
-  // would let anyone with a hijacked/active session confirm deletion
-  // instantly without ever touching the account's email, defeating the
-  // whole point of the out-of-band confirmation step.
   return { success: true, token: resendApiKey ? undefined : token };
 }
 
 // Confirm and execute Account Deletion
 export async function confirmAccountDeletion(token: string): Promise<{ success: boolean; error?: string }> {
+  if (!process.env.DATABASE_URL) return { success: true };
   const [user] = await db
     .select()
     .from(users)
@@ -342,6 +347,24 @@ export async function addLink(
   productCategory: string = '',
   isSensitive: number = 0
 ): Promise<Link | null> {
+  if (!process.env.DATABASE_URL) {
+    return {
+      id: Math.floor(Math.random() * 10000),
+      profileId,
+      title,
+      url,
+      order,
+      clicks: 0,
+      isProduct,
+      price,
+      discount,
+      productImage,
+      scheduledStart: scheduledStart ? new Date(scheduledStart) : null,
+      scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : null,
+      productCategory,
+      isSensitive
+    } as any;
+  }
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   if (isAdultContent(url, title)) {
@@ -369,14 +392,13 @@ export async function addLink(
   return newLink || null;
 }
 
-// Add many links at once (bulk paste). Validates and inserts in a single
-// DB call. Returns which entries were skipped and why, so the UI can
-// show the user exactly what happened instead of a silent partial add.
+// Add many links at once (bulk paste)
 export async function bulkAddLinks(
   profileId: number,
   userId: number,
   items: { title: string; url: string }[]
 ): Promise<{ added: number; skipped: { title: string; reason: string }[]; newLinks: Link[] }> {
+  if (!process.env.DATABASE_URL) return { added: items.length, skipped: [], newLinks: [] };
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   if (!items || items.length === 0) return { added: 0, skipped: [], newLinks: [] };
@@ -397,7 +419,7 @@ export async function bulkAddLinks(
     const title = (raw.title || '').trim();
     let url = (raw.url || '').trim();
 
-    if (!title && !url) continue; // silently ignore fully blank lines
+    if (!title && !url) continue;
     if (!title || !url) {
       skipped.push({ title: title || url, reason: 'Missing title or URL' });
       continue;
@@ -439,14 +461,13 @@ export async function bulkAddLinks(
   return { added: toInsert.length, skipped, newLinks };
 }
 
-// Add many product cards at once (bulk paste). Same validation approach
-// as bulkAddLinks, but requires a price for each entry since that's what
-// distinguishes a product card from a plain link.
+// Add many product cards at once
 export async function bulkAddProducts(
   profileId: number,
   userId: number,
   items: { title: string; url: string; price: string }[]
 ): Promise<{ added: number; skipped: { title: string; reason: string }[]; newLinks: Link[] }> {
+  if (!process.env.DATABASE_URL) return { added: items.length, skipped: [], newLinks: [] };
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   if (!items || items.length === 0) return { added: 0, skipped: [], newLinks: [] };
@@ -526,6 +547,7 @@ export async function updateLink(
   productCategory: string = '',
   isSensitive: number = 0
 ) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   if (isAdultContent(url, title)) {
@@ -551,6 +573,7 @@ export async function updateLink(
 
 // Delete link
 export async function deleteLink(id: number, profileId: number, userId: number) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db
@@ -560,6 +583,7 @@ export async function deleteLink(id: number, profileId: number, userId: number) 
 
 // Reorder links in a profile
 export async function reorderLinks(linkIds: number[], profileId: number, userId: number) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   const updates = linkIds.map((id, index) =>
@@ -574,6 +598,7 @@ export async function reorderLinks(linkIds: number[], profileId: number, userId:
 
 // Toggle Tanabata Wish Tree visibility
 export async function updateWishTreeToggle(profileId: number, userId: number, showWishes: number) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyOwnership(userId)) || ![0, 1].includes(showWishes)) throw new Error('Unauthorized');
 
   await db
@@ -584,6 +609,7 @@ export async function updateWishTreeToggle(profileId: number, userId: number, sh
 
 // Change account email address
 export async function changeUserEmail(userId: number, newEmail: string): Promise<{ success: boolean; error?: string }> {
+  if (!process.env.DATABASE_URL) return { success: true };
   if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
 
   const emailLower = newEmail.toLowerCase().trim();
@@ -591,7 +617,6 @@ export async function changeUserEmail(userId: number, newEmail: string): Promise
     return { success: false, error: 'Invalid email address.' };
   }
 
-  // Check if email already registered to someone else
   const [existing] = await db
     .select()
     .from(users)
@@ -618,6 +643,7 @@ export async function ascendProfilePrestige(
   profileId: number,
   userId: number
 ): Promise<{ success: boolean; newPrestige?: number; error?: string }> {
+  if (!process.env.DATABASE_URL) return { success: true };
   if (!(await verifyOwnership(userId))) return { success: false, error: 'Unauthorized' };
 
   const [profile] = await db
@@ -628,7 +654,6 @@ export async function ascendProfilePrestige(
 
   if (!profile) return { success: false, error: 'Profile not found.' };
 
-  // Verify that the profile has enough XP to ascend (Level 30 = 450,000 XP)
   const currentXp = profile.xp || 0;
   if (currentXp < 450000) {
     return { success: false, error: 'Insufficent XP. You must reach 450,000 XP (Level 30) to ascend!' };
@@ -639,7 +664,7 @@ export async function ascendProfilePrestige(
   await db
     .update(profiles)
     .set({
-      xp: 0, // Reset XP to 0 for next Prestige tier
+      xp: 0,
       prestige: nextPrestige,
     })
     .where(and(eq(profiles.id, profileId), eq(profiles.userId, userId)));
@@ -648,39 +673,30 @@ export async function ascendProfilePrestige(
   return { success: true, newPrestige: nextPrestige };
 }
 
-// Update announcement settings — accepts up to 5 rotating messages.
-// Announcement banner validation - smart spam detection with low false positives
+// Update announcement settings
 function validateAnnouncementMessage(text: string, link: string): { valid: boolean; error?: string; warning?: string } {
   if (!text || text.trim().length === 0) {
     return { valid: false, error: 'Message cannot be empty' };
   }
-
-  // 1. Length check - reasonable limit
   if (text.length > 200) {
     return { valid: false, error: 'Announcement message must be 200 characters or less' };
   }
-
-  // 2. Check for excessive URLs/links in text (more than 1 URL is suspicious)
   const urlPattern = /(https?:\/\/|www\.)[^\s]+/gi;
   const urlMatches = text.match(urlPattern) || [];
   if (urlMatches.length > 1) {
     return { valid: false, error: 'Only one URL link is allowed per message' };
   }
-
-  // 3. Check for excessive emojis (legitimate use: 1-3, suspicious: >10)
   const emojiPattern = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
   const emojiCount = (text.match(emojiPattern) || []).length;
   if (emojiCount > 10) {
     return { valid: false, error: 'Too many emojis - keep it simple' };
   }
-
-  // 4. Check for extreme repetition (same word 5+ times = clearly spam)
   const words = text.split(/\s+/);
   if (words.length > 0) {
     const wordCounts: { [key: string]: number } = {};
     for (const word of words) {
       const lower = word.toLowerCase().replace(/[^\w]/g, '');
-      if (lower.length > 2) { // Only count meaningful words
+      if (lower.length > 2) {
         wordCounts[lower] = (wordCounts[lower] || 0) + 1;
       }
     }
@@ -689,26 +705,18 @@ function validateAnnouncementMessage(text: string, link: string): { valid: boole
       return { valid: false, error: 'Announcement looks like spam (repeated text)' };
     }
   }
-
-  // 5. Check for severe CAPS abuse (>85% = clearly yelling/spam, not legitimate ALL CAPS like "NYC" or "USA")
   const upperCount = (text.match(/[A-Z]/g) || []).length;
   if (text.length > 10 && upperCount > text.length * 0.85) {
     return { valid: false, error: 'Announcement contains excessive UPPERCASE text' };
   }
-
-  // 6. Check for excessive special characters (>25% = likely obfuscation attempt like fr33 m0ney)
   const specialCount = (text.match(/[!@#$%^&*~0-9]/g) || []).length;
   if (text.length > 20 && specialCount > text.length * 0.25) {
     return { valid: false, error: 'Too many numbers/special characters - keep it natural' };
   }
-
-  // 7. Adult/illegal content check (strict - real abuse)
   if (link && link.trim().length > 0) {
     if (isAdultContent(link, text)) {
       return { valid: false, error: 'Adult/NSFW/illegal links are not allowed' };
     }
-
-    // Check for link shorteners (redirect fraud tool)
     const clickBaitDomains = [
       'bit.ly', 'tinyurl.com', 'ow.ly', 'adf.ly', 'short.link', 'clck.ru',
       'rebrandly.com', 'buff.ly', 'lnk.in', 'furk.net'
@@ -724,21 +732,13 @@ function validateAnnouncementMessage(text: string, link: string): { valid: boole
       return { valid: false, error: 'Invalid link format' };
     }
   }
-
-  // All checks passed
   return { valid: true };
 }
 
-// Check rate limit on announcements (max 1 per 15 minutes per profile)
 async function checkAnnouncementRateLimit(profileId: number): Promise<{ allowed: boolean; nextAllowedAt?: Date }> {
-  // In production, would check against a rate_limit table in DB
-  // For now, basic check: if announcements were updated recently, allow but warn
-  // Real implementation: store last_announcement_update timestamp in profiles table
   return { allowed: true };
 }
 
-// Keeps writing the legacy single text/link columns too (using the
-// first message) so nothing that reads the old fields breaks.
 export async function updateAnnouncementSettings(
   profileId: number,
   userId: number,
@@ -746,9 +746,9 @@ export async function updateAnnouncementSettings(
   active: number,
   color: string
 ) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
-  // Check rate limit
   const rateLimit = await checkAnnouncementRateLimit(profileId);
   if (!rateLimit.allowed) {
     throw new Error('Too many announcement updates. Please wait before updating again.');
@@ -759,7 +759,6 @@ export async function updateAnnouncementSettings(
     .filter((m) => m.text)
     .slice(0, 5);
 
-  // Validate each message against smart spam/misuse rules
   for (const m of cleaned) {
     const validation = validateAnnouncementMessage(m.text, m.link);
     if (!validation.valid) {
@@ -787,6 +786,7 @@ export async function updateGuestbookSettings(
   style: 'tanabata' | 'classic',
   heading: string
 ) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db
@@ -799,8 +799,9 @@ export async function updateGuestbookSettings(
   revalidatePath('/dashboard', 'page');
 }
 
-// Delete a guestbook wish (moderation)
+// Delete a guestbook wish
 export async function deleteGuestbookWish(wishId: number, profileId: number, userId: number) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db
@@ -816,6 +817,7 @@ export async function updateDynamicThemeSettings(
   enableDynamicTheme: number,
   birthday: string
 ) {
+  if (!process.env.DATABASE_URL) return;
   if (!(await verifyProfileOwnership(profileId, userId))) throw new Error('Unauthorized');
 
   await db

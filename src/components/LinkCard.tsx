@@ -292,57 +292,48 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
           </div>
         </div>
       ) : (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            {link.isProduct === 1 && link.productImage && (
-              <img src={link.productImage} alt={link.title} className="h-12 w-12 rounded-xl object-cover border border-gray-100 flex-shrink-0" />
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="truncate text-sm font-bold text-gray-900 dark:text-white">{link.title}</h3>
-                {link.isProduct === 1 && (
-                  <span className="rounded-md bg-orange-50 px-1.5 py-0.5 text-[9px] font-extrabold text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 uppercase">🛍️ PRODUCT</span>
-                )}
-              </div>
-              <p className="truncate text-xs text-gray-500 dark:text-slate-400 mt-0.5">{link.url}</p>
-              
-              {/* Category, Schedule & Sensitive tags */}
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {link.productCategory && (
-                  <span className="rounded bg-slate-100 dark:bg-slate-800 text-[8px] font-extrabold px-1.5 py-0.5 text-slate-500">
-                    📂 {link.productCategory}
-                  </span>
-                )}
-                {(link.scheduledStart || link.scheduledEnd) && (
-                  <span className="rounded bg-indigo-50 dark:bg-indigo-950/20 text-[8px] font-extrabold px-1.5 py-0.5 text-indigo-600 dark:text-indigo-400">
-                    ⏰ Scheduled
-                  </span>
-                )}
-              </div>
+        <div className="flex items-center gap-3">
+          {/* Drag handle — reordering already happens via drag, so the old
+              up/down arrow buttons were redundant clutter and got removed. */}
+          <span className="hidden sm:flex flex-col items-center justify-center text-gray-300 dark:text-slate-600 cursor-grab active:cursor-grabbing shrink-0" aria-hidden="true">
+            <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.4"/><circle cx="8" cy="2" r="1.4"/><circle cx="2" cy="8" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="2" cy="14" r="1.4"/><circle cx="8" cy="14" r="1.4"/></svg>
+          </span>
 
-              {link.isProduct === 1 && link.price && (
-                <div className="flex items-center gap-1.5 mt-2 text-xs font-extrabold text-slate-800 dark:text-slate-200">
-                  <span>{link.price}</span>
-                  {link.discount && (
-                    <span className="text-emerald-600 dark:text-emerald-400 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 px-1 rounded">{link.discount}</span>
-                  )}
-                </div>
+          {link.isProduct === 1 && link.productImage ? (
+            <img src={link.productImage} alt={link.title} className="h-11 w-11 rounded-xl object-cover border border-gray-100 dark:border-slate-700 flex-shrink-0" />
+          ) : (
+            <span className="hidden sm:flex h-11 w-11 rounded-xl bg-gray-50 dark:bg-slate-800 items-center justify-center text-lg flex-shrink-0">
+              {link.isProduct === 1 ? '🛍️' : '🔗'}
+            </span>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="truncate text-sm font-bold text-gray-900 dark:text-white">{link.title}</h3>
+              {(link.scheduledStart || link.scheduledEnd) && (
+                <span className="shrink-0 text-[10px]" title="Scheduled">⏰</span>
               )}
             </div>
+            <p className="truncate text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+              {link.isProduct === 1 && link.price ? (
+                <>
+                  <span className="font-bold text-slate-600 dark:text-slate-300">{link.price}</span>
+                  {link.discount && <span className="text-emerald-600 dark:text-emerald-400 ml-1.5">{link.discount}</span>}
+                  <span className="mx-1.5">·</span>{link.url}
+                </>
+              ) : link.url}
+            </p>
           </div>
 
-          <div className="flex items-center justify-end gap-1 border-t border-gray-100 pt-3 sm:border-t-0 sm:pt-0">
-            <span className="whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-slate-800 dark:text-slate-300 mr-1">{link.clicks} clicks</span>
-            <button onClick={() => onMoveUp(link.id)} disabled={isFirst} className="rounded-lg p-2 sm:p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200" aria-label="Move up">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7"/></svg>
-            </button>
-            <button onClick={() => onMoveDown(link.id)} disabled={isLast} className="rounded-lg p-2 sm:p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30 dark:hover:bg-slate-800 dark:hover:text-slate-200" aria-label="Move down">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-            <button onClick={() => setEditing(true)} className="rounded-lg p-2 sm:p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-200" aria-label="Edit">
+          <span className="hidden sm:inline whitespace-nowrap text-[11px] font-semibold text-gray-400 dark:text-slate-500 shrink-0">
+            {link.clicks} clicks
+          </span>
+
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button onClick={() => setEditing(true)} className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-200" aria-label="Edit">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
             </button>
-            <button onClick={() => onDelete(link.id)} className="rounded-lg p-2 sm:p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/20 dark:hover:text-red-400" aria-label="Delete">
+            <button onClick={() => onDelete(link.id)} className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/20 dark:hover:text-red-400" aria-label="Delete">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
           </div>

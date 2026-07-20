@@ -35,6 +35,7 @@ export const authConfig = {
   pages: { signIn: '/login' },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
+      if (!process.env.DATABASE_URL) return true; // Bypass authentication redirect in mock demo mode
       const isLoggedIn = !!auth?.user;
       const isDashboard = nextUrl.pathname.startsWith('/dashboard');
 
