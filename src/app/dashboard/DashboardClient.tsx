@@ -1556,8 +1556,8 @@ export function DashboardClient({
                   onClick={() => setActiveThemeTab(tab.id)}
                   className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shrink-0 ${
                     activeThemeTab === tab.id
-                      ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
-                      : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800'
+                      ? 'border-[#FF6B6B] bg-[#FF6B6B] text-white'
+                      : 'border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {tab.emoji} {tab.label}
