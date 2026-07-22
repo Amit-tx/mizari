@@ -8,6 +8,7 @@ import { SakuraEffect } from '@/components/SakuraEffect';
 import { AutumnEffect } from '@/components/AutumnEffect';
 import { WinterEffect } from '@/components/WinterEffect';
 import { LanternEffect } from '@/components/LanternEffect';
+import { WaveEffect } from '@/components/WaveEffect';
 import { FirefliesEffect } from '@/components/FirefliesEffect';
 import { ShootingStarsEffect } from '@/components/ShootingStarsEffect';
 import { RainEffect } from '@/components/RainEffect';
@@ -421,7 +422,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       {/* Seasonal Background Animations */}
       {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
       {(profile.themeType === 'momiji' || profile.themeType === 'aki_autumn') && <AutumnEffect />}
-      {(profile.themeType === 'yuki' || profile.themeType === 'fuyu_winter') && <WinterEffect />}
+      {(profile.themeType === 'yuki' || profile.themeType === 'fuyu_winter' || profile.themeType === 'sapporo_snow') && <WinterEffect />}
       {(profile.themeType === 'matsuri' || profile.themeType === 'natsu_matsuri' || profile.themeType === 'shrine_festival') && <LanternEffect />}
 
       {/* New Anime Effects */}
@@ -429,6 +430,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       {(profile.themeType === 'galaxy_dream' || profile.themeType === 'tsukiyo' || profile.themeType === 'frieren' || profile.themeType === 'demon_slayer') && <ShootingStarsEffect />}
       {(profile.themeType === 'ame' || profile.themeType === 'kyoto-rain' || profile.themeType === 'cyber_tokyo') && <RainEffect />}
       {(profile.themeType === 'sky_kingdom' || profile.themeType === 'ocean_sunset' || profile.themeType === 'aozora' || profile.themeType === 'railway_sunset') && <CloudsEffect />}
+      {(profile.themeType === 'mizukaze' || profile.themeType === 'okinawa_blue') && <WaveEffect />}
 
       {/* Floating Ambient Sound Player */}
       <AmbientPlayer />

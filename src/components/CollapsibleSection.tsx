@@ -63,7 +63,7 @@ export function CollapsibleSection({
             )}
           </div>
           <span
-            className={`shrink-0 text-lg text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            className={`shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-300 text-base transition-all duration-200 hover:bg-gray-200 dark:hover:bg-slate-700 hover:scale-110 ${isOpen ? 'rotate-180 bg-[#FF6B6B]/10 text-[#FF6B6B]' : ''}`}
           >
             ⌄
           </span>
