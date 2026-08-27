@@ -6,7 +6,7 @@ import { signOut } from 'next-auth/react';
 import { LinkCard } from '@/components/LinkCard';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { ProfilePreview } from '@/components/ProfilePreview';
-
+import { DashboardOverview } from './DashboardOverview';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';
@@ -2444,6 +2444,15 @@ export function DashboardClient({
               )}
             </div>
             )}
+            <DashboardOverview
+              username={activeProfile.username}
+              profileBio={activeProfile.bio}
+              avatarUrl={avatarUrl}
+              linksCount={linksList.length}
+              totalClicks={activeProfile.likes || 0}
+              weeklyViews={profileClickLogs.filter((log) => log.targetType === 'view').length}
+              weeklyClickRate={linksList.length > 0 ? ((profileClickLogs.filter((log) => log.targetType === 'click').length / Math.max(profileClickLogs.filter((log) => log.targetType === 'view').length, 1)) * 100) : 0}
+            />
             <div data-section="analytics">
         <CollapsibleSection
             title="Visitor Analytics"

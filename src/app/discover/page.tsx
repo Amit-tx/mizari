@@ -3,6 +3,8 @@ import { profiles } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { DiscoverClient } from '@/components/DiscoverClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Discover Creators — Mizari',
   description: 'Explore popular links-in-bio and creators on Mizari.',
