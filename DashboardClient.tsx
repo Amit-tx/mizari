@@ -6,7 +6,6 @@ import { signOut } from 'next-auth/react';
 import { LinkCard } from '@/components/LinkCard';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { ProfilePreview } from '@/components/ProfilePreview';
-import { DashboardOverview } from './DashboardOverview';
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
 import { QRCodeModal } from '@/components/QRCodeModal';
