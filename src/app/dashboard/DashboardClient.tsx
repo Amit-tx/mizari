@@ -178,29 +178,7 @@ export function DashboardClient({
   // individual cards inside a tab, so it must not double as the tab
   // switch or collapsing a card would also hide the whole tab.
   const [activeTab, setActiveTab] = useState<string>('profile');
-  // Map bottom nav tabs to their primary accordion sections
-  const tabToSection: Record<string, string> = {
-    profile: 'profile',
-    links: 'your-links',
-    store: 'your-products',
-    themes: 'preset-themes',
-    analytics: 'analytics',
-    settings: 'banner',
-  };
-
-  // Helper to toggle individual sections while preserving the active tab
-  const toggleSection = (id: string) => {
-    setActiveSection((prev) => (prev === id ? null : id));
-  };
-
-  // Helper to switch tabs AND reset section state for proper rendering
-  const switchTab = (newTab: string) => {
-    const targetSection = tabToSection[newTab] ?? newTab;
-    setActiveTab(newTab);
-    setActiveSection(targetSection);
-    // Scroll after state updates complete
-    setTimeout(() => scrollToSection(targetSection), 0);
-  };
+  const toggleSection = (id: string) => setActiveSection((prev) => (prev === id ? null : id));
   const [showAddForm, setShowAddForm] = useState(false);
   const [showScheduleSettings, setShowScheduleSettings] = useState(false);
   const [showCustomBuilder, setShowCustomBuilder] = useState(false);
@@ -476,27 +454,33 @@ export function DashboardClient({
     setInfoCardItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
   };
 
+  // Maps a bottom-nav tab id to the data-section it should scroll to and open.
+  const tabToSection: Record<string, string> = {
+    profile: 'profile',
+    links: 'your-links',
+    store: 'your-products',
+    themes: 'preset-themes',
+    analytics: 'analytics',
+    settings: 'banner',
+  };
+
   // Scrolls to the actual accordion section instead of just the page top.
   // Waits two animation frames so the tab's content has mounted in the DOM
   // (setActiveTab/setActiveSection are async state updates) before measuring.
   const scrollToSection = (sectionId: string) => {
-    // Use setTimeout instead of just rAF for more reliable timing after state updates
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // If targeting add-link specifically, scroll to it. Otherwise scroll to top.
-          if (sectionId === 'add-link') {
-            const el = document.querySelector(`[data-section="add-link"]`);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              return;
-            }
+        // If targeting add-link specifically, scroll to it. Otherwise scroll to top.
+        if (sectionId === 'add-link') {
+          const el = document.querySelector(`[data-section="add-link"]`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
           }
-          // Scroll to top to show the tab's main content
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-    }, 50); // Small delay to let state updates settle
+    });
   };
 
   const addInfoCardItem = () => {
@@ -1117,7 +1101,7 @@ export function DashboardClient({
 
       {/* Dashboard Content */}
       <main className="flex-1">
-      <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 pb-32 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-8">
       
       {message && (
         <div className="mb-6 rounded-xl bg-green-50 p-4 text-sm font-semibold text-green-600 dark:bg-green-900/20 dark:text-green-400 animate-fade-in">
@@ -1183,7 +1167,7 @@ export function DashboardClient({
       {/* Main Responsive Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
         {/* Left Column: Editor Forms */}
-        <div className="space-y-6 lg:col-span-3 transition-opacity duration-300">
+        <div className="space-y-6 lg:col-span-3">
           
           {/* Profile & Avatar Editor */}
           {activeTab === 'profile' && (
@@ -2971,10 +2955,10 @@ export function DashboardClient({
           section's content renders — everything else is completely
           hidden, not just scrolled past. */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-lg shadow-black/5 dark:shadow-black/20"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="mx-auto w-full flex items-stretch justify-around max-w-full sm:max-w-2xl">
+        <div className="mx-auto max-w-md flex items-stretch justify-around">
           {[
             { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'links', icon: '🔗', label: 'Links' },
@@ -2985,11 +2969,16 @@ export function DashboardClient({
           ].map((item) => (
             <button
               key={item.id}
-              onClick={() => switchTab(item.id)}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 px-2 transition-colors duration-150 ${
+              onClick={() => {
+                setActiveTab(item.id);
+                const targetSection = tabToSection[item.id] ?? item.id;
+                setActiveSection(targetSection);
+                scrollToSection(targetSection);
+              }}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${
                 activeTab === item.id
                   ? 'text-[#FF6B6B]'
-                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
+                  : 'text-gray-500 dark:text-slate-400'
               }`}
             >
               <span className="text-xl">{item.icon}</span>

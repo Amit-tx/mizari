@@ -1,8 +1,6 @@
 import { getPlatformIcon } from './LinkIcons';
 import { getThemeById } from './Themes';
 import { getStoreThemeById } from './StoreThemes';
-import AnimeReactiveSky from './AnimeReactiveSky';
-import LivingSky from './LivingSky';
 import { japanThemes, animeThemes } from '@/data/themes';
 import { getPhase } from '@/data/timePhases';
 
@@ -157,17 +155,7 @@ export function ProfilePreview({
       className="mx-auto w-full max-w-sm overflow-y-auto rounded-[32px] border border-gray-200 dark:border-slate-800 p-3 transition-all duration-300 min-h-[580px] max-h-[640px] shadow-inner relative"
       style={bgStyle}
     >
-      {/* Living / Reactive Day/Night Cycle Skies */}
-      {rawJapanTheme && (
-        <div className="absolute inset-0 z-0 rounded-[32px] overflow-hidden">
-          <LivingSky particle={rawJapanTheme.particle} showContent={false} />
-        </div>
-      )}
-      {rawAnimeTheme && rawAnimeTheme.reactivePhases && (
-        <div className="absolute inset-0 z-0 rounded-[32px] overflow-hidden">
-          <AnimeReactiveSky phases={rawAnimeTheme.reactivePhases} showContent={false} />
-        </div>
-      )}
+    
 
       <div
         className={`overflow-hidden rounded-2xl border transition-all duration-300 w-full h-full relative z-10 ${getBackdropClass()}`}
