@@ -1183,7 +1183,7 @@ export function DashboardClient({
       {/* Main Responsive Grid */}
       <div className="grid gap-8 lg:grid-cols-5">
         {/* Left Column: Editor Forms */}
-        <div className="space-y-6 lg:col-span-3 transition-opacity duration-300"
+        <div className="space-y-6 lg:col-span-3 transition-opacity duration-300">
 
           
           {/* Profile & Avatar Editor - Only render when profile tab is active */}
