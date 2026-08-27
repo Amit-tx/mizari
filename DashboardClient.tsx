@@ -30,7 +30,7 @@ import {
   bulkAddLinks,
   bulkAddProducts
 } from './actions';
-import { publishTheme, requestPayout, getCreatorStats } from './marketplaceActions';
+import { publishTheme, requestPayout, getCreatorStats } from '@/app/dashboard/marketplaceActions';
 import { getLevelInfo, LEVEL_MAP } from '@/utils/xp-client';
 import { isAdultContent } from '@/utils/adultFilter';
 import type { Link } from '@/db/schema';
