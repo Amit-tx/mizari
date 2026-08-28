@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 
 // Routes that are "app" screens (logged-in experience) — these get
 // their own self-contained header/nav and should NEVER show the
@@ -23,7 +22,6 @@ export function ConditionalChrome({ children }: { children: React.ReactNode }) {
     <>
       <Header />
       <main className="flex-1">{children}</main>
-      <Footer />
     </>
   );
 }
