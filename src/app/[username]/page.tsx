@@ -5,18 +5,10 @@ import { notFound } from 'next/navigation';
 import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
-import { AutumnEffect } from '@/components/AutumnEffect';
 import { WinterEffect } from '@/components/WinterEffect';
-import { LanternEffect } from '@/components/LanternEffect';
 import { WaveEffect } from '@/components/WaveEffect';
-import { FirefliesEffect } from '@/components/FirefliesEffect';
-import { ShootingStarsEffect } from '@/components/ShootingStarsEffect';
 import { RainEffect } from '@/components/RainEffect';
-import { CloudsEffect } from '@/components/CloudsEffect';
 import { ShareButton } from '@/components/ShareButton';
-import { LikeButton } from '@/components/LikeButton';
-import { getMyReaction } from './actions';
-import { Branding } from '@/components/Branding';
 import { TanabataTree } from '@/components/TanabataTree';
 import { ClassicGuestbook } from '@/components/ClassicGuestbook';
 import { AnnouncementBanner } from '@/components/AnnouncementBanner';
@@ -421,34 +413,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       {/* Seasonal Background Animations */}
       {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
-      {(profile.themeType === 'momiji' || profile.themeType === 'aki_autumn') && <AutumnEffect />}
       {(profile.themeType === 'yuki' || profile.themeType === 'fuyu_winter' || profile.themeType === 'sapporo_snow') && <WinterEffect />}
-      {(profile.themeType === 'matsuri' || profile.themeType === 'natsu_matsuri' || profile.themeType === 'shrine_festival') && <LanternEffect />}
-
-      {/* New Anime Effects */}
-      {(profile.themeType === 'moonlight_forest' || profile.themeType === 'shrine_festival' || profile.themeType === 'bamboo_zen') && <FirefliesEffect />}
-      {(profile.themeType === 'galaxy_dream' || profile.themeType === 'tsukiyo' || profile.themeType === 'frieren' || profile.themeType === 'demon_slayer') && <ShootingStarsEffect />}
       {(profile.themeType === 'ame' || profile.themeType === 'kyoto-rain' || profile.themeType === 'cyber_tokyo') && <RainEffect />}
-      {(profile.themeType === 'sky_kingdom' || profile.themeType === 'ocean_sunset' || profile.themeType === 'aozora' || profile.themeType === 'railway_sunset') && <CloudsEffect />}
       {(profile.themeType === 'mizukaze' || profile.themeType === 'okinawa_blue') && <WaveEffect />}
 
       {/* Floating Ambient Sound Player */}
       <AmbientPlayer />
 
-      {/* Floating Like / Reaction Button */}
-      <LikeButton 
-        profileId={profile.id} 
-        initialLikes={profile.likes} 
-        themeTextColor={preset?.textColor || profile.themeTextColor} 
-        initialLike={profile.reactionLike}
-        initialLove={profile.reactionLove}
-        initialHaha={profile.reactionHaha}
-        initialWow={profile.reactionWow}
-        initialSad={profile.reactionSad}
-        initialFire={profile.reactionFire}
-        serverActiveReaction={await getMyReaction(profile.id)}
-      />
-      
       {/* Share Button */}
       <ShareButton username={profile.username} themeTextColor={preset?.textColor || profile.themeTextColor} />
 
@@ -638,8 +609,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </div>
         )}
 
-        {/* Branding */}
-        <Branding />
       </div>
       </div>
     </div>

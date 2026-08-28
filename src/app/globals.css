@@ -34,28 +34,28 @@ html, body {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Light mode (default) */
+/* Light mode (default) - Warm & Minimal */
 :root {
-  --bg-primary: #fafafa;
-  --bg-secondary: #ffffff;
-  --text-primary: #1a1a2e;
-  --text-secondary: #64748b;
-  --accent: #FF6B6B;
-  --accent-hover: #EE5A24;
-  --border: #e5e7eb;
-  --card-bg: #ffffff;
+  --bg-primary: #E8E5DF;
+  --bg-secondary: #FFFFFF;
+  --text-primary: #3A3A37;
+  --text-secondary: #6A6A67;
+  --accent: #3A3A37;
+  --accent-hover: #2A2A27;
+  --border: #D4D1C8;
+  --card-bg: #FFFFFF;
 }
 
-/* Dark mode */
+/* Dark mode - Deep Black + Warm Text */
 .dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --accent: #FF6B6B;
-  --accent-hover: #FF8787;
-  --border: #334155;
-  --card-bg: #1e293b;
+  --bg-primary: #1A1A18;
+  --bg-secondary: #2A2A28;
+  --text-primary: #E8E5DF;
+  --text-secondary: #A9A6A0;
+  --accent: #E8E5DF;
+  --accent-hover: #F5F3F0;
+  --border: #3A3A37;
+  --card-bg: #2A2A28;
 }
 
 /* Smooth theme transitions */
