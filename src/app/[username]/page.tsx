@@ -251,19 +251,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Determine background style
   let bgStyle: React.CSSProperties = {};
-  if (rawJapanTheme || rawAnimeTheme) {
+  
+  // Custom theme with background image takes priority
+  if (profile.themeType === 'custom' && profile.themeBgImage) {
+    bgStyle = { backgroundImage: `url(${profile.themeBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
+  } else if (profile.themeType === 'custom' && !profile.themeBgImage) {
+    bgStyle = { backgroundColor: profile.themeBgColor };
+  } else if (rawJapanTheme || rawAnimeTheme) {
     bgStyle = {};
   } else if (preset) {
     if (preset.bgGradient) {
       bgStyle = { backgroundImage: preset.bgGradient };
     } else {
       bgStyle = { backgroundColor: preset.bgColor };
-    }
-  } else if (profile.themeType === 'custom') {
-    if (profile.themeBgImage) {
-      bgStyle = { backgroundImage: `url(${profile.themeBgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' };
-    } else {
-      bgStyle = { backgroundColor: profile.themeBgColor };
     }
   } else if (profile.themeType === 'dark') {
     bgStyle = { backgroundColor: '#0f172a' };
