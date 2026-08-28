@@ -63,9 +63,13 @@ export function CollapsibleSection({
             )}
           </div>
           <span
-            className={`shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-300 text-base transition-all duration-200 hover:bg-gray-200 dark:hover:bg-slate-700 hover:scale-110 ${isOpen ? 'rotate-180 bg-[#FF6B6B]/10 text-[#FF6B6B]' : ''}`}
+            className={`shrink-0 flex items-center justify-center h-8 w-8 rounded-full transition-all duration-300 text-base font-semibold ${
+              isOpen
+                ? 'bg-gradient-to-r from-[#E8E5DF] to-[#D4D1C8] dark:from-[#3A3A37] dark:to-[#2A2A28] text-[#3A3A37] dark:text-[#E8E5DF] rotate-180 shadow-sm'
+                : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+            }`}
           >
-            ⌄
+            ▼
           </span>
         </button>
       ) : (
