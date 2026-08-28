@@ -36,7 +36,7 @@ html, body {
 
 /* Light mode (default) - Warm & Minimal */
 :root {
-  --bg-primary: #E8E5DF;
+  --bg-primary: #E8E5DF; /* footer removed */
   --bg-secondary: #FFFFFF;
   --text-primary: #3A3A37;
   --text-secondary: #6A6A67;
