@@ -19,9 +19,24 @@ export function AnalyticsDashboard({ profileId, timeRange }: AnalyticsDashboardP
   async function loadAnalytics() {
     setLoading(true);
     try {
-      // API call will be implemented in dashboard integration
+      const params = new URLSearchParams({
+        profileId: String(profileId),
+        timeRange,
+      });
+
+      const res = await fetch(`/api/analytics?${params}`);
+
+      if (!res.ok) {
+        console.error(`Analytics API error: ${res.status}`);
+        setAnalytics(null);
+        return;
+      }
+
+      const data = await res.json();
+      setAnalytics(data);
     } catch (error) {
       console.error('Failed to load analytics:', error);
+      setAnalytics(null);
     } finally {
       setLoading(false);
     }
