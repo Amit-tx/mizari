@@ -284,3 +284,58 @@ export const profileReactions = pgTable('profile_reactions', {
 export type ProfileReaction = typeof profileReactions.$inferSelect;
 export type NewProfileReaction = typeof profileReactions.$inferInsert;
 
+// Advanced Form Builder Tables
+export const forms = pgTable('forms', {
+  id: serial('id').primaryKey(),
+  profileId: integer('profile_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description').default('').notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  isPublished: integer('is_published').default(0).notNull(), // 0 = draft, 1 = published
+  isEnabled: integer('is_enabled').default(1).notNull(), // 0 = disabled, 1 = enabled
+  submitButtonText: varchar('submit_button_text', { length: 100 }).default('Submit').notNull(),
+  successMessage: text('success_message').default('Thank you for your submission!').notNull(),
+  redirectUrl: text('redirect_url').default('').notNull(),
+  allowMultipleSubmissions: integer('allow_multiple_submissions').default(1).notNull(),
+  collectEmail: integer('collect_email').default(0).notNull(), // 0 = no, 1 = yes
+  collectName: integer('collect_name').default(0).notNull(),
+  // JSON-stringified form structure (sections, fields, etc)
+  formStructure: text('form_structure').default('[]').notNull(),
+  // Styling
+  backgroundColor: varchar('background_color', { length: 30 }).default('#ffffff').notNull(),
+  textColor: varchar('text_color', { length: 30 }).default('#1a1a1a').notNull(),
+  buttonColor: varchar('button_color', { length: 30 }).default('#FF6B6B').notNull(),
+  borderRadius: varchar('border_radius', { length: 20 }).default('rounded-lg').notNull(),
+  // Metadata
+  totalResponses: integer('total_responses').default(0).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const formResponses = pgTable('form_responses', {
+  id: serial('id').primaryKey(),
+  formId: integer('form_id')
+    .notNull()
+    .references(() => forms.id, { onDelete: 'cascade' }),
+  profileId: integer('profile_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  // JSON-stringified response data { fieldId: value }
+  responseData: text('response_data').default('{}').notNull(),
+  submitterEmail: varchar('submitter_email', { length: 255 }).default('').notNull(),
+  submitterName: varchar('submitter_name', { length: 255 }).default('').notNull(),
+  submitterIp: varchar('submitter_ip', { length: 128 }).default('').notNull(),
+  userAgent: text('user_agent').default('').notNull(),
+  isRead: integer('is_read').default(0).notNull(), // 0 = unread, 1 = read
+  isStarred: integer('is_starred').default(0).notNull(), // 0 = not starred, 1 = starred
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type Form = typeof forms.$inferSelect;
+export type NewForm = typeof forms.$inferInsert;
+export type FormResponse = typeof formResponses.$inferSelect;
+export type NewFormResponse = typeof formResponses.$inferInsert;
+
