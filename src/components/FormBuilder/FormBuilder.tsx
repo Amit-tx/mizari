@@ -222,7 +222,6 @@ export default function FormBuilder({
         structure: state.structure,
         slug,
       });
-      dispatch({ type: 'UPDATE_CONFIG', payload: { isPublished: !state.isDraft } });
     } catch (error) {
       console.error('Failed to save form:', error);
       alert('Failed to save form. Please try again.');

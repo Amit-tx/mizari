@@ -78,6 +78,43 @@ export default function FormPreview({
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="p-8 space-y-8">
+        {/* Collect Email & Name */}
+        {(config.collectEmail || config.collectName) && (
+          <div className="space-y-4 border-b border-gray-200 pb-4">
+            {config.collectName && (
+              <div>
+                <label className="block font-semibold mb-2" style={{ color: config.textColor }}>
+                  Name <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formValues['form-name'] || ''}
+                  onChange={(e) => handleFieldChange('form-name', e.target.value)}
+                  placeholder="Your name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+            )}
+
+            {config.collectEmail && (
+              <div>
+                <label className="block font-semibold mb-2" style={{ color: config.textColor }}>
+                  Email <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={formValues['form-email'] || ''}
+                  onChange={(e) => handleFieldChange('form-email', e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {structure.sections.map((section) => (
           <div key={section.id}>
             {section.title && (
