@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import Footer from '@/components/Footer';
 
 const features = [
   {
@@ -395,6 +396,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </>
   );
 }
