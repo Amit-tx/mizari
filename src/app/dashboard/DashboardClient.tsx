@@ -6,6 +6,7 @@ import { signOut } from 'next-auth/react';
 import { LinkCard } from '@/components/LinkCard';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { ProfilePreview } from '@/components/ProfilePreview';
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
 
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
@@ -178,6 +179,7 @@ export function DashboardClient({
   // individual cards inside a tab, so it must not double as the tab
   // switch or collapsing a card would also hide the whole tab.
   const [activeTab, setActiveTab] = useState<string>('profile');
+  const [timeRange, setTimeRange] = useState<'1d' | '7d' | '30d' | '90d'>('7d');
   const toggleSection = (id: string) => setActiveSection((prev) => (prev === id ? null : id));
   const [showAddForm, setShowAddForm] = useState(false);
   const [showScheduleSettings, setShowScheduleSettings] = useState(false);
@@ -2400,6 +2402,27 @@ export function DashboardClient({
           {/* Visitor Analytics Panel */}
           {activeTab === 'analytics' && (
           <div className="space-y-6">
+            {/* Time Range Filters */}
+            <div className="flex gap-2 flex-wrap">
+              {(['1d', '7d', '30d', '90d'] as const).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    timeRange === range
+                      ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white shadow-md'
+                      : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {range === '1d' ? 'Today' : range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : '90 Days'}
+                </button>
+              ))}
+            </div>
+
+            {/* New Analytics Dashboard */}
+            <AnalyticsDashboard profileId={activeProfile.id} timeRange={timeRange} />
+
+            {/* Original Analytics (kept for reference) */}
             {linksList.length > 0 && (
             <div className="relative p-5 rounded-3xl bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-pink-50/70 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/20 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-sm animate-fade-in">
               <div className="flex items-center gap-3.5">
