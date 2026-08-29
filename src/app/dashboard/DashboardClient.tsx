@@ -7,6 +7,7 @@ import { LinkCard } from '@/components/LinkCard';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { ProfilePreview } from '@/components/ProfilePreview';
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
+import FormsTab from '@/components/FormBuilder/FormsTab';
 
 import { STORE_THEMES } from '@/components/StoreThemes';
 import { japanThemes, animeThemes } from '@/data/themes';
@@ -2400,6 +2401,11 @@ export function DashboardClient({
       )}
 
           {/* Visitor Analytics Panel */}
+          {/* Forms Management Panel */}
+          {activeTab === "forms" && (
+            <FormsTab profileId={activeProfile.id} username={activeProfile.username} />
+          )}
+
           {activeTab === 'analytics' && (
           <div className="space-y-6">
             {/* Time Range Filters */}
@@ -2976,6 +2982,7 @@ export function DashboardClient({
           {[
             { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'links', icon: '🔗', label: 'Links' },
+            { id: 'forms', icon: '📋', label: 'Forms' },
             { id: 'store', icon: '🛍️', label: 'Store' },
             { id: 'themes', icon: '🎨', label: 'Themes' },
             { id: 'analytics', icon: '📊', label: 'Stats' },
