@@ -363,7 +363,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div 
-      className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-start bg-cover bg-center overflow-y-auto w-full transition-all duration-300"
+      className="relative flex min-h-screen flex-col items-center justify-start bg-cover bg-center overflow-y-auto w-full transition-all duration-300"
       style={bgStyle}
     >
       {/* Announcement Banner */}

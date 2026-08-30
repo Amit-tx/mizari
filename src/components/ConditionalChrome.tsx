@@ -3,18 +3,32 @@
 import { usePathname } from 'next/navigation';
 import { Header } from '@/components/Header';
 
-// Routes that are "app" screens (logged-in experience) — these get
-// their own self-contained header/nav and should NEVER show the
-// public marketing Header or Footer.
+// Dashboard and app routes — have their own chrome
 const APP_ROUTES = ['/dashboard'];
 
-export function ConditionalChrome({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isAppRoute = APP_ROUTES.some((route) => pathname?.startsWith(route));
+// Marketing pages that SHOULD show the header
+const MARKETING_ROUTES = new Set([
+  '/', '/login', '/signup', '/pricing', '/privacy',
+  '/terms', '/discover', '/contact', '/store', '/delete-confirm',
+]);
 
-  if (isAppRoute) {
-    // Dashboard renders its own complete header + bottom nav.
-    // No marketing Header, no Footer — just the app content.
+export function ConditionalChrome({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname() ?? '/';
+
+  const isAppRoute = APP_ROUTES.some((r) => pathname.startsWith(r));
+
+  // /f/:username/:slug — public form share page
+  const isFormShareRoute = pathname.startsWith('/f/');
+
+  // /:username — public profile page (single segment, not a known route)
+  const segments = pathname.split('/').filter(Boolean);
+  const isProfileRoute =
+    segments.length === 1 &&
+    !MARKETING_ROUTES.has(pathname) &&
+    !pathname.startsWith('/api/') &&
+    !pathname.startsWith('/f/');
+
+  if (isAppRoute || isFormShareRoute || isProfileRoute) {
     return <>{children}</>;
   }
 

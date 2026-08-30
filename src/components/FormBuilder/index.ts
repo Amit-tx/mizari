@@ -1,6 +1,4 @@
-export { default as FormBuilder } from './FormBuilder';
-export { default as FormSectionEditor } from './FormSectionEditor';
-export { default as FormFieldEditor } from './FormFieldEditor';
+export { FormBuilder } from './FormBuilder';
 export { default as FormPreview } from './FormPreview';
 export { default as FormSettings } from './FormSettings';
 
