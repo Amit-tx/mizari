@@ -1014,40 +1014,40 @@ export function DashboardClient({
       // Hand-picked: free, visually neutral, works for any profession —
       // not Japan/anime-branded, so it's a sensible first thing every
       // new user (creator, doctor, business, etc.) sees.
-      return ['light', 'dark', 'zen', 'kurohana', 'mizukaze', 'aozora', 'ame', 'yakutsk'].includes(id);
+      return ['yuki', 'zen', 'matcha', 'kurohana', 'tsukiyo', 'hoshi'].includes(id);
     }
 
     if (activeThemeTab === 'japan') {
-      return japanThemes.some((jt) => jt.slug === t.id) || ['sakura', 'momiji', 'zen', 'ame', 'mizukaze', 'aozora'].includes(t.id);
+      return japanThemes.some((jt) => jt.slug === t.id) || ['sakura', 'zen', 'matcha', 'tsukiyo'].includes(t.id);
     }
     
     if (activeThemeTab === 'anime') {
-      return animeThemes.some((at) => at.slug === t.id) || ['tsukiyo', 'frieren', 'demon_slayer'].includes(t.id);
+      return animeThemes.some((at) => at.slug === t.id) || ['tsukiyo', 'galaxy_dream', 'cyber_tokyo'].includes(t.id);
     }
 
     if (activeThemeTab === 'romantic') {
-      return ['sakura', 'wisteria', 'butterfly', 'fairy_dust', 'chrome_pink'].includes(id) ||
+      return ['sakura'].includes(id) ||
              tags.includes('pink') || tags.includes('floral') || tags.includes('soft');
     }
 
     if (activeThemeTab === 'fire') {
-      return ['fire', 'demon_slayer', 'kaminari', 'dragon_lair'].includes(id) ||
+      return ['fire'].includes(id) ||
              tags.includes('red') || tags.includes('warm') || tags.includes('fire') || tags.includes('action');
     }
 
     if (activeThemeTab === 'space') {
-      return ['galaxy_dream', 'hoshi', 'ether_space', 'celestial_spark', 'sky_kingdom'].includes(id) ||
+      return ['galaxy_dream', 'hoshi', 'cyber_tokyo'].includes(id) ||
              tags.includes('space') || tags.includes('stars') || tags.includes('gold');
     }
 
     if (activeThemeTab === 'glass') {
-      return ['light', 'dark', 'tsukiyo', 'yuki', 'mizukaze', 'crystal_cave'].includes(id) ||
+      return ['yuki', 'tsukiyo', 'zen'].includes(id) ||
              tags.includes('clean') || tags.includes('minimal') || tags.includes('grey');
     }
 
     if (activeThemeTab === 'developer') {
-      return ['kurohana', 'zen', 'dark', 'retro_grid', 'origami'].includes(id) ||
-             tags.includes('black') || tags.includes('grey') || id.includes('grid');
+      return ['kurohana', 'zen'].includes(id) ||
+             tags.includes('black') || tags.includes('grey');
     }
 
     if (activeThemeTab === 'gradient') {
@@ -1055,22 +1055,21 @@ export function DashboardClient({
     }
 
     if (activeThemeTab === 'seasonal') {
-      return ['haru_spring', 'aki_autumn', 'fuyu_winter', 'momiji', 'natsu_matsuri'].includes(id) ||
+      return ['sakura', 'matcha', 'ocean_sunset'].includes(id) ||
              tags.includes('spring') || tags.includes('autumn') || tags.includes('winter') || tags.includes('festival');
     }
 
     if (activeThemeTab === 'country') {
-      return ['matsuri', 'tanabata', 'shrine_festival', 'cyber_tokyo', 'shogun'].includes(id) ||
+      return ['tsukiyo', 'cyber_tokyo', 'hoshi'].includes(id) ||
              tags.includes('japanese') || tags.includes('festival');
     }
 
     if (activeThemeTab === 'vehicle') {
-      return ['grid_runner', 'outrun', 'railway_sunset'].includes(id) ||
-             desc.includes('train') || desc.includes('station') || desc.includes('run');
+      return ['cyber_tokyo', 'ocean_sunset'].includes(id);
     }
 
     if (activeThemeTab === 'gaming') {
-      return categories.includes('gaming') || ['cyber_tokyo', 'demon_slayer'].includes(id);
+      return ['cyber_tokyo', 'galaxy_dream', 'fire', 'hoshi'].includes(id);
     }
 
     if (activeThemeTab === 'cyberpunk') {

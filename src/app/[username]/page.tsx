@@ -6,7 +6,6 @@ import { getPlatformIcon } from '@/components/LinkIcons';
 import { getThemeById } from '@/components/Themes';
 import { SakuraEffect } from '@/components/SakuraEffect';
 import { WinterEffect } from '@/components/WinterEffect';
-import { WaveEffect } from '@/components/WaveEffect';
 import { RainEffect } from '@/components/RainEffect';
 import { ShareButton } from '@/components/ShareButton';
 import { TanabataTree } from '@/components/TanabataTree';
@@ -106,22 +105,22 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     let dynamicTheme = profile.themeType;
     if (isBirthday) {
       activeBirthdayConfetti = true;
-      dynamicTheme = 'haru_spring'; // Pink birthday theme
+      dynamicTheme = 'sakura'; // Pink birthday theme
     } else if (todayMmDd === '10-31') {
-      dynamicTheme = 'demon_slayer'; // Spooky Halloween theme
+      dynamicTheme = 'fire'; // Halloween theme
     } else if (todayMmDd === '12-24' || todayMmDd === '12-25') {
-      dynamicTheme = 'fuyu_winter'; // Winter theme
+      dynamicTheme = 'yuki'; // Winter/Christmas theme
     } else if (todayMmDd === '03-20') {
       dynamicTheme = 'sakura'; // Cherry blossom/spring
     } else if (todayMmDd === '11-01' || todayMmDd === '11-12') {
-      dynamicTheme = 'natsu_matsuri'; // Lanterns/Diwali
+      dynamicTheme = 'galaxy_dream'; // Diwali/festival lights
     } else {
       // Hour-based shift
       const currentHour = today.getHours();
       if (currentHour >= 6 && currentHour < 18) {
-        dynamicTheme = 'aozora'; // Sunrise -> Sunset: light sky
+        dynamicTheme = 'matcha'; // Daytime: fresh green
       } else {
-        dynamicTheme = 'tsukiyo'; // Sunset -> Sunrise: dark sky
+        dynamicTheme = 'tsukiyo'; // Night: dark navy
       }
     }
     profile.themeType = dynamicTheme;
@@ -239,9 +238,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // The themes are static, they do not dynamically change colors based on time of day.
   // We keep corePhases, JapanDynamicEngine, and AnimeReactiveSky components for stars/rain animations without color override.
   const SKY_WORTHY_CORE_THEMES = new Set([
-    'galaxy_dream', 'cyber_tokyo', 'tsukiyo', 'hoshi', 'sky_kingdom',
-    'ocean_sunset', 'railway_sunset', 'shrine_festival', 'frieren',
-    'demon_slayer', 'moonlight_forest', 'ame',
+    'galaxy_dream', 'cyber_tokyo', 'tsukiyo', 'hoshi',
+    'ocean_sunset', 'fuji_sunset', 'kurohana', 'fire',
   ]);
   let corePhases: import('@/data/themes').AnimeReactivePhase[] | null = null;
   if (!rawJapanTheme && !rawAnimeTheme && preset && SKY_WORTHY_CORE_THEMES.has(profile.themeType)) {
@@ -412,10 +410,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       )}
 
       {/* Seasonal Background Animations */}
-      {(profile.themeType === 'sakura' || profile.themeType === 'haru_spring') && <SakuraEffect />}
-      {(profile.themeType === 'yuki' || profile.themeType === 'fuyu_winter' || profile.themeType === 'sapporo_snow') && <WinterEffect />}
-      {(profile.themeType === 'ame' || profile.themeType === 'kyoto-rain' || profile.themeType === 'cyber_tokyo') && <RainEffect />}
-      {(profile.themeType === 'mizukaze' || profile.themeType === 'okinawa_blue') && <WaveEffect />}
+      {profile.themeType === 'sakura' && <SakuraEffect />}
+      {profile.themeType === 'yuki' && <WinterEffect />}
+      {profile.themeType === 'cyber_tokyo' && <RainEffect />}
 
       {/* Floating Ambient Sound Player */}
       <AmbientPlayer />
