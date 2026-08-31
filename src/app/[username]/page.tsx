@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { profiles, links, wishes } from '@/db/schema';
+import { profiles, links, wishes, forms } from '@/db/schema';
 import { eq, asc, desc, and } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import { getPlatformIcon } from '@/components/LinkIcons';
@@ -88,6 +88,19 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .where(eq(wishes.profileId, profile.id))
     .orderBy(desc(wishes.id))
     .limit(10);
+
+  // Fetch published forms for this profile
+  const profileForms = await db
+    .select({
+      id: forms.id,
+      title: forms.title,
+      description: forms.description,
+      slug: forms.slug,
+      isEnabled: forms.isEnabled,
+    })
+    .from(forms)
+    .where(and(eq(forms.profileId, profile.id), eq(forms.isPublished, 1)))
+    .orderBy(asc(forms.id));
 
   // Separate standard links and product cards
   const standardLinks = activeLinks.filter((l) => !l.isProduct || l.isProduct === 0);
@@ -530,6 +543,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               buttonStyle={getButtonStyle()}
               textStyle={textStyle}
               preset={preset}
+              profileForms={profileForms}
+              username={profile.username}
             />
           </div>
         </div>

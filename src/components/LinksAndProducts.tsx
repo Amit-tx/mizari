@@ -21,6 +21,14 @@ interface Link {
   isSensitive: number;
 }
 
+interface ProfileForm {
+  id: number;
+  title: string;
+  description: string;
+  slug: string;
+  isEnabled: number;
+}
+
 interface LinksAndProductsProps {
   standardLinks: Link[];
   productLinks: Link[];
@@ -29,6 +37,8 @@ interface LinksAndProductsProps {
   buttonStyle: React.CSSProperties;
   textStyle: React.CSSProperties;
   preset?: any;
+  profileForms?: ProfileForm[];
+  username?: string;
 }
 
 export function LinksAndProducts({
@@ -39,6 +49,8 @@ export function LinksAndProducts({
   buttonStyle,
   textStyle,
   preset,
+  profileForms = [],
+  username = '',
 }: LinksAndProductsProps) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [warningOpen, setWarningOpen] = useState(false);
@@ -189,6 +201,48 @@ export function LinksAndProducts({
               </a>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Published Forms Section */}
+      {profileForms.length > 0 && (
+        <div className="mt-3 flex w-full flex-col gap-3">
+          {profileForms.map((form) => (
+            <a
+              key={form.id}
+              href={`/f/${username}/${form.slug}`}
+              className={`group flex w-full items-center gap-3 px-5 py-3.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${buttonClass}`}
+              style={buttonStyle}
+            >
+              {/* Form icon */}
+              <span className="text-lg shrink-0">📋</span>
+              {/* Text */}
+              <div className="flex-1 min-w-0 text-left">
+                <span className="block font-semibold truncate" style={textStyle}>
+                  {form.title}
+                </span>
+                {form.description && (
+                  <span
+                    className="block text-xs truncate opacity-60 mt-0.5"
+                    style={textStyle}
+                  >
+                    {form.description}
+                  </span>
+                )}
+              </div>
+              {/* Arrow */}
+              <svg
+                className="shrink-0 h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
+                style={textStyle}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          ))}
         </div>
       )}
 
