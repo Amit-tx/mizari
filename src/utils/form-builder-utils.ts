@@ -44,22 +44,28 @@ export const validateFieldValue = (
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Check required
   if (field.required && (!value || value.toString().trim() === '')) {
     errors.push(field.errorMessage || `${field.label} is required`);
     return { isValid: false, errors };
   }
 
-  if (!value && !field.required) {
-    return { isValid: true, errors: [] };
-  }
+  if (!value && !field.required) return { isValid: true, errors: [] };
 
-  // Run all validations
-  for (const validation of field.validations) {
-    const validationError = validateWithRule(value, field, validation);
-    if (validationError) {
-      errors.push(validationError);
+  // Inline validation rules
+  for (const validation of (field.validations ?? [])) {
+    const msg = validation.message || `Validation failed for ${field.label}`;
+    let err: string | null = null;
+    switch (validation.rule) {
+      case 'email':    err = !isValidEmail(value) ? msg : null; break;
+      case 'url':      err = !isValidUrl(value) ? msg : null; break;
+      case 'phone':    err = !isValidPhone(value) ? msg : null; break;
+      case 'minLength': err = value.toString().length < (validation.value || 0) ? msg : null; break;
+      case 'maxLength': err = value.toString().length > (validation.value || 0) ? msg : null; break;
+      case 'minValue':  err = Number(value) < Number(validation.value || 0) ? msg : null; break;
+      case 'maxValue':  err = Number(value) > Number(validation.value || 0) ? msg : null; break;
+      case 'pattern':   err = !new RegExp(validation.value as string).test(value) ? msg : null; break;
     }
+    if (err) errors.push(err);
   }
 
   return { isValid: errors.length === 0, errors };
@@ -68,107 +74,9 @@ export const validateFieldValue = (
 /**
  * Validate against a single rule
  */
-export const validateWithRule = (
-  value: any,
-  field: FormField,
-  validation: ValidationConfig
-): string | null => {
-  const msg = validation.message || `Validation failed for ${field.label}`;
 
-  switch (validation.rule) {
-    case 'required':
-      return !value || value.toString().trim() === '' ? msg : null;
 
-    case 'email':
-      return !isValidEmail(value) ? msg : null;
 
-    case 'url':
-      return !isValidUrl(value) ? msg : null;
-
-    case 'phone':
-      return !isValidPhone(value) ? msg : null;
-
-    case 'minLength':
-      return value.toString().length < (validation.value || 0) ? msg : null;
-
-    case 'maxLength':
-      return value.toString().length > (validation.value || 0) ? msg : null;
-
-    case 'minValue':
-      return Number(value) < Number(validation.value || 0) ? msg : null;
-
-    case 'maxValue':
-      return Number(value) > Number(validation.value || 0) ? msg : null;
-
-    case 'pattern':
-      const regex = new RegExp(validation.value as string);
-      return !regex.test(value) ? msg : null;
-
-    default:
-      return null;
-  }
-};
-
-/**
- * Check if conditional logic should show/hide a field
- */
-export const evaluateConditionalLogic = (
-  condition: ConditionalCondition,
-  formValues: Record<string, any>
-): boolean => {
-  const fieldValue = formValues[condition.fieldId];
-
-  switch (condition.operator) {
-    case 'equals':
-      return fieldValue === condition.value;
-
-    case 'notEquals':
-      return fieldValue !== condition.value;
-
-    case 'contains':
-      return String(fieldValue).includes(String(condition.value));
-
-    case 'greaterThan':
-      return Number(fieldValue) > Number(condition.value);
-
-    case 'lessThan':
-      return Number(fieldValue) < Number(condition.value);
-
-    case 'isEmpty':
-      return !fieldValue || fieldValue.toString().trim() === '';
-
-    case 'isNotEmpty':
-      return fieldValue && fieldValue.toString().trim() !== '';
-
-    default:
-      return true;
-  }
-};
-
-/**
- * Get visible fields based on form values and conditional logic
- */
-export const getVisibleFields = (
-  fields: FormField[],
-  formValues: Record<string, any>
-): FormField[] => {
-  return fields.filter((field) => {
-    if (!field.conditionalLogic) {
-      return !field.hidden;
-    }
-
-    const conditionMet = evaluateConditionalLogic(
-      field.conditionalLogic.condition,
-      formValues
-    );
-
-    return field.conditionalLogic.show ? conditionMet : !conditionMet;
-  });
-};
-
-/**
- * Create empty form section
- */
 export const createEmptySection = (title: string = 'New Section'): FormSection => ({
   id: generateId('section-'),
   title,
@@ -208,24 +116,7 @@ export const createEmptyField = (type: FieldType = 'text'): FormField => ({
 /**
  * Calculate form completion percentage
  */
-export const calculateFormCompletion = (
-  fields: FormField[],
-  formValues: Record<string, any>
-): number => {
-  if (fields.length === 0) return 100;
 
-  const requiredFields = fields.filter(f => f.required);
-  const filledFields = requiredFields.filter(f => {
-    const value = formValues[f.id];
-    return value && value.toString().trim() !== '';
-  });
-
-  return Math.round((filledFields.length / requiredFields.length) * 100);
-};
-
-/**
- * Export form responses to CSV
- */
 export const exportFormResponsesToCSV = (
   responses: Array<{
     id: number;
@@ -305,13 +196,7 @@ export const validateFormStructure = (structure: FormStructure): { isValid: bool
 /**
  * Clone form structure
  */
-export const cloneFormStructure = (structure: FormStructure): FormStructure => {
-  return JSON.parse(JSON.stringify(structure));
-};
 
-/**
- * Generate form slug from title
- */
 export const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
