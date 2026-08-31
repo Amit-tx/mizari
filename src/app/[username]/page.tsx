@@ -312,6 +312,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   })();
   const legibilityScrimClass = isLightText ? 'bg-black/35' : 'bg-white/45';
 
+  // Detect dark preset for glass card adaptive styling
+  const isDarkPreset = preset
+    ? parseInt((preset.bgColor ?? '#ffffff').replace('#', ''), 16) < 0x888888 * 16
+    : profile.themeType === 'dark' || profile.themeType === 'tsukiyo' || profile.themeType === 'kurohana' || profile.themeType === 'hoshi' || profile.themeType === 'galaxy_dream' || profile.themeType === 'cyber_tokyo' || profile.themeType === 'fire';
+
   // Custom button styles
   const getButtonClass = () => {
     if (!preset && profile.themeType !== 'custom') {
@@ -559,17 +564,25 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           }
           if (items.length === 0) return null;
           return (
-            <div className={`overflow-hidden rounded-3xl border p-6 shadow-xl transition-all duration-300 ${
-              profile.themeType === 'dark'
-                ? 'bg-slate-900 border-slate-800 text-slate-100'
-                : 'bg-white border-gray-100 text-[#1a1a2e]'
-            }`}>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B6B]">{profile.infoCardTitle || 'Profile'}</span>
-              <div className="mt-4 space-y-3">
+            <div
+              className="overflow-hidden rounded-3xl border p-5 shadow-xl backdrop-blur-md transition-all duration-300"
+              style={{
+                background: preset
+                  ? (isDarkPreset ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.60)')
+                  : 'rgba(255,255,255,0.15)',
+                borderColor: preset
+                  ? (isDarkPreset ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                  : 'rgba(255,255,255,0.25)',
+              }}
+            >
+              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: preset?.btnBg ?? '#FF6B6B' }}>
+                {profile.infoCardTitle || 'Profile'}
+              </span>
+              <div className="mt-4 space-y-3.5">
                 {items.map((item, i) => (
-                  <div key={i}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">{item.label}</p>
-                    <p className="text-sm font-medium">{item.value}</p>
+                  <div key={i} className="flex items-start justify-between gap-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider shrink-0" style={{ ...textStyle, opacity: 0.5 }}>{item.label}</p>
+                    <p className="text-sm font-semibold text-right" style={textStyle}>{item.value}</p>
                   </div>
                 ))}
               </div>
@@ -595,27 +608,57 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           )
         )}
 
-        {/* Contact Block: dark card with click-to-call / click-to-email */}
+        {/* Contact Block */}
         {profile.contactEnabled === 1 && (profile.contactPhone || profile.contactEmail) && (
-          <div className="overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl">
-            <h3 className="text-xl font-bold">Let&apos;s get in touch</h3>
-            <p className="mt-1.5 text-sm text-slate-300">Have a question or just want to say hello? Reach out directly.</p>
-            <div className="mt-5 divide-y divide-slate-700">
+          <div
+            className="overflow-hidden rounded-3xl border p-5 shadow-xl backdrop-blur-md"
+            style={{
+              background: preset
+                ? (isDarkPreset ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.60)')
+                : 'rgba(0,0,0,0.35)',
+              borderColor: preset
+                ? (isDarkPreset ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)')
+                : 'rgba(255,255,255,0.15)',
+            }}
+          >
+            <h3 className="text-base font-extrabold" style={textStyle}>Let&apos;s get in touch</h3>
+            <p className="mt-1 text-xs leading-relaxed opacity-60" style={textStyle}>
+              Have a question or just want to say hello?
+            </p>
+            <div className="mt-4 space-y-3">
               {profile.contactPhone && (
-                <div className="pb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Phone</p>
-                  <a href={`tel:${profile.contactPhone}`} className="text-base font-semibold transition-colors hover:text-[#FF6B6B]">
-                    {profile.contactPhone}
-                  </a>
-                </div>
+                <a
+                  href={`tel:${profile.contactPhone}`}
+                  className="flex items-center gap-3 rounded-2xl border px-4 py-3
+                             transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  style={{
+                    borderColor: preset ? (isDarkPreset ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)') : 'rgba(255,255,255,0.2)',
+                    background: preset ? (isDarkPreset ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.5)') : 'rgba(255,255,255,0.07)',
+                  }}
+                >
+                  <span className="text-lg">📞</span>
+                  <div>
+                    <p className="text-[9px] font-extrabold uppercase tracking-widest opacity-50" style={textStyle}>Phone</p>
+                    <p className="text-sm font-bold" style={textStyle}>{profile.contactPhone}</p>
+                  </div>
+                </a>
               )}
               {profile.contactEmail && (
-                <div className="pt-4 first:pt-0">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</p>
-                  <a href={`mailto:${profile.contactEmail}`} className="break-all text-base font-semibold transition-colors hover:text-[#FF6B6B]">
-                    {profile.contactEmail}
-                  </a>
-                </div>
+                <a
+                  href={`mailto:${profile.contactEmail}`}
+                  className="flex items-center gap-3 rounded-2xl border px-4 py-3
+                             transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                  style={{
+                    borderColor: preset ? (isDarkPreset ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)') : 'rgba(255,255,255,0.2)',
+                    background: preset ? (isDarkPreset ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.5)') : 'rgba(255,255,255,0.07)',
+                  }}
+                >
+                  <span className="text-lg">✉️</span>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-extrabold uppercase tracking-widest opacity-50" style={textStyle}>Email</p>
+                    <p className="text-sm font-bold truncate" style={textStyle}>{profile.contactEmail}</p>
+                  </div>
+                </a>
               )}
             </div>
           </div>
