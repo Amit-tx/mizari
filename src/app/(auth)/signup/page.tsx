@@ -68,7 +68,7 @@ function SignupForm() {
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">
             Create your{' '}
-            <span className="bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#111827] to-[#111827] bg-clip-text text-transparent">
               Mizari
             </span>
           </h1>
@@ -89,7 +89,7 @@ function SignupForm() {
               <label htmlFor="signup-username" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                 Username
               </label>
-              <div className="mt-1.5 flex items-center rounded-xl border border-gray-300 bg-white transition-colors focus-within:border-[#FF6B6B] focus-within:ring-2 focus-within:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700">
+              <div className="mt-1.5 flex items-center rounded-xl border border-gray-300 bg-white transition-colors focus-within:border-[#111827] focus-within:ring-2 focus-within:ring-[#111827]/20 dark:border-slate-600 dark:bg-slate-700">
                 <span className="pl-4 text-sm text-gray-400 dark:text-slate-500">mizari.cc/</span>
                 <input
                   id="signup-username"
@@ -118,7 +118,7 @@ function SignupForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                className="mt-1.5 block w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 placeholder="you@example.com"
               />
             </div>
@@ -134,7 +134,7 @@ function SignupForm() {
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-300 bg-white pl-4 pr-16 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  className="block w-full rounded-xl border border-gray-300 bg-white pl-4 pr-16 py-2.5 text-sm transition-colors focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                   placeholder="••••••••"
                 />
                 <button
@@ -156,7 +156,7 @@ function SignupForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 disabled:opacity-60"
+              className="w-full rounded-xl bg-gradient-to-r from-[#111827] to-[#111827] py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 disabled:opacity-60"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>

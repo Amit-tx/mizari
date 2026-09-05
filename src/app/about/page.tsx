@@ -6,7 +6,7 @@ export default function AboutPage() {
       <div className="text-center">
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
           About{' '}
-          <span className="bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#111827] to-[#111827] bg-clip-text text-transparent">
             Mizari
           </span>
         </h1>
@@ -33,7 +33,7 @@ export default function AboutPage() {
         <div className="mt-12 flex justify-center">
           <Link
             href="/signup"
-            className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-8 py-3.5 text-base font-semibold text-white shadow-md hover:brightness-110"
+            className="rounded-2xl bg-gradient-to-r from-[#111827] to-[#111827] px-8 py-3.5 text-base font-semibold text-white shadow-md hover:brightness-110"
           >
             Create Your Page Now
           </Link>

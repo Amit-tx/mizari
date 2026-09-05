@@ -67,7 +67,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1.5 block w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                className="mt-1.5 block w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm transition-colors focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 placeholder="you@example.com"
               />
             </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-300 bg-white pl-4 pr-16 py-2.5 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  className="block w-full rounded-xl border border-gray-300 bg-white pl-4 pr-16 py-2.5 text-sm transition-colors focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                   placeholder="••••••••"
                 />
                 <button
@@ -98,7 +98,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 disabled:opacity-60"
+              className="w-full rounded-xl bg-gradient-to-r from-[#111827] to-[#111827] py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 disabled:opacity-60"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -134,7 +134,7 @@ export default function LoginPage() {
             </p>
             <Link 
               href="/signup" 
-              className="mt-2 inline-block w-full rounded-xl border border-[#FF6B6B]/30 bg-[#FF6B6B]/5 py-2 text-sm font-bold text-[#FF6B6B] hover:bg-[#FF6B6B]/10 transition-colors"
+              className="mt-2 inline-block w-full rounded-xl border border-[#111827]/30 bg-[#111827]/5 py-2 text-sm font-bold text-[#111827] hover:bg-[#111827]/10 transition-colors"
             >
               Create a new account (Sign Up) 🚀
             </Link>
