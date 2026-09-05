@@ -49,7 +49,7 @@ export default function DashboardError({
       <div className="flex gap-3">
         <button
           onClick={() => reset()}
-          className="rounded-xl bg-[#FF6B6B] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity"
+          className="rounded-xl bg-[#111827] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity"
         >
           Try Again
         </button>

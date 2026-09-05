@@ -185,7 +185,7 @@ export default function FormSettings({
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={config.buttonColor || '#FF6B6B'}
+                value={config.buttonColor || '#111827'}
                 onChange={(e) => onUpdate({ buttonColor: e.target.value })}
                 className="h-12 rounded-lg cursor-pointer border-2 border-gray-200"
               />

@@ -6,10 +6,11 @@ import { ChunkErrorHandler } from '@/components/ChunkErrorHandler';
 import { ConditionalChrome } from '@/components/ConditionalChrome';
 
 export const metadata: Metadata = {
-  title: 'Mizari — Your Link in Bio',
+  metadataBase: new URL('https://mizari.cc'),
+  title: 'mizari.cc — Your Link in Bio',
   description:
-    'One link for everything. Share your content, social profiles, and more with a single, beautiful Mizari page.',
-  keywords: ['link in bio', 'linktree alternative', 'social links', 'mizari'],
+    'One link for everything. Share your content, social profiles, and more with a single, beautiful mizari.cc page.',
+  keywords: ['link in bio', 'linktree alternative', 'social links', 'mizari', 'mizari.cc'],
 };
 
 export const viewport: Viewport = {

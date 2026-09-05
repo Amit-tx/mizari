@@ -43,7 +43,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
       <div className="text-center">
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
           Discover{' '}
-          <span className="bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#111827] to-[#111827] bg-clip-text text-transparent">
             Creators & Brands
           </span>
         </h1>
@@ -62,7 +62,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all border ${
                 activeTab === tab
-                  ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] border-transparent text-white shadow-md shadow-[#FF6B6B]/20'
+                  ? 'bg-gradient-to-r from-[#111827] to-[#111827] border-transparent text-white shadow-md shadow-[#111827]/20'
                   : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'
               }`}
             >
@@ -78,7 +78,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
             placeholder="🔍 Search creators..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2 text-xs focus:outline-none focus:border-[#FF6B6B] dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2 text-xs focus:outline-none focus:border-[#111827] dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           />
           {search && (
             <button
@@ -104,7 +104,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
               <Link
                 key={profile.id}
                 href={`/${profile.username}`}
-                className="group relative flex flex-col rounded-3xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-[#FF6B6B]/30 transition-all duration-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-[#FF6B6B]/30"
+                className="group relative flex flex-col rounded-3xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:border-[#111827]/30 transition-all duration-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-[#111827]/30"
               >
                 {/* Profile Card Header */}
                 <div className="flex items-center gap-4">
@@ -113,7 +113,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                     {profile.avatarUrl ? (
                       <img src={profile.avatarUrl} alt={profile.username} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[#FF6B6B]/70 bg-[#FF6B6B]/5">
+                      <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[#111827]/70 bg-[#111827]/5">
                         {profile.username.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -121,7 +121,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h3 className="truncate text-base font-extrabold text-gray-900 group-hover:text-[#FF6B6B] transition-colors dark:text-white">
+                      <h3 className="truncate text-base font-extrabold text-gray-900 group-hover:text-[#111827] transition-colors dark:text-white">
                         @{profile.username}
                       </h3>
                       {/* Level Tag */}
@@ -136,7 +136,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                     </div>
                     {/* Badges */}
                     <div className="mt-1 flex flex-wrap gap-1">
-                      <span className="rounded bg-[#FF6B6B]/10 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-[#FF6B6B] tracking-wider">
+                      <span className="rounded bg-[#111827]/10 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-[#111827] tracking-wider">
                         {profile.profileType}
                       </span>
                       {levelInfo.isPrestige && (
@@ -163,7 +163,7 @@ export function DiscoverClient({ initialProfiles }: DiscoverClientProps) {
                       ❤️ {profile.likes} likes
                     </span>
                   </div>
-                  <span className="text-[#FF6B6B] group-hover:translate-x-1 transition-transform">
+                  <span className="text-[#111827] group-hover:translate-x-1 transition-transform">
                     View profile &rarr;
                   </span>
                 </div>

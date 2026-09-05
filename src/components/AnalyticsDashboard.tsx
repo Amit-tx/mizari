@@ -76,7 +76,7 @@ export function AnalyticsDashboard({ profileId, timeRange }: AnalyticsDashboardP
                   </span>
                   <div className="flex-1 bg-gray-200 dark:bg-slate-700 rounded-md h-8 flex items-end overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] h-full rounded-md transition-all"
+                      className="bg-gradient-to-r from-[#111827] to-[#111827] h-full rounded-md transition-all"
                       style={{ width: `${Math.max(viewsPercent, 5)}%` }}
                     />
                   </div>
@@ -104,7 +104,7 @@ export function AnalyticsDashboard({ profileId, timeRange }: AnalyticsDashboardP
                   <div className="flex items-center gap-2 flex-1 ml-4">
                     <div className="flex-1 max-w-xs bg-gray-200 dark:bg-slate-600 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] h-2 rounded-full"
+                        className="bg-gradient-to-r from-[#111827] to-[#111827] h-2 rounded-full"
                         style={{ width: `${device.percentage}%` }}
                       />
                     </div>

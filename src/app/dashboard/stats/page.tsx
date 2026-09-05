@@ -32,7 +32,7 @@ export default function StatsPage() {
               onClick={() => setTimeRange(range.value)}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 timeRange === range.value
-                  ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white shadow-md'
+                  ? 'bg-gradient-to-r from-[#111827] to-[#111827] text-white shadow-md'
                   : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
               }`}
             >

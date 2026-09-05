@@ -6,7 +6,7 @@ export default function ContactPage() {
       <div className="text-center">
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
           Contact{' '}
-          <span className="bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#111827] to-[#111827] bg-clip-text text-transparent">
             Us
           </span>
         </h1>
@@ -22,7 +22,7 @@ export default function ContactPage() {
             <input
               type="text"
               required
-              className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+              className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
               placeholder="Your Name"
             />
           </div>
@@ -32,7 +32,7 @@ export default function ContactPage() {
             <input
               type="email"
               required
-              className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+              className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
               placeholder="you@example.com"
             />
           </div>
@@ -42,14 +42,14 @@ export default function ContactPage() {
             <textarea
               required
               rows={4}
-              className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+              className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
               placeholder="How can we help you?"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-3 text-center text-sm font-semibold text-white shadow-md hover:brightness-110 transition-all"
+            className="w-full rounded-2xl bg-gradient-to-r from-[#111827] to-[#111827] py-3 text-center text-sm font-semibold text-white shadow-md hover:brightness-110 transition-all"
           >
             Send Message
           </button>

@@ -218,7 +218,7 @@ export function DashboardClient({
       : [{ text: '', link: '' }];
   });
   const [announcementActive, setAnnouncementActive] = useState(activeProfile.announcementActive === 1);
-  const [announcementColor, setAnnouncementColor] = useState(activeProfile.announcementColor || '#FF6B6B');
+  const [announcementColor, setAnnouncementColor] = useState(activeProfile.announcementColor || '#111827');
 
   // Guestbook Style & Heading States
   const [guestbookStyle, setGuestbookStyle] = useState<'tanabata' | 'classic'>(activeProfile.guestbookStyle || 'tanabata');
@@ -1014,7 +1014,7 @@ export function DashboardClient({
       // Hand-picked: free, visually neutral, works for any profession —
       // not Japan/anime-branded, so it's a sensible first thing every
       // new user (creator, doctor, business, etc.) sees.
-      return ['yuki', 'zen', 'matcha', 'kurohana', 'tsukiyo', 'hoshi'].includes(id);
+      return ['yuki', 'zen', 'matcha', 'kurohana', 'tsukiyo', 'hoshi', 'creator_card'].includes(id);
     }
 
     if (activeThemeTab === 'japan') {
@@ -1086,11 +1086,11 @@ export function DashboardClient({
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-[#F8F7F5] dark:bg-[#0B0B0C]">
       {/* Top Bar - MINIMAL: just logo + logout, nothing else */}
-      <nav className="sticky top-0 z-40 border-b border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950">
+      <nav className="sticky top-0 z-40 backdrop-blur-xl bg-[#F8F7F5]/90 dark:bg-[#0B0B0C]/90 border-b border-black/[0.06] dark:border-white/10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-black text-[#FF6B6B]">Mizari</h1>
+          <h1 className="text-2xl font-black text-[#111827] dark:text-[#F8F7F5]">mizari.cc</h1>
           <button
             onClick={handleLogout}
             title="Log Out"
@@ -1114,7 +1114,7 @@ export function DashboardClient({
       {/* Create Profile Modal */}
       {showNewProfileModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-sm rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 animate-scale-up">
+          <div className="w-full max-w-sm rounded-[24px] bg-white p-6 shadow-2xl dark:bg-[#17171A] animate-scale-up">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New Profile</h3>
             <p className="text-xs text-gray-500 mt-1">Add another personal, business, or gaming page.</p>
 
@@ -1126,7 +1126,7 @@ export function DashboardClient({
                   required
                   value={newProfileName}
                   onChange={(e) => setNewProfileName(e.target.value)}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-3.5 py-2 text-sm focus:outline-none focus:border-[#FF6B6B] dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-3.5 py-2 text-sm focus:outline-none focus:border-[#111827] dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="e.g. amit_gaming"
                 />
               </div>
@@ -1148,7 +1148,7 @@ export function DashboardClient({
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 rounded-2xl bg-[#FF6B6B] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110"
+                  className="flex-1 rounded-2xl bg-[#111827] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110"
                 >
                   {saving ? 'Creating...' : 'Create Profile'}
                 </button>
@@ -1175,7 +1175,7 @@ export function DashboardClient({
           {activeTab === 'profile' && (
           <>
           {/* Profile Switcher Row */}
-          <div className="flex items-center justify-between p-4 mb-4 rounded-3xl bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 animate-fade-in">
+          <div className="flex items-center justify-between p-4 mb-4 rounded-[20px] bg-white dark:bg-[#17171A] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] animate-fade-in">
             <div className="flex items-center gap-2">
               <span className="text-xl">👤</span>
               <div className="relative inline-block">
@@ -1193,24 +1193,27 @@ export function DashboardClient({
               </div>
               <button
                 onClick={() => setShowNewProfileModal(true)}
-                className="rounded-full bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] p-1.5 text-xs font-bold"
+                className="rounded-full bg-[#111827]/10 hover:bg-[#111827]/20 text-[#111827] dark:text-[#F8F7F5] p-1.5 text-xs font-bold"
                 title="Create New Profile"
               >
                 ➕
               </button>
             </div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Profile</span>
+            <span className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF4D5A]" />
+              Active Profile
+            </span>
           </div>
 
           {/* Profile URL & Share Card */}
-          <div className="p-4 rounded-3xl bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+          <div className="p-4 rounded-[20px] bg-white dark:bg-[#17171A] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
             <div>
-              <p className="text-[10px] font-extrabold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Your Mizari Link</p>
+              <p className="text-[10px] font-extrabold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Your mizari.cc Link</p>
               <a
                 href={`/${activeProfile.username}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-0.5 block text-sm font-extrabold text-[#FF6B6B] hover:underline"
+                className="mt-0.5 block text-sm font-extrabold text-[#111827] dark:text-[#F8F7F5] hover:underline"
               >
                 mizari.cc/{activeProfile.username}
               </a>
@@ -1218,7 +1221,7 @@ export function DashboardClient({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleShareProfile}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-300 transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-[#111827] border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-slate-300 transition-colors shadow-sm"
               >
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.622-2.312m0 7.14l-4.622-2.312M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9zm-13.5 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm10.5-4.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
@@ -1266,7 +1269,7 @@ export function DashboardClient({
                   type="button"
                   disabled={uploadingAvatar}
                   onClick={() => avatarInputRef.current?.click()}
-                  className="mt-2.5 text-xs font-bold text-[#FF6B6B] hover:underline"
+                  className="mt-2.5 text-xs font-bold text-[#111827] hover:underline"
                 >
                   {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
                 </button>
@@ -1280,7 +1283,7 @@ export function DashboardClient({
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     rows={3}
-                    className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     placeholder="Tell the world about yourself..."
                   />
                 </div>
@@ -1288,7 +1291,7 @@ export function DashboardClient({
                   <button
                     onClick={handleUpdateProfile}
                     disabled={saving}
-                    className="self-start rounded-2xl bg-[#FF6B6B] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                    className="self-start rounded-2xl bg-[#111827] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
                   >
                     Save Bio
                   </button>
@@ -1316,7 +1319,7 @@ export function DashboardClient({
                   onChange={(e) => setTagline(e.target.value)}
                   maxLength={150}
                   placeholder="e.g. Knowledge That Makes Life Easier."
-                  className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">A short italic line shown under your bio, e.g. a slogan or motto.</p>
               </div>
@@ -1334,14 +1337,14 @@ export function DashboardClient({
                       onChange={(e) => setCtaPrimaryText(e.target.value)}
                       maxLength={60}
                       placeholder="Button text"
-                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                     <input
                       type="text"
                       value={ctaPrimaryLink}
                       onChange={(e) => setCtaPrimaryLink(e.target.value)}
                       placeholder="Link (https://... or mailto:/tel:)"
-                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                   <div className="space-y-2 rounded-2xl border border-gray-200 p-3 dark:border-slate-800">
@@ -1352,14 +1355,14 @@ export function DashboardClient({
                       onChange={(e) => setCtaSecondaryText(e.target.value)}
                       maxLength={60}
                       placeholder="Button text"
-                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                     <input
                       type="text"
                       value={ctaSecondaryLink}
                       onChange={(e) => setCtaSecondaryLink(e.target.value)}
                       placeholder="Link (https://... or mailto:/tel:)"
-                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                 </div>
@@ -1372,7 +1375,7 @@ export function DashboardClient({
                     type="checkbox"
                     checked={infoCardEnabled}
                     onChange={(e) => setInfoCardEnabled(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                    className="h-4 w-4 rounded border-gray-300 text-[#111827] focus:ring-[#111827]"
                   />
                   <span>Show Info Card</span>
                 </label>
@@ -1387,7 +1390,7 @@ export function DashboardClient({
                       onChange={(e) => setInfoCardTitle(e.target.value)}
                       maxLength={60}
                       placeholder="Card title (e.g. Profile)"
-                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                     {infoCardItems.map((item, index) => (
                       <div key={index} className="flex items-center gap-2">
@@ -1397,7 +1400,7 @@ export function DashboardClient({
                           onChange={(e) => updateInfoCardItem(index, 'label', e.target.value)}
                           maxLength={40}
                           placeholder="Label (e.g. Role)"
-                          className="w-1/3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                          className="w-1/3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                         />
                         <input
                           type="text"
@@ -1405,7 +1408,7 @@ export function DashboardClient({
                           onChange={(e) => updateInfoCardItem(index, 'value', e.target.value)}
                           maxLength={100}
                           placeholder="Value (e.g. Content Creator)"
-                          className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                          className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                         />
                         <button
                           type="button"
@@ -1422,7 +1425,7 @@ export function DashboardClient({
                       <button
                         type="button"
                         onClick={addInfoCardItem}
-                        className="text-xs font-bold text-[#FF6B6B] hover:underline"
+                        className="text-xs font-bold text-[#111827] hover:underline"
                       >
                         + Add row
                       </button>
@@ -1438,7 +1441,7 @@ export function DashboardClient({
                     type="checkbox"
                     checked={contactEnabled}
                     onChange={(e) => setContactEnabled(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                    className="h-4 w-4 rounded border-gray-300 text-[#111827] focus:ring-[#111827]"
                   />
                   <span>Show &quot;Let&apos;s get in touch&quot; block</span>
                 </label>
@@ -1451,7 +1454,7 @@ export function DashboardClient({
                       onChange={(e) => setContactPhone(e.target.value)}
                       maxLength={30}
                       placeholder="Phone number"
-                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                     <input
                       type="email"
@@ -1459,7 +1462,7 @@ export function DashboardClient({
                       onChange={(e) => setContactEmail(e.target.value)}
                       maxLength={255}
                       placeholder="Email address"
-                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                      className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                 )}
@@ -1474,7 +1477,7 @@ export function DashboardClient({
                   onChange={(e) => setBirthday(e.target.value)}
                   maxLength={5}
                   placeholder="MM-DD (e.g. 07-18 for July 18th)"
-                  className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="mt-1.5 block w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">Add your birth month and day (MM-DD) to trigger automatic birthday themes and page effects.</p>
               </div>
@@ -1482,7 +1485,7 @@ export function DashboardClient({
               <button
                 onClick={handleUpdateProfileExtras}
                 disabled={savingExtras}
-                className="self-start rounded-2xl bg-[#FF6B6B] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                className="self-start rounded-2xl bg-[#111827] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
               >
                 {savingExtras ? 'Saving...' : 'Save Bio Page Extras'}
               </button>
@@ -1536,7 +1539,7 @@ export function DashboardClient({
                 placeholder="🔍 Search themes by name, tags, description..."
                 value={themeSearchQuery}
                 onChange={(e) => setThemeSearchQuery(e.target.value)}
-                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 text-gray-800 dark:text-slate-100 shadow-sm"
+                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#111827]/20 text-gray-800 dark:text-slate-100 shadow-sm"
               />
               {themeSearchQuery && (
                 <button
@@ -1558,7 +1561,7 @@ export function DashboardClient({
                   onClick={() => setActiveThemeTab(tab.id)}
                   className={`px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg border transition-all shrink-0 ${
                     activeThemeTab === tab.id
-                      ? 'border-[#FF6B6B] bg-[#FF6B6B] text-white'
+                      ? 'border-[#111827] bg-[#111827] text-white'
                       : 'border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -1601,7 +1604,7 @@ export function DashboardClient({
                       }}
                       className={`flex h-28 w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border p-2 transition-all duration-200 ${
                         themeType === theme.id
-                          ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 scale-95 ring-2 ring-[#FF6B6B]/20'
+                          ? 'border-[#111827] bg-[#111827]/5 scale-95 ring-2 ring-[#111827]/20'
                           : 'border-gray-200 hover:border-gray-300 dark:border-slate-800 dark:hover:border-slate-700'
                       } ${!isUnlocked ? 'opacity-85 saturate-[0.85] hover:opacity-100' : ''}`}
                       style={{ background: theme.bgGradient || theme.bgColor }}
@@ -1629,7 +1632,7 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={() => setVisibleThemesCount((prev) => prev + 12)}
-                  className="px-6 py-2.5 text-xs font-extrabold text-white bg-[#FF6B6B] rounded-full hover:shadow-md transition-all cursor-pointer"
+                  className="px-6 py-2.5 text-xs font-extrabold text-white bg-[#111827] rounded-full hover:shadow-md transition-all cursor-pointer"
                 >
                   Load More Themes 🔄
                 </button>
@@ -1670,7 +1673,7 @@ export function DashboardClient({
                     onClick={() => setThemeType(type)}
                     className={`rounded-xl px-4 py-2 text-xs font-bold capitalize border transition-all ${
                       themeType === type
-                        ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                        ? 'border-[#111827] bg-[#111827]/5 text-[#111827]'
                         : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400'
                     }`}
                   >
@@ -1774,7 +1777,7 @@ export function DashboardClient({
                           onClick={() => { setThemeButtonStyle(style); setThemeType('custom'); }}
                           className={`rounded-xl py-2.5 text-xs font-bold border transition-all ${
                             themeButtonStyle === style
-                              ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                              ? 'border-[#111827] bg-[#111827]/5 text-[#111827]'
                               : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400'
                           }`}
                         >
@@ -1804,7 +1807,7 @@ export function DashboardClient({
                           onClick={() => { setThemeBackdrop(b.id); setThemeType('custom'); }}
                           className={`rounded-xl py-2 text-xs font-bold border transition-all ${
                             themeBackdrop === b.id
-                              ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                              ? 'border-[#111827] bg-[#111827]/5 text-[#111827]'
                               : 'border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400'
                           }`}
                         >
@@ -1819,7 +1822,7 @@ export function DashboardClient({
               <button
                 onClick={() => handleSaveTheme()}
                 disabled={saving}
-                className="rounded-2xl bg-[#FF6B6B] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                className="rounded-2xl bg-[#111827] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
               >
                 Save Custom Theme
               </button>
@@ -1837,7 +1840,7 @@ export function DashboardClient({
                     value={marketThemeName}
                     onChange={(e) => setMarketThemeName(e.target.value)}
                     placeholder="e.g. Cherry Forest"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#111827]"
                   />
                 </div>
                 <div>
@@ -1847,7 +1850,7 @@ export function DashboardClient({
                     value={marketThemePrice}
                     onChange={(e) => setMarketThemePrice(Number(e.target.value))}
                     placeholder="49"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#111827]"
                   />
                 </div>
               </div>
@@ -1896,21 +1899,21 @@ export function DashboardClient({
                   placeholder="UPI ID (e.g. user@ybl)"
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value)}
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#111827]"
                 />
                 <input
                   type="number"
                   placeholder="Amount in ₹ (e.g. 500)"
                   value={payoutAmount}
                   onChange={(e) => setPayoutAmount(e.target.value)}
-                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#FF6B6B]"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white focus:border-[#111827]"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleRequestPayout}
                 disabled={requestingPayout || !upiId.trim() || !payoutAmount}
-                className="w-full rounded-xl bg-[#FF6B6B] text-white px-4 py-2.5 text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-xl bg-[#111827] text-white px-4 py-2.5 text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50"
               >
                 {requestingPayout ? 'Submitting request...' : 'Request Payout 💸'}
               </button>
@@ -1957,7 +1960,7 @@ export function DashboardClient({
                     setActiveSection('add-link');
                     scrollToSection('add-link');
                   }}
-                  className="flex-1 rounded-full bg-[#FF6B6B] px-5 py-2.5 text-sm font-bold text-white transition-all hover:brightness-105"
+                  className="flex-1 rounded-full bg-[#111827] px-5 py-2.5 text-sm font-bold text-white transition-all hover:brightness-105"
                 >
                   Add your first link
                 </button>
@@ -1984,7 +1987,7 @@ export function DashboardClient({
                     setShowAddForm(true);
                     setIsProduct(0);
                   }}
-                  className="w-full py-3.5 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-[#111827]/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span className="text-lg text-gray-400">+</span>
                   <span className="font-bold text-sm text-gray-600 dark:text-slate-300">Add New Link</span>
@@ -2054,14 +2057,14 @@ export function DashboardClient({
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="Link Title (e.g. My Website)"
                 />
                 <input
                   type="url"
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="https://..."
                 />
               </div>
@@ -2116,7 +2119,7 @@ export function DashboardClient({
                     setShowAddForm(false);
                   }}
                   disabled={saving || !newTitle.trim() || !newUrl.trim()}
-                  className="w-full rounded-2xl bg-[#FF6B6B] py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                  className="w-full rounded-2xl bg-[#111827] py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
                 >
                   Add Link
                 </button>
@@ -2194,7 +2197,7 @@ export function DashboardClient({
               setShowAddForm(true);
               setIsProduct(1);
             }}
-            className="mt-4 rounded-full bg-[#FF6B6B] px-5 py-2.5 text-xs font-bold text-white transition-all hover:brightness-105"
+            className="mt-4 rounded-full bg-[#111827] px-5 py-2.5 text-xs font-bold text-white transition-all hover:brightness-105"
           >
             Add Your First Product
           </button>
@@ -2210,7 +2213,7 @@ export function DashboardClient({
                 setShowAddForm(true);
                 setIsProduct(1);
               }}
-              className="w-full py-3.5 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 hover:border-[#111827]/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <span className="text-lg text-gray-400">+</span>
               <span className="font-bold text-sm text-gray-600 dark:text-slate-300">Add New Product</span>
@@ -2230,14 +2233,14 @@ export function DashboardClient({
                   type="text"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#111827] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="Product Name (e.g. Anime Figurine)"
                 />
                 <input
                   type="url"
                   value={newUrl}
                   onChange={(e) => setNewUrl(e.target.value)}
-                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                  className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-[#111827] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                   placeholder="Product Link (https://...)"
                 />
               </div>
@@ -2249,7 +2252,7 @@ export function DashboardClient({
                     type="text"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#111827] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     placeholder="₹999"
                   />
                 </div>
@@ -2259,7 +2262,7 @@ export function DashboardClient({
                     type="text"
                     value={discount}
                     onChange={(e) => setDiscount(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#111827] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     placeholder="10% OFF"
                   />
                 </div>
@@ -2269,7 +2272,7 @@ export function DashboardClient({
                     type="text"
                     value={productCategory}
                     onChange={(e) => setProductCategory(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                    className="mt-1.5 w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-[#111827] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                     placeholder="Category"
                   />
                 </div>
@@ -2280,7 +2283,7 @@ export function DashboardClient({
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleImageUpload(e, 'product')}
-                      className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FF6B6B]/10 file:text-[#FF6B6B] hover:file:bg-[#FF6B6B]/20"
+                      className="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#111827]/10 file:text-[#111827] hover:file:bg-[#111827]/20"
                     />
                     {uploadingProd && <span className="text-xs text-gray-400">Uploading...</span>}
                   </div>
@@ -2336,7 +2339,7 @@ export function DashboardClient({
                     setShowAddForm(false);
                   }}
                   disabled={saving || !newTitle.trim() || !newUrl.trim() || uploadingProd}
-                  className="w-full rounded-2xl bg-[#FF6B6B] py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
+                  className="w-full rounded-2xl bg-[#111827] py-3 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-60"
                 >
                   Add Product Card 🛍️
                 </button>
@@ -2415,7 +2418,7 @@ export function DashboardClient({
                   onClick={() => setTimeRange(range)}
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                     timeRange === range
-                      ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white shadow-md'
+                      ? 'bg-gradient-to-r from-[#111827] to-[#111827] text-white shadow-md'
                       : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -2465,7 +2468,7 @@ export function DashboardClient({
                   type="button"
                   onClick={handlePrestigeAscend}
                   disabled={ascending}
-                  className="rounded-2xl bg-[#FF6B6B] px-5 py-2 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+                  className="rounded-2xl bg-[#111827] px-5 py-2 text-xs font-black text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {ascending ? 'Ascending...' : '🌟 Ascend to Prestige'}
                 </button>
@@ -2532,7 +2535,7 @@ export function DashboardClient({
                             <span>{count} ({pct}%)</span>
                           </div>
                           <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-slate-800">
-                            <div className="h-full rounded-full bg-[#FF6B6B]" style={{ width: `${pct}%` }} />
+                            <div className="h-full rounded-full bg-[#111827]" style={{ width: `${pct}%` }} />
                           </div>
                         </div>
                       );
@@ -2614,7 +2617,7 @@ export function DashboardClient({
                   type="checkbox"
                   checked={announcementActive}
                   onChange={(e) => setAnnouncementActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                  className="h-4 w-4 rounded border-gray-300 text-[#111827] focus:ring-[#111827]"
                 />
                 <span>Active Banner</span>
               </label>
@@ -2628,7 +2631,7 @@ export function DashboardClient({
                     <button
                       type="button"
                       onClick={() => setAnnouncementMessages((prev) => [...prev, { text: '', link: '' }])}
-                      className="text-[11px] font-bold text-[#FF6B6B] hover:underline"
+                      className="text-[11px] font-bold text-[#111827] hover:underline"
                     >
                       + Add message
                     </button>
@@ -2689,13 +2692,13 @@ export function DashboardClient({
               <div>
                 <label className="block text-xs font-bold text-gray-700 dark:text-slate-400 mb-2">Banner Color</label>
                 <div className="flex gap-2">
-                  {['#FF6B6B', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'].map((color) => (
+                  {['#111827', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'].map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setAnnouncementColor(color)}
                       className={`h-7 w-7 rounded-full transition-transform ${
-                        announcementColor === color ? 'scale-110 ring-2 ring-[#FF6B6B]/40' : ''
+                        announcementColor === color ? 'scale-110 ring-2 ring-[#111827]/40' : ''
                       }`}
                       style={{ backgroundColor: color }}
                     />
@@ -2737,7 +2740,7 @@ export function DashboardClient({
                   type="checkbox"
                   checked={showWishes}
                   onChange={(e) => handleToggleWishes(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                  className="h-4 w-4 rounded border-gray-300 text-[#111827] focus:ring-[#111827]"
                 />
                 <span>Enable Guestbook (visitors can leave messages on your profile) 🎋</span>
               </label>
@@ -2752,7 +2755,7 @@ export function DashboardClient({
                       value="tanabata"
                       checked={guestbookStyle === 'tanabata'}
                       onChange={() => setGuestbookStyle('tanabata')}
-                      className="text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                      className="text-[#111827] focus:ring-[#111827]"
                     />
                     <span>🎋 Tanabata Tree</span>
                   </label>
@@ -2763,7 +2766,7 @@ export function DashboardClient({
                       value="classic"
                       checked={guestbookStyle === 'classic'}
                       onChange={() => setGuestbookStyle('classic')}
-                      className="text-[#FF6B6B] focus:ring-[#FF6B6B]"
+                      className="text-[#111827] focus:ring-[#111827]"
                     />
                     <span>📓 Classic Guestbook</span>
                   </label>
@@ -2839,13 +2842,13 @@ export function DashboardClient({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#FF6B6B] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
+                className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-[#111827] focus:outline-none dark:border-slate-800 dark:bg-slate-800 dark:text-white"
                 placeholder="newemail@example.com"
               />
               <button
                 onClick={handleEmailChange}
                 disabled={saving}
-                className="rounded-2xl bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 text-[#FF6B6B] px-6 py-2.5 text-xs font-bold transition-all disabled:opacity-60"
+                className="rounded-2xl bg-[#111827]/10 hover:bg-[#111827]/20 text-[#111827] px-6 py-2.5 text-xs font-bold transition-all disabled:opacity-60"
               >
                 Update Email
               </button>
@@ -2926,7 +2929,7 @@ export function DashboardClient({
       {/* Floating Action Button for Mobile Preview */}
       <button
         onClick={() => setShowMobilePreview(true)}
-        className="fixed right-4 z-40 lg:hidden flex items-center gap-2 rounded-full bg-[#FF6B6B] px-5 py-3 font-bold text-white hover:scale-105 active:scale-95 transition-all duration-200"
+        className="fixed right-4 z-40 lg:hidden flex items-center gap-2 rounded-full bg-[#111827] px-5 py-3 font-bold text-white hover:scale-105 active:scale-95 transition-all duration-200"
         style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <span>📱</span>
@@ -2974,10 +2977,10 @@ export function DashboardClient({
           section's content renders — everything else is completely
           hidden, not just scrolled past. */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-950"
+        className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-[#F8F7F5]/90 dark:bg-[#0B0B0C]/90 border-t border-black/[0.06] dark:border-white/10"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="mx-auto max-w-md flex items-stretch justify-around">
+        <div className="mx-auto max-w-md flex items-stretch justify-around px-1.5 py-1.5">
           {[
             { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'links', icon: '🔗', label: 'Links' },
@@ -2995,10 +2998,10 @@ export function DashboardClient({
                 setActiveSection(targetSection);
                 scrollToSection(targetSection);
               }}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors ${
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 rounded-2xl transition-all ${
                 activeTab === item.id
-                  ? 'text-[#FF6B6B]'
-                  : 'text-gray-500 dark:text-slate-400'
+                  ? 'bg-white dark:bg-[#17171A] text-[#111827] dark:text-[#F8F7F5] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08)]'
+                  : 'text-black/50 dark:text-slate-500 hover:text-black/80 dark:hover:text-slate-300'
               }`}
             >
               <span className="text-xl">{item.icon}</span>

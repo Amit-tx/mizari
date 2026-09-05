@@ -296,7 +296,7 @@ export function LinksAndProducts({
                     {product.title}
                   </h4>
                   {product.price && (
-                    <p className="text-xs font-extrabold" style={{ color: preset?.btnBg ?? '#FF6B6B' }}>
+                    <p className="text-xs font-extrabold" style={{ color: preset?.btnBg ?? '#111827' }}>
                       {product.price}
                     </p>
                   )}
@@ -304,7 +304,7 @@ export function LinksAndProducts({
                     className="mt-auto w-full rounded-xl py-1.5 text-center text-[10px]
                                font-extrabold transition-all hover:brightness-110"
                     style={{
-                      backgroundColor: preset?.btnBg ?? '#FF6B6B',
+                      backgroundColor: preset?.btnBg ?? '#111827',
                       color: preset?.btnText ?? '#ffffff',
                     }}
                   >

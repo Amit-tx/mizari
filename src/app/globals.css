@@ -29,33 +29,36 @@ html, body {
 @theme inline {
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
-  --color-accent: #FF6B6B;
-  --color-accent-hover: #EE5A24;
+  --color-accent: #111827;
+  --color-accent-hover: #000000;
+  --color-coral: #FF4D5A;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Light mode (default) - Warm & Minimal */
+/* Light mode (default) - Warm paper + carbon ink, coral accent for status */
 :root {
-  --bg-primary: #E8E5DF; /* footer removed */
+  --bg-primary: #F8F7F5;
   --bg-secondary: #FFFFFF;
-  --text-primary: #3A3A37;
-  --text-secondary: #6A6A67;
-  --accent: #3A3A37;
-  --accent-hover: #2A2A27;
-  --border: #D4D1C8;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --accent: #111827;
+  --accent-hover: #000000;
+  --coral: #FF4D5A;
+  --border: #E5E7EB;
   --card-bg: #FFFFFF;
 }
 
-/* Dark mode - Deep Black + Warm Text */
+/* Dark mode - Deep carbon + off-white text, same coral accent */
 .dark {
-  --bg-primary: #1A1A18;
-  --bg-secondary: #2A2A28;
-  --text-primary: #E8E5DF;
-  --text-secondary: #A9A6A0;
-  --accent: #E8E5DF;
-  --accent-hover: #F5F3F0;
-  --border: #3A3A37;
-  --card-bg: #2A2A28;
+  --bg-primary: #0B0B0C;
+  --bg-secondary: #17171A;
+  --text-primary: #F8F7F5;
+  --text-secondary: #9CA3AF;
+  --accent: #F8F7F5;
+  --accent-hover: #FFFFFF;
+  --coral: #FF4D5A;
+  --border: #26262A;
+  --card-bg: #17171A;
 }
 
 /* Smooth theme transitions */

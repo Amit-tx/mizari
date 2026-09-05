@@ -115,7 +115,7 @@ export default function PricingPage() {
         
         {/* Header */}
         <div className="text-center">
-          <span className="inline-block rounded-full bg-gradient-to-r from-[#FF6B6B]/10 to-[#EE5A24]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#FF6B6B]">
+          <span className="inline-block rounded-full bg-gradient-to-r from-[#111827]/10 to-[#111827]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#111827]">
             Pricing
           </span>
           <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
@@ -134,7 +134,7 @@ export default function PricingPage() {
           <button
             onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
             className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 ${
-              billingCycle === 'yearly' ? 'bg-[#FF6B6B]' : 'bg-gray-300 dark:bg-slate-600'
+              billingCycle === 'yearly' ? 'bg-[#111827]' : 'bg-gray-300 dark:bg-slate-600'
             }`}
           >
             <span
@@ -160,7 +160,7 @@ export default function PricingPage() {
               key={plan.name}
               className={`relative flex flex-col rounded-3xl border p-8 transition-all duration-300 hover:shadow-xl ${
                 plan.highlighted
-                  ? 'border-[#FF6B6B] bg-white shadow-lg shadow-[#FF6B6B]/10 dark:bg-slate-800 scale-[1.02]'
+                  ? 'border-[#111827] bg-white shadow-lg shadow-[#111827]/10 dark:bg-slate-800 scale-[1.02]'
                   : 'border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800/50'
               }`}
             >
@@ -168,7 +168,7 @@ export default function PricingPage() {
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className={`rounded-full px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-md ${
-                    plan.highlighted ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]' : 'bg-slate-800 dark:bg-slate-600'
+                    plan.highlighted ? 'bg-gradient-to-r from-[#111827] to-[#111827]' : 'bg-slate-800 dark:bg-slate-600'
                   }`}>
                     {plan.badge}
                   </span>
@@ -194,7 +194,7 @@ export default function PricingPage() {
                 href={plan.ctaLink}
                 className={`mb-6 block w-full rounded-2xl py-3 text-center text-sm font-bold transition-all duration-200 ${
                   plan.highlighted
-                    ? 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white shadow-md hover:shadow-lg hover:brightness-110'
+                    ? 'bg-gradient-to-r from-[#111827] to-[#111827] text-white shadow-md hover:shadow-lg hover:brightness-110'
                     : 'border border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600'
                 }`}
               >
@@ -235,7 +235,7 @@ export default function PricingPage() {
                 <tr className="bg-gray-50 dark:bg-slate-800">
                   <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Feature</th>
                   <th className="px-6 py-4 text-center font-semibold text-gray-900 dark:text-white">Free</th>
-                  <th className="px-6 py-4 text-center font-semibold text-[#FF6B6B]">Pro</th>
+                  <th className="px-6 py-4 text-center font-semibold text-[#111827]">Pro</th>
                   <th className="px-6 py-4 text-center font-semibold text-gray-900 dark:text-white">Business</th>
                 </tr>
               </thead>
@@ -299,7 +299,7 @@ export default function PricingPage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-20 text-center rounded-3xl bg-gradient-to-r from-[#FF6B6B]/5 to-[#EE5A24]/5 border border-[#FF6B6B]/10 p-12">
+        <div className="mt-20 text-center rounded-3xl bg-gradient-to-r from-[#111827]/5 to-[#111827]/5 border border-[#111827]/10 p-12">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             Ready to level up your online presence?
           </h2>
@@ -308,7 +308,7 @@ export default function PricingPage() {
           </p>
           <Link
             href="/signup"
-            className="mt-6 inline-block rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-8 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg hover:brightness-110 transition-all"
+            className="mt-6 inline-block rounded-2xl bg-gradient-to-r from-[#111827] to-[#111827] px-8 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg hover:brightness-110 transition-all"
           >
             Get Started for Free 🚀
           </Link>

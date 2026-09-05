@@ -107,7 +107,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
           email: userEmail,
         },
         theme: {
-          color: '#FF6B6B',
+          color: '#111827',
         },
       };
 
@@ -175,7 +175,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
             placeholder="🔍 Search themes by name, description, tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF6B6B]/20 text-gray-800 dark:text-slate-100 shadow-sm"
+            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#111827]/20 text-gray-800 dark:text-slate-100 shadow-sm"
           />
           {searchQuery && (
             <button
@@ -218,7 +218,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
                   onClick={() => setCategory(cat)}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-150 ${
                     category === cat
-                      ? 'bg-[#FF6B6B] text-white shadow-sm'
+                      ? 'bg-[#111827] text-white shadow-sm'
                       : 'text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-800'
                   }`}
                 >
@@ -254,7 +254,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
                       className={`px-5 py-2 text-xs font-extrabold rounded-xl transition-all ${
                         allPurchased
                           ? 'bg-green-500 text-white cursor-default'
-                          : 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white hover:shadow-md'
+                          : 'bg-gradient-to-r from-[#111827] to-[#111827] text-white hover:shadow-md'
                       }`}
                     >
                       {allPurchased ? 'Owned ✅' : loadingTheme === bundle.id ? 'Processing...' : 'Unlock Bundle 🔓'}
@@ -310,7 +310,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
                             ? 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400' 
                             : theme.tier === 'exclusive' 
                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
-                            : 'bg-[#FF6B6B]/10 text-[#FF6B6B]'
+                            : 'bg-[#111827]/10 text-[#111827]'
                         }`}>
                           {theme.tier}
                         </span>
@@ -336,7 +336,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
                           className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all ${
                             isOwned
                               ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-default'
-                              : 'bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white hover:shadow-md'
+                              : 'bg-gradient-to-r from-[#111827] to-[#111827] text-white hover:shadow-md'
                           }`}
                         >
                           {isOwned ? 'Owned ✅' : loadingTheme === theme.id ? 'Processing...' : 'Buy Theme 🔒'}
@@ -380,7 +380,7 @@ export default function StoreClient({ userId, purchasedThemeIds, userEmail, comm
             <div className="mt-4">
               <button
                 onClick={() => setActivePreviewTheme(null)}
-                className="w-full py-3 rounded-2xl bg-[#FF6B6B] hover:bg-[#FF5555] text-white text-xs font-black transition-all shadow-lg"
+                className="w-full py-3 rounded-2xl bg-[#111827] hover:bg-[#FF5555] text-white text-xs font-black transition-all shadow-lg"
               >
                 Close Preview
               </button>

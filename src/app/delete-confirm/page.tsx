@@ -61,7 +61,7 @@ function DeleteConfirmContent() {
             </p>
             <Link
               href="/"
-              className="inline-block w-full rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-3 text-sm font-semibold text-white shadow-md hover:brightness-110"
+              className="inline-block w-full rounded-2xl bg-gradient-to-r from-[#111827] to-[#111827] py-3 text-sm font-semibold text-white shadow-md hover:brightness-110"
             >
               Go to Homepage
             </Link>

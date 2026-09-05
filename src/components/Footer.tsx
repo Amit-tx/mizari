@@ -3,7 +3,7 @@
 /**
  * Beautiful Minimalist Footer
  * Inspired by clean editorial design with warm tones
- * Colors: Signal (#e4513e), Graphite (#2c2824), Sage (#9aac84)
+ * Colors: Carbon black (#000000) on white
  */
 
 import Link from 'next/link';
@@ -15,7 +15,7 @@ const FooterLinks = [
       { label: 'Features', href: '#features' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Security', href: '#security' },
-      { label: 'Status', href: 'https://status.mizari.io' },
+      { label: 'Status', href: 'https://status.mizari.cc' },
     ],
   },
   {
@@ -52,8 +52,8 @@ export default function Footer() {
     <footer className="relative mt-24 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-gray-900 dark:text-white">
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute left-0 bottom-0 w-96 h-96 rounded-full opacity-5 dark:opacity-10 blur-3xl bg-gradient-to-tr from-[#e4513e] to-transparent" />
-        <div className="absolute right-0 top-1/3 w-72 h-72 rounded-full opacity-5 dark:opacity-10 blur-3xl bg-gradient-to-bl from-[#9aac84] to-transparent" />
+        <div className="absolute left-0 bottom-0 w-96 h-96 rounded-full opacity-10 dark:opacity-10 blur-3xl bg-black/5" />
+        <div className="absolute right-0 top-1/3 w-72 h-72 rounded-full opacity-10 dark:opacity-10 blur-3xl bg-black/5" />
       </div>
 
       <div className="relative">
@@ -64,15 +64,15 @@ export default function Footer() {
             {/* Brand */}
             <div className="lg:col-span-1">
               <Link href="/" className="inline-block group">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-[#e4513e] to-[#d9a066] bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
-                  Mizari
+                <h2 className="text-2xl font-bold text-black dark:text-white group-hover:opacity-70 transition-opacity">
+                  mizari.cc
                 </h2>
               </Link>
               <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-slate-400 max-w-sm">
                 One link. Infinite reach.
               </p>
               <p className="mt-6 text-xs font-medium text-gray-500 dark:text-slate-500">
-                © {currentYear} Mizari. All rights reserved.
+                © {currentYear} mizari.cc. All rights reserved.
               </p>
             </div>
 
@@ -87,7 +87,7 @@ export default function Footer() {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        className="text-sm text-gray-600 dark:text-slate-400 hover:text-[#e4513e] dark:hover:text-[#e4513e] transition-colors duration-200"
+                        className="text-sm text-gray-600 dark:text-slate-400 hover:text-black dark:hover:text-white transition-colors duration-200"
                       >
                         {link.label}
                       </Link>
@@ -108,7 +108,7 @@ export default function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400 hover:border-[#e4513e] hover:text-[#e4513e] hover:bg-[#e4513e]/5 transition-all duration-200"
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-400 hover:border-black hover:text-black hover:bg-black/5 dark:hover:border-white dark:hover:text-white dark:hover:bg-white/10 transition-all duration-200"
                   aria-label={social.label}
                   title={social.label}
                 >

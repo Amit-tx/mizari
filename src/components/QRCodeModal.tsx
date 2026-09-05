@@ -21,7 +21,7 @@ export function QRCodeModal({ username }: QRCodeModalProps) {
         width: 300,
         margin: 2,
         color: {
-          dark: '#FF6B6B', // Mizari Coral Brand Color
+          dark: '#111827', // Mizari Coral Brand Color
           light: '#ffffff',
         },
       },
@@ -62,7 +62,7 @@ export function QRCodeModal({ username }: QRCodeModalProps) {
               <a
                 href={qrSrc}
                 download={`${username}-mizari-qr.png`}
-                className="flex-1 rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110 text-center"
+                className="flex-1 rounded-2xl bg-gradient-to-r from-[#111827] to-[#111827] py-2.5 text-xs font-bold text-white shadow-md hover:brightness-110 text-center"
               >
                 📥 Download PNG
               </a>

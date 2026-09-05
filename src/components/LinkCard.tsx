@@ -133,7 +133,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               onClick={() => setIsProduct(0)}
               className={`flex-1 rounded-xl py-2 text-xs font-bold border transition-all ${
                 isProduct === 0
-                  ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                  ? 'border-[#111827] bg-[#111827]/5 text-[#111827]'
                   : 'border-gray-200 dark:border-slate-800 text-gray-500'
               }`}
             >
@@ -144,7 +144,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               onClick={() => setIsProduct(1)}
               className={`flex-1 rounded-xl py-2 text-xs font-bold border transition-all ${
                 isProduct === 1
-                  ? 'border-[#FF6B6B] bg-[#FF6B6B]/5 text-[#FF6B6B]'
+                  ? 'border-[#111827] bg-[#111827]/5 text-[#111827]'
                   : 'border-gray-200 dark:border-slate-800 text-gray-500'
               }`}
             >
@@ -159,7 +159,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm transition-colors focus:border-[#111827] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 placeholder="Link or Product Name"
               />
             </div>
@@ -170,7 +170,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm transition-colors focus:border-[#FF6B6B] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm transition-colors focus:border-[#111827] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 placeholder="https://..."
               />
             </div>
@@ -180,7 +180,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               <div>
                 <label className="flex items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
                   Start Schedule (Optional)
-                  <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Set the exact date & time when this link should automatically become visible on your profile page.">ℹ️</span>
+                  <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#111827] cursor-help transition-colors text-[9px]" title="Set the exact date & time when this link should automatically become visible on your profile page.">ℹ️</span>
                 </label>
                 <input
                   type="datetime-local"
@@ -193,7 +193,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
               <div>
                 <label className="flex items-center text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mb-1">
                   End Schedule (Optional)
-                  <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Set the exact date & time when this link should automatically disappear from your profile page.">ℹ️</span>
+                  <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#111827] cursor-help transition-colors text-[9px]" title="Set the exact date & time when this link should automatically disappear from your profile page.">ℹ️</span>
                 </label>
                 <input
                   type="datetime-local"
@@ -210,7 +210,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                   <div>
                     <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
                       Price (e.g. $49 or ₹999)
-                      <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Show the price of the product next to the link. Perfect for selling courses, merchandise, or ebooks!">ℹ️</span>
+                      <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#111827] cursor-help transition-colors text-[9px]" title="Show the price of the product next to the link. Perfect for selling courses, merchandise, or ebooks!">ℹ️</span>
                     </label>
                     <input
                       type="text"
@@ -223,7 +223,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                   <div>
                     <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
                       Discount (e.g. 20% OFF)
-                      <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Show a discount percentage or tag (e.g., '20% OFF', 'SALE') to attract more clicks and sales.">ℹ️</span>
+                      <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#111827] cursor-help transition-colors text-[9px]" title="Show a discount percentage or tag (e.g., '20% OFF', 'SALE') to attract more clicks and sales.">ℹ️</span>
                     </label>
                     <input
                       type="text"
@@ -238,7 +238,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 <div>
                   <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">
                     Product Category (e.g. Fashion, Tech)
-                    <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Group your product under a category label (e.g., 'Ebooks', 'Software') to help visitors filter your products.">ℹ️</span>
+                    <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#111827] cursor-help transition-colors text-[9px]" title="Group your product under a category label (e.g., 'Ebooks', 'Software') to help visitors filter your products.">ℹ️</span>
                   </label>
                   <input
                     type="text"
@@ -252,7 +252,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
                 <div className="space-y-2 pt-1">
                   <label className="flex items-center text-xs font-bold text-gray-500 dark:text-slate-400">
                     Product Image
-                    <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#FF6B6B] cursor-help transition-colors text-[9px]" title="Upload or paste an image URL of your product. This will display a beautiful preview image on the link card.">ℹ️</span>
+                    <span className="inline-flex items-center justify-center ml-1 text-gray-400 hover:text-[#111827] cursor-help transition-colors text-[9px]" title="Upload or paste an image URL of your product. This will display a beautiful preview image on the link card.">ℹ️</span>
                   </label>
                   <div className="flex flex-col gap-2">
                     <input
@@ -287,7 +287,7 @@ export function LinkCard({ link, onUpdate, onDelete, onMoveUp, onMoveDown, isFir
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button onClick={handleSave} className="rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] px-4 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110">Save</button>
+            <button onClick={handleSave} className="rounded-xl bg-gradient-to-r from-[#111827] to-[#111827] px-4 py-2 text-xs font-bold text-white shadow-sm hover:brightness-110">Save</button>
             <button onClick={handleCancel} className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">Cancel</button>
           </div>
         </div>

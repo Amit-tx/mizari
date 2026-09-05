@@ -46,7 +46,7 @@ const defaultConfig: FormConfig = {
   collectName: false,
   backgroundColor: '#ffffff',
   textColor: '#1a1a1a',
-  buttonColor: '#FF6B6B',
+  buttonColor: '#111827',
   borderRadius: 'rounded-lg',
   isPublished: false,
   isEnabled: true,
@@ -124,7 +124,7 @@ export default function FormBuilder({ formId, initialData, onSave, existingSlug 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="shrink-0 px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white hover:shadow-lg transition-all disabled:opacity-60"
+          className="shrink-0 px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-[#111827] to-[#111827] text-white hover:shadow-lg transition-all disabled:opacity-60"
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
@@ -138,7 +138,7 @@ export default function FormBuilder({ formId, initialData, onSave, existingSlug 
             onClick={() => setActiveTab(tab)}
             className={`flex-1 py-2.5 text-sm font-semibold transition-colors border-b-2 ${
               activeTab === tab
-                ? 'border-[#FF6B6B] text-[#FF6B6B]'
+                ? 'border-[#111827] text-[#111827]'
                 : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
@@ -191,7 +191,7 @@ export default function FormBuilder({ formId, initialData, onSave, existingSlug 
                   {section.fields.map((field) => (
                     <div
                       key={field.id}
-                      className="group flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:border-[#FF6B6B]/50 transition-all cursor-pointer"
+                      className="group flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:border-[#111827]/50 transition-all cursor-pointer"
                       onClick={() => setEditingField({ sectionId: section.id, field })}
                     >
                       <span className="text-base">{FIELD_TYPES.find(t => t.type === field.type)?.icon ?? '📝'}</span>
@@ -225,7 +225,7 @@ export default function FormBuilder({ formId, initialData, onSave, existingSlug 
                               setEditingField({ sectionId: section.id, field: f });
                               setShowFieldPicker(null);
                             }}
-                            className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:border-[#FF6B6B] hover:bg-[#FF6B6B]/5 transition-all text-center"
+                            className="flex flex-col items-center gap-1 p-2 rounded-lg border border-gray-200 dark:border-slate-700 hover:border-[#111827] hover:bg-[#111827]/5 transition-all text-center"
                           >
                             <span className="text-xl">{ft.icon}</span>
                             <span className="text-xs text-gray-700 dark:text-slate-300">{ft.label}</span>
@@ -240,7 +240,7 @@ export default function FormBuilder({ formId, initialData, onSave, existingSlug 
                   ) : (
                     <button
                       onClick={() => setShowFieldPicker(section.id)}
-                      className="w-full mt-1 px-3 py-2 text-sm font-semibold text-[#FF6B6B] border-2 border-dashed border-[#FF6B6B]/40 rounded-lg hover:border-[#FF6B6B] hover:bg-[#FF6B6B]/5 transition-all"
+                      className="w-full mt-1 px-3 py-2 text-sm font-semibold text-[#111827] border-2 border-dashed border-[#111827]/40 rounded-lg hover:border-[#111827] hover:bg-[#111827]/5 transition-all"
                     >
                       + Add Field
                     </button>
@@ -339,7 +339,7 @@ function FieldEditorModal({
               value={field.label}
               onChange={e => onUpdate({ label: e.target.value })}
               placeholder="Question label"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#FF6B6B]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#111827]"
             />
           </div>
 
@@ -351,7 +351,7 @@ function FieldEditorModal({
                 value={field.placeholder ?? ''}
                 onChange={e => onUpdate({ placeholder: e.target.value })}
                 placeholder="Hint text…"
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#FF6B6B]"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#111827]"
               />
             </div>
           )}
@@ -360,7 +360,7 @@ function FieldEditorModal({
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               onClick={() => onUpdate({ required: !field.required })}
-              className={`relative w-10 h-5 rounded-full transition-colors ${field.required ? 'bg-[#FF6B6B]' : 'bg-gray-300 dark:bg-slate-600'}`}
+              className={`relative w-10 h-5 rounded-full transition-colors ${field.required ? 'bg-[#111827]' : 'bg-gray-300 dark:bg-slate-600'}`}
             >
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${field.required ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </div>
@@ -381,7 +381,7 @@ function FieldEditorModal({
                         opts[i] = { ...opts[i], label: e.target.value, value: e.target.value.toLowerCase().replace(/\s+/g, '_') };
                         onUpdate({ options: opts });
                       }}
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#FF6B6B]"
+                      className="flex-1 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#111827]"
                     />
                     <button
                       onClick={() => onUpdate({ options: (field.options ?? []).filter((_, j) => j !== i) })}
@@ -395,11 +395,11 @@ function FieldEditorModal({
                     onChange={e => setNewOption(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addOption()}
                     placeholder="Add option…"
-                    className="flex-1 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#FF6B6B]"
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-dashed border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#111827]"
                   />
                   <button
                     onClick={addOption}
-                    className="px-3 py-1.5 rounded-lg bg-[#FF6B6B]/10 text-[#FF6B6B] text-sm font-semibold hover:bg-[#FF6B6B]/20"
+                    className="px-3 py-1.5 rounded-lg bg-[#111827]/10 text-[#111827] text-sm font-semibold hover:bg-[#111827]/20"
                   >Add</button>
                 </div>
               </div>
@@ -413,7 +413,7 @@ function FieldEditorModal({
               value={field.helpText ?? ''}
               onChange={e => onUpdate({ helpText: e.target.value })}
               placeholder="Extra hint shown below the field"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#FF6B6B]"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#111827]"
             />
           </div>
         </div>
@@ -421,7 +421,7 @@ function FieldEditorModal({
         <div className="px-5 pb-5">
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white font-bold hover:shadow-lg transition-all"
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#111827] to-[#111827] text-white font-bold hover:shadow-lg transition-all"
           >
             Done
           </button>

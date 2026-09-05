@@ -159,7 +159,7 @@ export default function FormsTab({ profileId, username }: FormsTabProps) {
         </div>
         <button
           onClick={() => { setSelectedForm(null); setView('create'); }}
-          className="px-4 py-2 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all"
+          className="px-4 py-2 bg-gradient-to-r from-[#111827] to-[#111827] text-white rounded-xl text-sm font-bold hover:shadow-lg transition-all"
         >
           + New Form
         </button>
@@ -168,7 +168,7 @@ export default function FormsTab({ profileId, username }: FormsTabProps) {
       {/* Loading */}
       {loading && (
         <div className="flex justify-center py-10">
-          <div className="w-8 h-8 rounded-full border-2 border-[#FF6B6B] border-t-transparent animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-[#111827] border-t-transparent animate-spin" />
         </div>
       )}
 
@@ -180,7 +180,7 @@ export default function FormsTab({ profileId, username }: FormsTabProps) {
           <p className="text-sm text-gray-500 dark:text-slate-400 mb-5">Create a form to start collecting responses</p>
           <button
             onClick={() => { setSelectedForm(null); setView('create'); }}
-            className="px-5 py-2.5 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white rounded-xl font-bold hover:shadow-lg transition-all"
+            className="px-5 py-2.5 bg-gradient-to-r from-[#111827] to-[#111827] text-white rounded-xl font-bold hover:shadow-lg transition-all"
           >
             Create your first form
           </button>

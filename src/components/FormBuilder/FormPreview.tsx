@@ -11,7 +11,7 @@ interface FormPreviewProps {
 }
 
 const inputCls =
-  'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition-all placeholder:text-gray-400 focus:border-[#FF6B6B] focus:ring-2 focus:ring-[#FF6B6B]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#FF6B6B]';
+  'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition-all placeholder:text-gray-400 focus:border-[#111827] focus:ring-2 focus:ring-[#111827]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-[#111827]';
 
 export default function FormPreview({ config, structure, onSubmit }: FormPreviewProps) {
   const [values, setValues] = useState<Record<string, any>>({});
@@ -37,7 +37,7 @@ export default function FormPreview({ config, structure, onSubmit }: FormPreview
     try { await onSubmit(values); } finally { setSubmitting(false); }
   };
 
-  const btnColor = config.buttonColor || '#FF6B6B';
+  const btnColor = config.buttonColor || '#111827';
 
   return (
     <div className="w-full max-w-xl mx-auto overflow-hidden rounded-3xl bg-white shadow-xl dark:bg-slate-900 dark:shadow-slate-900/50">
@@ -135,7 +135,7 @@ function Field({ label, required, helpText, error, children }: {
     <div className="space-y-1.5">
       <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300">
         {label}
-        {required && <span className="ml-1 text-[#FF6B6B]">*</span>}
+        {required && <span className="ml-1 text-[#111827]">*</span>}
       </label>
       {helpText && <p className="text-xs text-gray-400 dark:text-slate-500">{helpText}</p>}
       {children}
@@ -274,7 +274,7 @@ function FieldInput({ field, value, onChange, btnColor }: {
 
     case 'file':
       return (
-        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-200 p-6 transition-all hover:border-[#FF6B6B]/50 hover:bg-[#FF6B6B]/5 dark:border-slate-700">
+        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-200 p-6 transition-all hover:border-[#111827]/50 hover:bg-[#111827]/5 dark:border-slate-700">
           <span className="text-2xl">📎</span>
           <span className="text-sm text-gray-500">Click to upload a file</span>
           <input type="file" className="sr-only" onChange={e => onChange(e.target.files?.[0])} />

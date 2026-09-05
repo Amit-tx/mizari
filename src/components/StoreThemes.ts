@@ -624,6 +624,22 @@ export const EXTRA_THEMES: StoreTheme[] = [
     "btnBg": "rgba(186,104,200,0.06)",
     "btnBorder": "#BA68C822",
     "btnStyle": "rounded-xl"
+  },
+  {
+    "id": "creator_card",
+    "name": "Creator Card",
+    "emoji": "🛍️",
+    "tier": "free",
+    "price": 0,
+    "description": "Modern creator storefront with a light/dark toggle, stat pills and a product grid",
+    "categories": ["Minimal"],
+    "tags": ["minimal", "clean", "creator_card"],
+    "bgColor": "#FAF6F1",
+    "textColor": "#1A1A1D",
+    "btnBg": "rgba(0,0,0,0.06)",
+    "btnBorder": "#00000011",
+    "btnStyle": "rounded-xl",
+    "bgGradient": "linear-gradient(135deg, #E9D5FF 0%, #FBCFE8 50%, #FED7AA 100%)"
   }
 ];
 

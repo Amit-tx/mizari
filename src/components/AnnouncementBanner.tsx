@@ -18,7 +18,7 @@ interface AnnouncementBannerProps {
 export function AnnouncementBanner({
   profileId,
   messages,
-  bgColor = '#FF6B6B',
+  bgColor = '#111827',
   textColor = '#ffffff',
   rotateMs = 3000,
 }: AnnouncementBannerProps) {

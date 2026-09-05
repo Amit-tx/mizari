@@ -40,10 +40,8 @@ export function CollapsibleSection({
 
   return (
     <div
-      className={`rounded-3xl border bg-white shadow-sm transition-all dark:bg-slate-900 ${
-        danger
-          ? 'border-red-200 dark:border-red-900/20'
-          : 'border-gray-100 dark:border-slate-800'
+      className={`rounded-[20px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.06)] transition-all dark:bg-[#17171A] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08)] ${
+        danger ? 'ring-1 ring-red-200 dark:ring-red-900/30' : ''
       }`}
     >
       {collapsible ? (
@@ -54,7 +52,7 @@ export function CollapsibleSection({
           aria-expanded={isOpen}
         >
           <div className="min-w-0">
-            <h2 className={`text-xl font-bold ${danger ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+            <h2 className={`text-xl font-bold ${danger ? 'text-red-600' : 'text-[#111827] dark:text-[#F8F7F5]'}`}>
               {icon && <span className="mr-1.5">{icon}</span>}
               {title}
             </h2>
@@ -65,8 +63,8 @@ export function CollapsibleSection({
           <span
             className={`shrink-0 flex items-center justify-center h-8 w-8 rounded-full transition-all duration-300 text-base font-semibold ${
               isOpen
-                ? 'bg-gradient-to-r from-[#E8E5DF] to-[#D4D1C8] dark:from-[#3A3A37] dark:to-[#2A2A28] text-[#3A3A37] dark:text-[#E8E5DF] rotate-180 shadow-sm'
-                : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+                ? 'bg-[#111827] dark:bg-[#F8F7F5] text-white dark:text-[#111827] rotate-180 shadow-sm'
+                : 'bg-black/[0.04] dark:bg-white/10 text-gray-500 dark:text-slate-400 hover:bg-black/[0.08] dark:hover:bg-white/15'
             }`}
           >
             ▼
@@ -74,7 +72,7 @@ export function CollapsibleSection({
         </button>
       ) : (
         <div className="p-6 pb-4">
-          <h2 className={`text-xl font-bold ${danger ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+          <h2 className={`text-xl font-bold ${danger ? 'text-red-600' : 'text-[#111827] dark:text-[#F8F7F5]'}`}>
             {icon && <span className="mr-1.5">{icon}</span>}
             {title}
           </h2>

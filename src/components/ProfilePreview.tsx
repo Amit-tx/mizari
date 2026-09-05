@@ -161,7 +161,7 @@ export function ProfilePreview({
         className={`overflow-hidden rounded-2xl border transition-all duration-300 w-full h-full relative z-10 ${getBackdropClass()}`}
       >
         {!preset && themeType !== 'custom' && (
-          <div className="h-16 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24]" />
+          <div className="h-16 bg-gradient-to-r from-[#111827] to-[#111827]" />
         )}
         
         <div className={`px-5 pb-6 ${preset || themeType === 'custom' ? 'pt-6' : ''}`}>
@@ -232,12 +232,12 @@ export function ProfilePreview({
                     <div>
                       <h4 className="line-clamp-1 text-xs font-bold text-gray-800 dark:text-gray-200">{product.title}</h4>
                       {product.price && (
-                        <p className="mt-1 text-xs font-extrabold text-[#FF6B6B]">{product.price}</p>
+                        <p className="mt-1 text-xs font-extrabold text-[#111827]">{product.price}</p>
                       )}
                     </div>
                     {/* Buy Button */}
                     <div 
-                      className="mt-3 w-full rounded-xl bg-[#FF6B6B] py-1.5 text-center text-[10px] font-extrabold text-white hover:brightness-115 transition-all"
+                      className="mt-3 w-full rounded-xl bg-[#111827] py-1.5 text-center text-[10px] font-extrabold text-white hover:brightness-115 transition-all"
                       style={preset ? { backgroundColor: preset.btnBg, color: preset.btnText } : {}}
                     >
                       Shop Now

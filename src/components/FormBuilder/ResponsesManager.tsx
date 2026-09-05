@@ -199,7 +199,7 @@ export default function ResponsesManager({ formId, formStructure }: ResponsesMan
 
           <button
             onClick={handleExport}
-            className="px-4 py-2 bg-gradient-to-r from-[#FF6B6B] to-[#EE5A24] text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+            className="px-4 py-2 bg-gradient-to-r from-[#111827] to-[#111827] text-white rounded-lg font-semibold hover:shadow-lg transition-all"
           >
             📥 Export CSV
           </button>

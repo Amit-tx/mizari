@@ -13,6 +13,7 @@ import { ClassicGuestbook } from '@/components/ClassicGuestbook';
 import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { BirthdayConfetti } from '@/components/BirthdayConfetti';
 import { LinksAndProducts } from '@/components/LinksAndProducts';
+import { CreatorCardTheme } from '@/components/CreatorCardTheme';
 import { AmbientPlayer } from '@/components/AmbientPlayer';
 import { getStoreThemeById } from '@/components/StoreThemes';
 import AnimeReactiveSky from '@/components/AnimeReactiveSky';
@@ -105,6 +106,25 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Separate standard links and product cards
   const standardLinks = activeLinks.filter((l) => !l.isProduct || l.isProduct === 0);
   const productLinks = activeLinks.filter((l) => l.isProduct === 1);
+
+  // "Creator Card" theme: a distinct modern storefront layout (light/dark
+  // toggle, stat pills, product grid). Rendered standalone so it never
+  // interferes with the preset/custom theme pipeline below.
+  if (profile.themeType === 'creator_card') {
+    return (
+      <CreatorCardTheme
+        username={profile.username}
+        avatarUrl={profile.avatarUrl}
+        tagline={profile.tagline}
+        bio={profile.bio}
+        profileType={profile.profileType}
+        views={profile.views}
+        standardLinks={standardLinks}
+        productLinks={productLinks}
+        profileForms={profileForms}
+      />
+    );
+  }
 
   // Dynamic Theme Shifts: Day/Night, Festivals, and Birthday
   const today = new Date();
